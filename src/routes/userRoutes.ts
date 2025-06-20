@@ -4,11 +4,11 @@ import { validateRequest, validateParams } from '../middleware/validation';
 import { createUserSchema, walletAddressSchema } from '../validation/userValidation';
 
 const router = Router();
-const userService = new UserService();
 
 // Create or connect user (wallet login)
 router.post('/', validateRequest(createUserSchema), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const userService = new UserService();
     const user = await userService.createUser(req.body);
     
     res.status(201).json({
@@ -34,6 +34,7 @@ router.post('/', validateRequest(createUserSchema), async (req: Request, res: Re
 // Get user by wallet address
 router.get('/:walletAddress', validateParams(walletAddressSchema), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const userService = new UserService();
     const user = await userService.getUserByWalletAddress(req.params.walletAddress);
     
     if (!user) {
