@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express'
 import z from 'zod'
-import { validateParams, validateRequest } from '../middleware/validation'
-import { UserService } from '../services/userService'
-import { createUserSchema, walletAddressSchema } from '../validation/userValidation'
+import { validateParams, validateRequest } from '../middleware/validation.js'
+import { UserService } from '../services/userService.js'
+import { createUserSchema, walletAddressSchema } from '../validation/userValidation.js'
 
 const router = Router();
 

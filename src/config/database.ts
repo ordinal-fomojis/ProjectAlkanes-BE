@@ -1,5 +1,5 @@
-import { Db, MongoClient } from 'mongodb'
-import { DB_NAME, MONGODB_URI } from './constants'
+import { Db, MongoClient } from 'mongodb';
+import { DB_NAME, MONGODB_URI } from './constants.js';
 
 class Database {
   private client: MongoClient;

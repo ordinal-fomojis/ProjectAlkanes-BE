@@ -1,13 +1,13 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
-import express, { Request, Response } from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import cron from 'node-cron'
-import { database } from './config/database'
-import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions'
-import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security'
-import userRoutes from './routes/userRoutes'
+import { database } from './config/database.js'
+import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
+import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
+import userRoutes from './routes/userRoutes.js'
 
 // Load environment variables
 dotenv.config();
@@ -78,7 +78,7 @@ app.get('/health', (_: Request, res: Response) => {
 app.use('/api/users', userRoutes);
 
 // 404 handler
-app.use('*', (_: Request, res: Response) => {
+app.use((_: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: 'Route not found'
@@ -86,7 +86,7 @@ app.use('*', (_: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((error: Error, _: Request, res: Response) => {
+app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
   console.error('Global error handler:', error);
   res.status(500).json({
     success: false,

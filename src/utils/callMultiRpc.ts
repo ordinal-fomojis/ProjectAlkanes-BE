@@ -1,5 +1,5 @@
 import z from "zod"
-import { callRpc } from "./callRpc"
+import { callRpc } from "./callRpc.js"
 
 export async function callMultiRpc<T extends z.ZodTypeAny>(schema: T, params: [string, unknown[]][]) {
   const rpcSchema = z.array(z.object({

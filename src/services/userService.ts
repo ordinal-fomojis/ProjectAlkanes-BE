@@ -1,5 +1,5 @@
-import { CreateUserRequest, IUser, User } from '../models/User'
-import { BaseService } from './BaseService'
+import { CreateUserRequest, IUser, User } from '../models/User.js'
+import { BaseService } from './BaseService.js'
 
 export class UserService extends BaseService<IUser> {
   protected readonly collectionName = User.COLLECTION_NAME

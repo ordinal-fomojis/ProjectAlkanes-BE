@@ -1,5 +1,5 @@
-import { Collection, Document } from "mongodb"
-import { database } from "src/config/database"
+import { Collection, Document } from "mongodb";
+import { database } from "../config/database.js";
 
 export abstract class BaseService<T extends Document> {
   protected abstract readonly collectionName: string
