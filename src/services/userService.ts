@@ -13,6 +13,27 @@ export class UserService extends BaseService<IUser> {
       .trim();
   }
 
+  private async generateUniqueReferralCode(): Promise<string> {
+    let referralCode: string;
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (!isUnique && attempts < maxAttempts) {
+      referralCode = User.generateReferralCode();
+      
+      const existingUser = await this.collection.findOne({ referralCode });
+      if (!existingUser) {
+        isUnique = true;
+        return referralCode;
+      }
+      
+      attempts++;
+    }
+
+    throw new Error('Failed to generate unique referral code');
+  }
+
   async createUser(userData: CreateUserRequest): Promise<IUser> {
     const normalizedAddress = this.sanitizeWalletAddress(userData.walletAddress);
     
@@ -40,13 +61,20 @@ export class UserService extends BaseService<IUser> {
       return result;
     }
 
-    // Create new user
+    // Create new user with referral code
     const newUser = User.createUser(normalizedAddress);
-    const result = await this.collection.insertOne(newUser);
+    const referralCode = await this.generateUniqueReferralCode();
+    
+    const userWithReferralCode = {
+      ...newUser,
+      referralCode
+    };
+
+    const result = await this.collection.insertOne(userWithReferralCode);
     
     return {
       _id: result.insertedId,
-      ...newUser
+      ...userWithReferralCode
     };
   }
 
