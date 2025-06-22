@@ -31,7 +31,8 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
       .map(x => {
         const tx = Transaction.fromHex(x.response)
         const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
-        return mintId == null ? { txid: tx.getId() } : { txid: tx.getId(), mintId }
+        const txid = tx.getId()
+        return mintId == null ? { txid } : { txid, mintId }
       })
 
     await this.collection.insertMany(mempoolTransactions)
