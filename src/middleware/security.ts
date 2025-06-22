@@ -29,7 +29,7 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
         // Remove HTML tags and dangerous characters
         req.body[key] = req.body[key]
           .replace(/<[^>]*>/g, '')
-          .replace(/[^\w\-\.\s]/g, '')
+          .replace(/[^\w\-.\s]/g, '')
           .trim();
       }
     });
@@ -41,7 +41,7 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
       if (typeof req.query[key] === 'string') {
         req.query[key] = req.query[key]
           .replace(/<[^>]*>/g, '')
-          .replace(/[^\w\-\.\s]/g, '')
+          .replace(/[^\w\-.\s]/g, '')
           .trim();
       }
     });

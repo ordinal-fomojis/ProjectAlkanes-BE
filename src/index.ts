@@ -87,6 +87,7 @@ app.use((_: Request, res: Response) => {
 });
 
 // Global error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
   console.error('Global error handler:', error);
   res.status(500).json({

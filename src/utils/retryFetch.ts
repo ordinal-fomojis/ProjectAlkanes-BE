@@ -8,7 +8,7 @@ class RequestError extends Error {
   }
 }
 
-type RetryFetchOptions = {
+interface RetryFetchOptions {
   retries?: number
   retryCondition?: (error: unknown, base: () => void) => Promise<boolean>
   // If error is due to request failure, it will be a RequestError. Otherwise, it could be any error

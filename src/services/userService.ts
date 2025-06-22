@@ -8,7 +8,7 @@ export class UserService extends BaseService<IUser> {
     // Remove any HTML/script tags and normalize
     return address
       .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/[^\w\-\.]/g, '') // Only allow alphanumeric, hyphens, and dots
+      .replace(/[^\w\-.]/g, '') // Only allow alphanumeric, hyphens, and dots
       .toLowerCase()
       .trim();
   }
