@@ -1,12 +1,13 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { UserService } from '../services/userService';
-import { validateRequest, validateParams } from '../middleware/validation';
-import { createUserSchema, walletAddressSchema } from '../validation/userValidation';
+import { Request, Response, Router } from 'express'
+import z from 'zod'
+import { validateParams, validateRequest } from '../middleware/validation'
+import { UserService } from '../services/userService'
+import { createUserSchema, walletAddressSchema } from '../validation/userValidation'
 
 const router = Router();
 
 // Create or connect user (wallet login)
-router.post('/', validateRequest(createUserSchema), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/', validateRequest(createUserSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const userService = new UserService();
     const user = await userService.createUser(req.body);
@@ -32,10 +33,20 @@ router.post('/', validateRequest(createUserSchema), async (req: Request, res: Re
 });
 
 // Get user by wallet address
-router.get('/:walletAddress', validateParams(walletAddressSchema), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/:walletAddress', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
   try {
-    const userService = new UserService();
-    const user = await userService.getUserByWalletAddress(req.params.walletAddress);
+    const userService = new UserService()
+    const walletAddress = z.string().safeParse(req.params.walletAddress)
+
+    if (!walletAddress.success) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid wallet address format'
+      });
+      return;
+    }
+
+    const user = await userService.getUserByWalletAddress(walletAddress.data)
     
     if (!user) {
       res.status(404).json({

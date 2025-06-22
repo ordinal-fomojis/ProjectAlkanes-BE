@@ -1,11 +1,11 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
-import { database } from './config/database';
-import userRoutes from './routes/userRoutes';
-import { securityHeaders, sanitizeRequest, validateContentType } from './middleware/security';
+import cors from 'cors'
+import dotenv from 'dotenv'
+import express, { Request, Response } from 'express'
+import rateLimit from 'express-rate-limit'
+import helmet from 'helmet'
+import { database } from './config/database'
+import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security'
+import userRoutes from './routes/userRoutes'
 
 // Load environment variables
 dotenv.config();
@@ -47,13 +47,13 @@ app.use(sanitizeRequest);
 app.use(validateContentType);
 
 // Request logging middleware
-app.use((req: Request, res: Response, next) => {
+app.use((req: Request, _: Response, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
 // Basic routes
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_: Request, res: Response) => {
   res.json({
     message: 'Welcome to Project Alkanes Backend API!',
     status: 'Server is running',
@@ -63,7 +63,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Health check route
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_: Request, res: Response) => {
   res.json({
     status: 'OK',
     uptime: process.uptime(),
@@ -76,7 +76,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/users', userRoutes);
 
 // 404 handler
-app.use('*', (req: Request, res: Response) => {
+app.use('*', (_: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: 'Route not found'
@@ -84,7 +84,7 @@ app.use('*', (req: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((error: Error, req: Request, res: Response, next: any) => {
+app.use((error: Error, _: Request, res: Response) => {
   console.error('Global error handler:', error);
   res.status(500).json({
     success: false,

@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express'
 
 // Additional security headers
-export const securityHeaders = (req: Request, res: Response, next: NextFunction): void => {
+export const securityHeaders = (_: Request, res: Response, next: NextFunction): void => {
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
   
@@ -21,7 +21,7 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
 };
 
 // Request sanitization middleware
-export const sanitizeRequest = (req: Request, res: Response, next: NextFunction): void => {
+export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): void => {
   // Sanitize request body
   if (req.body) {
     Object.keys(req.body).forEach(key => {

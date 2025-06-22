@@ -1,14 +1,5 @@
-import { MongoClient, Db } from 'mongodb';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = process.env.MONGODB_DB_NAME || 'project-alkanes';
-
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI environment variable is required');
-}
+import { Db, MongoClient } from 'mongodb'
+import { DB_NAME, MONGODB_URI } from './constants'
 
 class Database {
   private client: MongoClient;
