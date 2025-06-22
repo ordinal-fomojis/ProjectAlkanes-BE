@@ -1,4 +1,4 @@
-import { MempoolTransactionService } from "src/services/mempoolTransactionService.js"
+import { MempoolTransactionService } from "../services/MempoolTransactionService.js"
 
 export async function syncMempoolTransactions() {
   console.log('Starting mempool transactions synchronization...')
