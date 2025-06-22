@@ -42,4 +42,4 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
       createdCount: mempoolTransactions.length
     }
   }
-} 
+}
