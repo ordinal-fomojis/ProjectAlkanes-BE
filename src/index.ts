@@ -9,6 +9,7 @@ import { database } from './config/database.js'
 import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import userRoutes from './routes/userRoutes.js'
+import referralRoutes from './routes/referralRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 
 // Load environment variables
@@ -78,6 +79,7 @@ app.get('/health', (_: Request, res: Response) => {
 
 // API routes
 app.use('/api/users', userRoutes);
+app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 
 // 404 handler
@@ -111,6 +113,7 @@ async function startServer() {
       console.log(`📡 API available at http://localhost:${PORT}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`👥 User API: http://localhost:${PORT}/api/users`);
+      console.log(`🎯 Referral API: http://localhost:${PORT}/api/referral`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
