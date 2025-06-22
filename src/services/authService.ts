@@ -70,7 +70,12 @@ export class AuthService extends BaseService<NonceData> {
 
   async verifySignatureAndCreateJWT(walletAddress: string, signature: string, message: string): Promise<{
     token: string;
-    user: any;
+    user: {
+      _id: any;
+      walletAddress: string;
+      createdAt: Date;
+      lastLoginAt?: Date;
+    };
     expiresAt: Date;
   }> {
     // Find the nonce record

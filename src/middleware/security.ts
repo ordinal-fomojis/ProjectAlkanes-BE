@@ -29,7 +29,7 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
         // Remove HTML tags and dangerous characters but preserve auth-related characters
         req.body[key] = req.body[key]
           .replace(/<[^>]*>/g, '')
-          .replace(/[^\w\-.\s:\/\n\r\t]/g, '')  // Allow colons, slashes, newlines for auth messages
+                      .replace(/[^\w\-.\s:/\n\r\t]/g, '')  // Allow colons, slashes, newlines for auth messages
           .trim();
       }
     });

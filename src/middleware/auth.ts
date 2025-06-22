@@ -67,7 +67,7 @@ export const optionalAuth = async (
     }
 
     next();
-  } catch (error) {
+  } catch (_error) {
     // For optional auth, we don't fail the request if token is invalid
     // Just proceed without user info
     next();
