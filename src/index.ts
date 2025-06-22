@@ -3,7 +3,9 @@ import dotenv from 'dotenv'
 import express, { Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
+import cron from 'node-cron'
 import { database } from './config/database'
+import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security'
 import userRoutes from './routes/userRoutes'
 
@@ -124,5 +126,7 @@ process.on('SIGINT', async () => {
   await database.disconnect();
   process.exit(0);
 });
+
+cron.schedule('*/30 * * * * *', syncMempoolTransactions)
 
 startServer(); 
