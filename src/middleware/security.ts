@@ -26,10 +26,10 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
   if (req.body) {
     Object.keys(req.body).forEach(key => {
       if (typeof req.body[key] === 'string') {
-        // Remove HTML tags and dangerous characters
+        // Remove HTML tags and dangerous characters but preserve auth-related characters
         req.body[key] = req.body[key]
           .replace(/<[^>]*>/g, '')
-          .replace(/[^\w\-.\s]/g, '')
+          .replace(/[^\w\-.\s:\/\n\r\t]/g, '')  // Allow colons, slashes, newlines for auth messages
           .trim();
       }
     });

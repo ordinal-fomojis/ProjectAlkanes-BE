@@ -9,6 +9,7 @@ import { database } from './config/database.js'
 import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import userRoutes from './routes/userRoutes.js'
+import authRoutes from './routes/authRoutes.js'
 
 // Load environment variables
 dotenv.config();
@@ -77,6 +78,7 @@ app.get('/health', (_: Request, res: Response) => {
 
 // API routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {
