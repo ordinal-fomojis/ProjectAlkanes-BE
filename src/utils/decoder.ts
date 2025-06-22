@@ -14,12 +14,9 @@ export function decodeAlkaneOpCallsInTransaction(tx: Transaction) {
 
     const runestonePushes = outScript.slice(RUNESTONE_IDENTIFIER.length)
     if (runestonePushes.some(x => typeof x === 'number')) return []
-    return {
-      txid: tx.getId(),
-      calls: decodeOpCallsInRunestone(Buffer.concat(runestonePushes.filter(x => !(typeof x === 'number'))))
-    }
+    return decodeOpCallsInRunestone(Buffer.concat(runestonePushes.filter(x => !(typeof x === 'number'))))
   }
-  return null
+  return []
 }
 
 const PROTORUNE_TAG = BigInt(16383)

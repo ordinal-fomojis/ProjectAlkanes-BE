@@ -1,14 +1,9 @@
-import { Collection } from 'mongodb';
-import { database } from '../config/database';
-import { IUser, CreateUserRequest, User } from '../models/User';
+import { CreateUserRequest, IUser, User } from '../models/User'
+import { BaseService } from './BaseService'
 
-export class UserService {
-  private collection: Collection<IUser>;
-
-  constructor() {
-    this.collection = database.getDb().collection<IUser>(User.COLLECTION_NAME);
-  }
-
+export class UserService extends BaseService<IUser> {
+  protected readonly collectionName = User.COLLECTION_NAME
+  
   private sanitizeWalletAddress(address: string): string {
     // Remove any HTML/script tags and normalize
     return address

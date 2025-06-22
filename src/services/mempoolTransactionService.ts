@@ -1,0 +1,54 @@
+import { Transaction } from 'bitcoinjs-lib'
+import { decodeAlkaneOpCallsInTransaction } from 'src/utils/decoder'
+import { getMempoolTransactionIds } from 'src/utils/getMempoolTransactionIds'
+import { getRawTransactions } from 'src/utils/getRawTransactions'
+import { BaseService } from './BaseService'
+
+export interface AlkanesContractCall {
+  alkaneId: string
+  opcode: number
+}
+
+export interface MempoolTransaction {
+  txid: string
+  mintId: string | null
+  contractCalls: AlkanesContractCall[]
+}
+
+export class MempoolTransactionService extends BaseService<MempoolTransaction> {
+  protected collectionName = 'mempool_transactions'
+
+  async syncMempoolTransactions() {
+    const mempoolTxIds = await getMempoolTransactionIds()
+    const mempoolTxIdsSet = new Set(mempoolTxIds)
+
+    const dbTxIds = (await this.collection.find().toArray()).map(tx => tx.txid)
+    const dbTxIdsSet = new Set(dbTxIds)
+    
+    const newTxns = mempoolTxIds.filter(txid => !dbTxIdsSet.has(txid))
+
+    const txnsToDelete = dbTxIds.filter(txid => !mempoolTxIdsSet.has(txid))
+
+    if (txnsToDelete.length > 0) {
+      await this.collection.deleteMany({ txid: { $in: txnsToDelete } })
+    }
+
+    const mempoolTransactions = (await getRawTransactions(newTxns)).filter(x => x.success)
+      .map(x => {
+        const tx = Transaction.fromHex(x.response)
+        const contractCalls = decodeAlkaneOpCallsInTransaction(tx)
+        return ({
+          txid: tx.getId(),
+          mintId: contractCalls.find(call => call.opcode === 77)?.alkaneId ?? null,
+          contractCalls
+        })
+      })
+
+    await this.collection.insertMany(mempoolTransactions)
+
+    return {
+      deletedCount: txnsToDelete.length,
+      createdCount: mempoolTransactions.length
+    }
+  }
+} 
