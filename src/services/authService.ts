@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { ObjectId } from 'mongodb';
 import { BaseService } from './BaseService.js';
 import { UserService } from './userService.js';
 
@@ -71,7 +72,7 @@ export class AuthService extends BaseService<NonceData> {
   async verifySignatureAndCreateJWT(walletAddress: string, signature: string, message: string): Promise<{
     token: string;
     user: {
-      _id: any;
+      _id: ObjectId;
       walletAddress: string;
       createdAt: Date;
       lastLoginAt?: Date;
@@ -118,7 +119,7 @@ export class AuthService extends BaseService<NonceData> {
     return {
       token,
       user: {
-        _id: user._id,
+        _id: user._id!,
         walletAddress: user.walletAddress,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt
