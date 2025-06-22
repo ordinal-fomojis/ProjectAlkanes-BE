@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import cron from 'node-cron'
+import { MempoolSyncCronJobOptions } from './config/constants.js'
 import { database } from './config/database.js'
 import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
@@ -127,6 +128,9 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-cron.schedule('*/30 * * * * *', syncMempoolTransactions)
+if (MempoolSyncCronJobOptions.enabled) {
+  console.log(`🔄 Mempool sync cron job is enabled`);
+  cron.schedule(MempoolSyncCronJobOptions.cronExpression, syncMempoolTransactions);
+}
 
 startServer(); 

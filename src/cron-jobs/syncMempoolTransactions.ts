@@ -1,3 +1,8 @@
+import { MempoolTransactionService } from "src/services/mempoolTransactionService.js"
+
 export async function syncMempoolTransactions() {
-  console.log('🔄 Syncing mempool transactions...');
+  console.log('Starting mempool transactions synchronization...')
+  const service = new MempoolTransactionService()
+  const result = await service.syncMempoolTransactions()
+  console.log(`Deleted ${result.deletedCount} transactions, created ${result.createdCount} new transactions in the mempool.`)
 }

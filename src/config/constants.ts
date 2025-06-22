@@ -19,3 +19,8 @@ export const BITCOIN_RPC_URL = BitcoinRpcUrls[BITCOIN_NETWORK]
 
 export const MONGODB_URI = z.string().url().parse(process.env.MONGODB_URI)
 export const DB_NAME = z.string().default('project-alkanes').parse(process.env.MONGODB_DB_NAME)
+
+export const MempoolSyncCronJobOptions = {
+  enabled: z.string().default("false").parse(process.env.MEMPOOL_SYNC_ENABLED) === 'true',
+  cronExpression: z.string().default('*/30 * * * * *').parse(process.env.MEMPOOL_SYNC_CRON_EXPRESSION)
+}
