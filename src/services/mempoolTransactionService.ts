@@ -4,15 +4,9 @@ import { getMempoolTransactionIds } from '../utils/getMempoolTransactionIds.js'
 import { getRawTransactions } from '../utils/getRawTransactions.js'
 import { BaseService } from './BaseService.js'
 
-export interface AlkanesContractCall {
-  alkaneId: string
-  opcode: number
-}
-
 export interface MempoolTransaction {
   txid: string
-  mintId: string | null
-  contractCalls: AlkanesContractCall[]
+  mintId?: string
 }
 
 export class MempoolTransactionService extends BaseService<MempoolTransaction> {
@@ -36,12 +30,8 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
     const mempoolTransactions = (await getRawTransactions(newTxns)).filter(x => x.success)
       .map(x => {
         const tx = Transaction.fromHex(x.response)
-        const contractCalls = decodeAlkaneOpCallsInTransaction(tx)
-        return ({
-          txid: tx.getId(),
-          mintId: contractCalls.find(call => call.opcode === 77)?.alkaneId ?? null,
-          contractCalls
-        })
+        const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
+        return mintId == null ? { txid: tx.getId() } : { txid: tx.getId(), mintId }
       })
 
     await this.collection.insertMany(mempoolTransactions)

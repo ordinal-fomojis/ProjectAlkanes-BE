@@ -7,7 +7,8 @@ export type BitcoinNetwork = typeof BITCOIN_NETWORK
 export const BITCOIN_NETWORK = z.enum(['mainnet', 'signet', 'testnet'])
   .default('mainnet').parse(process.env.BITCOIN_NETWORK)
 
-export const SANDSHREW_API_KEY = z.string().parse(process.env.SANDSHREW_API_KEY)
+export const SANDSHREW_API_KEY = z.string({ message: "SANDSHREW_API_KEY is missing" })
+  .parse(process.env.SANDSHREW_API_KEY)
 
 const BitcoinRpcUrls = {
   'mainnet': `https://mainnet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
@@ -17,7 +18,7 @@ const BitcoinRpcUrls = {
 
 export const BITCOIN_RPC_URL = BitcoinRpcUrls[BITCOIN_NETWORK]
 
-export const MONGODB_URI = z.string().url().parse(process.env.MONGODB_URI)
+export const MONGODB_URI = z.string({ message: "MONGODB_URI is missing" }).parse(process.env.MONGODB_URI)
 export const DB_NAME = z.string().default('project-alkanes').parse(process.env.MONGODB_DB_NAME)
 
 export const MempoolSyncCronJobOptions = {
