@@ -13,7 +13,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "baseUrl": ".",
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -28,10 +27,9 @@
   ],
   "ts-node": {
     "compilerOptions": {
-      "module": "NodeNext",
+      "module": "ES2022",
       "target": "ESNext",
-      "esModuleInterop": true,
-      "isolatedModules": true
+      "esModuleInterop": true
     }
   }
 } 

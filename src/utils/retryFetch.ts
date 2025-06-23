@@ -1,8 +1,8 @@
 import { z } from "zod"
 
-const DEFAULT_RETRY_FETCH_TIMES = 4
+export const DEFAULT_RETRY_FETCH_TIMES = 4
 
-class RequestError extends Error {
+export class RequestError extends Error {
   constructor(public status: number, public text: string, public url: string) {
     super(`Request failed with error ${status}: ${text}`)
   }
@@ -10,8 +10,7 @@ class RequestError extends Error {
 
 interface RetryFetchOptions {
   retries?: number
-  retryCondition?: (error: unknown, base: () => void) => Promise<boolean>
-  // If error is due to request failure, it will be a RequestError. Otherwise, it could be any error
+  retryCondition?: (error: unknown, base: () => boolean) => Promise<boolean>
   delay?: (attempt: number, error: unknown, base: () => number) => Promise<number>
 }
 
@@ -59,7 +58,7 @@ export async function retrySchemaFetch<T extends z.ZodTypeAny>(schema: T, ...arg
   return await retryJsonFetch(...args).then(response => schema.parse(response))
 }
 
-async function calculateDelay (options: RetryFetchOptions, attempt: number, error: unknown) {
+async function calculateDelay(options: RetryFetchOptions, attempt: number, error: unknown) {
   if (attempt >= (options.retries ?? DEFAULT_RETRY_FETCH_TIMES)) return null
   const shouldRetry = await options.retryCondition?.(error, () => baseCondition(error)) ?? baseCondition(error)
   if (!shouldRetry) return null
@@ -79,6 +78,6 @@ function baseDelay(attempt: number) {
   return 100 * Math.pow(2, attempt)
 }
 
-function jitter(time: number | null | undefined) {
-  return time == null ? null : time * (0.9 + Math.random() * 0.2)
+function jitter(time: number) {
+  return time * (0.9 + Math.random() * 0.2)
 }

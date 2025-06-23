@@ -10,6 +10,7 @@
     "dev": "nodemon --exec tsx src/index.ts",
     "clean": "rm -rf dist",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "test:coverage": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage && open coverage/lcov-report/index.html",
     "lint": "eslint"
   },
   "keywords": [],
@@ -37,11 +38,13 @@
     "@types/node": "^24.0.3",
     "eslint": "^9.29.0",
     "jest": "^30.0.2",
+    "jest-fetch-mock": "^3.0.3",
     "nodemon": "^3.1.10",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.1"
+    "typescript-eslint": "^8.34.1",
+    "vitest": "^3.2.4"
   }
 }

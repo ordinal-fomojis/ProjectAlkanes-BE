@@ -1,16 +1,15 @@
 import type { Config } from 'jest'
 import { createDefaultEsmPreset } from 'ts-jest'
 
-const config: Config = createDefaultEsmPreset({
-  displayName: 'server',
-  preset: "ts-jest",
-  modulePaths: ['<rootDir>'],
+export default {
+  ...createDefaultEsmPreset(),
+  setupFilesAfterEnv: ['./tests/jest.setup.ts'],
   testEnvironment: 'node',
   collectCoverageFrom: [
-    '<rootDir>/src/**/*.ts'
+    './src/**/*.ts'
   ],
-  setupFiles: ["<rootDir>/tests/jest.env.ts"],
-  setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"]
-})
-
-export default config;
+  // moduleNameMapper: {
+  //   '^(\\.{1,2}/.*)\\.js$': '$1'
+  // },
+  roots: ['<rootDir>']
+} satisfies Config;
