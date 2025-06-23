@@ -1,13 +1,13 @@
+import { expect, it, vi } from 'vitest'
 import z from "zod"
 import { callMultiRpc } from "../../src/utils/callMultiRpc.js"
 import { callRpc } from "../../src/utils/callRpc.js"
 
 // Mock callRpc to isolate tests
-jest.mock("../../src/utils/callRpc.js")
+vi.mock("../../src/utils/callRpc.js")
 
 it('should process successful responses correctly', async () => {
-  // Mock the callRpc response to simulate successful multicall
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { result: 'result1' },
     { result: 'result2' }
   ])
@@ -35,7 +35,7 @@ it('should process successful responses correctly', async () => {
 
 it('should handle failed RPC calls correctly', async () => {
   // Mock the callRpc response to simulate a mix of success and failure
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { result: 'result1' },
     { error: { code: -1, message: 'RPC error' } }
   ])
@@ -53,7 +53,7 @@ it('should handle failed RPC calls correctly', async () => {
 
 it('should handle empty or null results correctly', async () => {
   // Mock the callRpc response to simulate null results
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { result: null }, 
     { result: undefined },
     { error: null }
@@ -74,7 +74,7 @@ it('should handle empty or null results correctly', async () => {
 it('should pass through errors thrown by callRpc', async () => {
   // Mock callRpc to throw an error
   const testError = new Error('Test network error')
-  jest.mocked(callRpc).mockRejectedValue(testError)
+  vi.mocked(callRpc).mockRejectedValue(testError)
 
   const params: [string, unknown[]][] = [
     ['method1', ['param1']],
@@ -87,7 +87,7 @@ it('should pass through errors thrown by callRpc', async () => {
 
 it('should handle different schema types correctly', async () => {
   // Mock successful responses with different types
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { result: 42 },
     { result: { value: "test" } }
   ])
@@ -117,7 +117,7 @@ it('should handle a large number of RPC calls correctly', async () => {
       : { result: `result${i}` }
   )
   
-  jest.mocked(callRpc).mockResolvedValue(mockResponses)
+  vi.mocked(callRpc).mockResolvedValue(mockResponses)
   
   // Create parameters for 10 RPC calls
   const params: [string, unknown[]][] = Array(10).fill(null).map((_, i) => 
@@ -159,7 +159,7 @@ it('should handle complex nested schemas', async () => {
   })
   
   // Mock responses with complex objects
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { 
       result: {
         id: "tx1",
@@ -203,7 +203,7 @@ it('should handle complex nested schemas', async () => {
 
 it('should format error messages correctly with complex parameters', async () => {
   // Mock response with an error
-  jest.mocked(callRpc).mockResolvedValue([
+  vi.mocked(callRpc).mockResolvedValue([
     { error: { code: -32601, message: "Method not found" } }
   ])
   
@@ -229,7 +229,7 @@ it('should format error messages correctly with complex parameters', async () =>
 
 it('should handle empty params array gracefully', async () => {
   // Mock a successful response
-  jest.mocked(callRpc).mockResolvedValue([])
+  vi.mocked(callRpc).mockResolvedValue([])
   
   // Call with empty params array
   const emptyParams: [string, unknown[]][] = []

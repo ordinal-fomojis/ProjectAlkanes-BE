@@ -1,3 +1,4 @@
+import { expect, it } from "vitest"
 import z from "zod"
 import { BITCOIN_RPC_URL } from "../../src/config/constants.js"
 import { callRpc } from "../../src/utils/callRpc.js"
