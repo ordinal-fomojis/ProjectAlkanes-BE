@@ -25,5 +25,13 @@
   "exclude": [
     "node_modules",
     "dist"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "NodeNext",
+      "target": "ESNext",
+      "esModuleInterop": true,
+      "isolatedModules": true
+    }
+  }
 } 
