@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { z } from 'zod'
 
-dotenv.config()
+dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.sample' : undefined })
 
 export type BitcoinNetwork = typeof BITCOIN_NETWORK
 export const BITCOIN_NETWORK = z.enum(['mainnet', 'signet', 'testnet'])
