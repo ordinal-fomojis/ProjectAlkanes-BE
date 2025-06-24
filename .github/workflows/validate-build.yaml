@@ -19,8 +19,14 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Validate Test Typescript
+      run: tsc -p tests
+
     - name: Lint
       run: npm run lint -- --max-warnings 0
 
     - name: Build
       run: npm run build
+
+    - name: Test
+      run: npm test

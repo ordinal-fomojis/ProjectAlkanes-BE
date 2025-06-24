@@ -44,5 +44,6 @@ it.each([
   ]
 ])('should decode block correctly (case %$)', (file, opCalls) => {
   const hex = fs.readFileSync(`tests/fixtures/${file}`, 'utf8')
+  const x = 'hello'
   expect(decodeAlkaneOpCallsInBlock(hex)).toEqual(opCalls)
 })
