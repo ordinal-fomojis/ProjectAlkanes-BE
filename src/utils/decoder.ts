@@ -2,7 +2,10 @@ import { Block, opcodes, script, Transaction } from "bitcoinjs-lib"
 
 export function decodeAlkaneOpCallsInBlock(blockHex: string) {
   const block = Block.fromHex(blockHex)
-  return (block.transactions ?? []).map(decodeAlkaneOpCallsInTransaction).filter(x => x != null)
+  return (block.transactions ?? []).map(tx => ({
+    txid: tx.getId(),
+    opcalls: decodeAlkaneOpCallsInTransaction(tx)
+  })).filter(x => x.opcalls.length > 0)
 }
 
 const RUNESTONE_IDENTIFIER = [opcodes.OP_RETURN, opcodes.OP_13]
@@ -102,51 +105,6 @@ function decodeTags(values: Buffer[]) {
   }
   return tags
 }
-
-function bigintToBuffer(value: bigint) {
-  const buffer = []
-  while (value > BigInt(0)) {
-    buffer.push(Number(value & BigInt(0xff)))
-    value >>= BigInt(8)
-  }
-  if (buffer.length === 0) {
-    buffer.push(0)
-  }
-  return Buffer.from(buffer)
-}
-
-// 1- x
-// 0 -> 1
-// 1 -> 0
-// 2 -> -1
-// 3 -> -2
-// 4 -> -3
-
-export function decodeLeb128x(buffer: Buffer) {
-  const values: bigint[] = []
-  let shift = 0
-  let currentValue = BigInt(0)
-  for (const byte of buffer) {
-    const value = BigInt(byte & 0x7f)
-    currentValue |= (value << BigInt(shift))
-    shift += 7
-    if ((byte & 0x80) === 0) {
-      values.push(currentValue)
-      currentValue = BigInt(0)
-      shift = 0
-    }
-  }
-  return values.map(bigintToBuffer)
-}
-
-// 0 -> 0
-// 1 -> 7
-// 2 -> 6
-// 3 -> 5
-// 4 -> 4
-// 5 -> 3
-// 6 -> 2
-// 7 -> 1
 
 export function decodeLeb128(buffer: Buffer) {
   const values: number[][] = []
