@@ -5,7 +5,7 @@
   },
   "typescript.format.semicolons": "remove",
   "files.insertFinalNewline": true,
-  "jest.useJest30": true,
+  
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "javascript.preferences.importModuleSpecifierEnding": "js"
 }
