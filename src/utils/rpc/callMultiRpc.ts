@@ -12,7 +12,7 @@ export async function callMultiRpc<T extends z.ZodTypeAny>(schema: T, params: [s
     if (response.result == null) {
       const method = params[index]?.[0]
       const param = JSON.stringify(params[index]?.[1])
-      const errorMessage = JSON.stringify(response.error) || 'Unknown error'
+      const errorMessage = JSON.stringify(response.error ?? 'Unknown error')
       const error = new Error(`Bitcoin RPC error for ${method} with params ${param}: ${errorMessage}`)
       return { success: false, error } as const
     }

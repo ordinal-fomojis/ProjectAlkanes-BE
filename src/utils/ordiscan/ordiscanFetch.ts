@@ -16,6 +16,6 @@ export async function ordiscanFetch<T extends z.ZodTypeAny>(schema: T, path: str
   if (response.data != null) {
     return response.data
   } else {
-    throw new Error(`Ordiscan error: ${JSON.stringify(response.error) ?? 'Unknown error'}`)
+    throw new Error(`Ordiscan error: ${JSON.stringify(response.error ?? 'Unknown error')}`)
   }
 }

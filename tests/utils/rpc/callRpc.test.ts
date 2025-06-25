@@ -24,7 +24,13 @@ describe('callRpc', () => {
   it('should throw unknown error if no error or data is returned', async () => {
     vi.mocked(retrySchemaFetch).mockResolvedValue({})
 
-    await expect(callRpc(z.null(), 'btc_getblockcount', []))
+    try {
+      await callRpc(z.string(), 'btc_getblockcount', [])
+    } catch (e) {
+      console.log(e)
+    }
+
+    await expect(callRpc(z.string(), 'btc_getblockcount', []))
       .rejects.toThrow('Bitcoin RPC error: Unknown error')
   })
 

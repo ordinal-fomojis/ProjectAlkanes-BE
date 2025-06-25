@@ -22,6 +22,6 @@ export async function callRpc<T extends z.ZodTypeAny>(schema: T, method: string,
   if (response.result != null) {
     return response.result
   } else {
-    throw new Error(`Bitcoin RPC error: ${JSON.stringify(response.error) ?? 'Unknown error'}`)
+    throw new Error(`Bitcoin RPC error: ${JSON.stringify(response.error ?? 'Unknown error')}`)
   }
 }
