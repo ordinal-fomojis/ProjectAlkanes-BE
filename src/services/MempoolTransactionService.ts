@@ -10,7 +10,7 @@ export interface MempoolTransaction {
 }
 
 export class MempoolTransactionService extends BaseService<MempoolTransaction> {
-  protected collectionName = 'mempool_transactions'
+  collectionName = 'mempool_transactions'
 
   async syncMempoolTransactions() {
     const mempoolTxIds = await getMempoolTransactionIds()
@@ -35,7 +35,9 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
         return mintId == null ? { txid } : { txid, mintId }
       })
 
-    await this.collection.insertMany(mempoolTransactions)
+    if (mempoolTransactions.length > 0) {
+      await this.collection.insertMany(mempoolTransactions)
+    }
 
     return {
       deletedCount: txnsToDelete.length,

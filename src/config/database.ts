@@ -6,7 +6,7 @@ class Database {
   private db: Db | null = null;
 
   constructor() {
-    this.client = new MongoClient(MONGODB_URI as string);
+    this.client = new MongoClient(MONGODB_URI)
   }
 
   async connect(): Promise<void> {
@@ -43,4 +43,4 @@ class Database {
   }
 }
 
-export const database = new Database(); 
+export const database = new Database()
