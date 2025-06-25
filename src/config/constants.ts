@@ -10,6 +10,9 @@ export const BITCOIN_NETWORK = z.enum(['mainnet', 'signet', 'testnet'])
 export const SANDSHREW_API_KEY = z.string({ message: "SANDSHREW_API_KEY is missing" })
   .parse(process.env.SANDSHREW_API_KEY)
 
+export const ORDISCAN_API_KEY = z.string({ message: "ORDISCAN_API_KEY is missing" })
+  .parse(process.env.ORDISCAN_API_KEY)
+
 const BitcoinRpcUrls = {
   'mainnet': `https://mainnet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
   'signet': `https://signet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,

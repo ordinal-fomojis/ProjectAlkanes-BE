@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { BITCOIN_RPC_URL } from "../config/constants.js"
-import { retrySchemaFetch } from "./retryFetch.js"
+import { BITCOIN_RPC_URL } from "../../config/constants.js"
+import { retrySchemaFetch } from "../retryFetch.js"
 
 export async function callRpc<T extends z.ZodTypeAny>(schema: T, method: string, params: unknown[] = []) {
   const rpcSchema = z.object({

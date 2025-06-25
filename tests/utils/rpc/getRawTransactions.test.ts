@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
 import z from "zod"
-import { callMultiRpc } from "../../src/utils/callMultiRpc.js"
-import { getRawTransactions } from "../../src/utils/getRawTransactions.js"
-import Random from "../test-utils/Random.js"
+import { callMultiRpc } from "../../../src/utils/rpc/callMultiRpc.js"
+import { getRawTransactions } from "../../../src/utils/rpc/getRawTransactions.js"
+import Random from "../../test-utils/Random.js"
 
-vi.mock("../../src/utils/callMultiRpc.js")
+vi.mock("../../../src/utils/rpc/callMultiRpc.js")
 
 describe('getRawTransactions', () => {
   it('should call rpc with correct parameters', async () => {

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import z from "zod"
-import { callMultiRpc } from "../../src/utils/callMultiRpc.js"
-import { callRpc } from "../../src/utils/callRpc.js"
+import { callMultiRpc } from '../../../src/utils/rpc/callMultiRpc.js'
+import { callRpc } from '../../../src/utils/rpc/callRpc.js'
 
-vi.mock("../../src/utils/callRpc.js")
+vi.mock('../../../src/utils/rpc/callRpc.js')
 
 describe('callMultiRpc', () => {
   it('should process successful responses correctly', async () => {

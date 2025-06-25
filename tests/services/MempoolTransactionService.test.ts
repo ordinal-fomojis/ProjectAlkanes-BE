@@ -4,12 +4,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { DB_NAME } from '../../src/config/constants.js'
 import { database } from '../../src/config/database.js'
 import { MempoolTransaction, MempoolTransactionService } from '../../src/services/MempoolTransactionService.js'
-import { getMempoolTransactionIds } from '../../src/utils/getMempoolTransactionIds.js'
-import { getRawTransactions } from '../../src/utils/getRawTransactions.js'
+import { getMempoolTransactionIds } from '../../src/utils/rpc/getMempoolTransactionIds.js'
+import { getRawTransactions } from '../../src/utils/rpc/getRawTransactions.js'
 import { dataPath } from '../test-utils/dataPath.js'
 
-vi.mock('../../src/utils/getMempoolTransactionIds.js')
-vi.mock('../../src/utils/getRawTransactions.js')
+vi.mock('../../src/utils/rpc/getMempoolTransactionIds.js')
+vi.mock('../../src/utils/rpc/getRawTransactions.js')
 
 let mongodb: MongoMemoryServer
 beforeAll(async () => {

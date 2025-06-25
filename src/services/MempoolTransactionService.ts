@@ -1,7 +1,7 @@
 import { Transaction } from 'bitcoinjs-lib'
 import { decodeAlkaneOpCallsInTransaction } from '../utils/decoder.js'
-import { getMempoolTransactionIds } from '../utils/getMempoolTransactionIds.js'
-import { getRawTransactions } from '../utils/getRawTransactions.js'
+import { getMempoolTransactionIds } from '../utils/rpc/getMempoolTransactionIds.js'
+import { getRawTransactions } from '../utils/rpc/getRawTransactions.js'
 import { BaseService } from './BaseService.js'
 
 export interface MempoolTransaction {

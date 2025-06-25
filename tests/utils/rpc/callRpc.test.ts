@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
 import z from "zod"
-import { BITCOIN_RPC_URL } from "../../src/config/constants.js"
-import { callRpc } from "../../src/utils/callRpc.js"
-import { retrySchemaFetch } from "../../src/utils/retryFetch.js"
+import { BITCOIN_RPC_URL } from "../../../src/config/constants.js"
+import { retrySchemaFetch } from "../../../src/utils/retryFetch.js"
+import { callRpc } from "../../../src/utils/rpc/callRpc.js"
 
-vi.mock("../../src/utils/retryFetch.js")
+vi.mock("../../../src/utils/retryFetch.js")
 
 describe('callRpc', () => {
   it('should return correct response from rpc', async () => {

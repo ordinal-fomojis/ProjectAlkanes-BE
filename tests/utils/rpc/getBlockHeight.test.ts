@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 import z from "zod"
-import { callRpc } from "../../src/utils/callRpc.js"
-import { getBlockHeight } from "../../src/utils/getBlockHeight.js"
+import { callRpc } from "../../../src/utils/rpc/callRpc.js"
+import { getBlockHeight } from "../../../src/utils/rpc/getBlockHeight.js"
 
-vi.mock("../../src/utils/callRpc.js")
+vi.mock("../../../src/utils/rpc/callRpc.js")
 
 describe('getBlockHeight', () => {
   it('should call rpc with correct parameters', async () => {

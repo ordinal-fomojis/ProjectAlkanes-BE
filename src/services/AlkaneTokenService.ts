@@ -1,18 +1,19 @@
-import { getBlockHeight } from "../utils/getBlockHeight.js"
+import { getBlockHeight } from "../utils/rpc/getBlockHeight.js"
 import { BaseService } from "./BaseService.js"
 import { BlockHeightService } from "./BlockHeightService.js"
 
-interface AlkaneToken {
+export interface AlkaneToken {
   alkaneId: string
   name: string
   symbol: string
   logoUrl: string
-  type: string
-  preminedSupply: string
-  amountPerMint: string
-  mintCountCap: string
+  preminedSupply: number
+  amountPerMint: number
+  mintCountCap: number
+  currentSupply: number
+  currentMintCount: number
   deployTxid: string
-  deployTimestamp: string
+  deployTimestamp: Date
 }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
