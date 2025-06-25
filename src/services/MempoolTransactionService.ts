@@ -27,7 +27,7 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
       await this.collection.deleteMany({ txid: { $in: txnsToDelete } })
     }
 
-    const mempoolTransactions = (await getRawTransactions(newTxns)).filter(x => x.success)
+    const mempoolTransactions = newTxns.length === 0 ? [] : (await getRawTransactions(newTxns)).filter(x => x.success)
       .map(x => {
         const tx = Transaction.fromHex(x.response)
         const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId

@@ -1,29 +1,25 @@
 import { Db, MongoClient } from 'mongodb'
-import { DB_NAME, MONGODB_URI } from './constants.js'
 
 class Database {
-  private client: MongoClient;
+  private client: MongoClient | null = null;
   private db: Db | null = null;
 
-  constructor() {
-    this.client = new MongoClient(MONGODB_URI)
-  }
-
-  async connect(): Promise<void> {
+  async connect(uri: string, dbName: string) {
     try {
+      this.client ??= new MongoClient(uri)
       await this.client.connect();
-      this.db = this.client.db(DB_NAME);
+      this.db = this.client.db(dbName);
       console.log('✅ Connected to MongoDB');
-      console.log(`📊 Database: ${DB_NAME}`);
+      console.log(`📊 Database: ${dbName}`);
     } catch (error) {
       console.error('❌ Failed to connect to MongoDB:', error);
       throw error;
     }
   }
 
-  async disconnect(): Promise<void> {
+  async disconnect() {
     try {
-      await this.client.close();
+      await this.client?.close();
       console.log('🔌 Disconnected from MongoDB');
     } catch (error) {
       console.error('❌ Error disconnecting from MongoDB:', error);
@@ -36,10 +32,6 @@ class Database {
       throw new Error('Database not connected. Call connect() first.');
     }
     return this.db;
-  }
-
-  getClient(): MongoClient {
-    return this.client;
   }
 }
 
