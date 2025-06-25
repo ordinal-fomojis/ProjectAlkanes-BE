@@ -7,7 +7,7 @@ interface BlockHeight {
 }
 
 export class BlockHeightService extends BaseService<BlockHeight> {
-  protected collectionName = 'block_heights'
+  collectionName = 'block_heights'
 
   async getBlockHeight(name: string): Promise<number | null> {
     const blockHeight = await this.collection.findOne({ name })

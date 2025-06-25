@@ -16,7 +16,7 @@ interface AlkaneToken {
 }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
-  protected collectionName = 'alkane_tokens'
+  collectionName = 'alkane_tokens'
 
   async syncTokens() {
     const blockHeightService = new BlockHeightService()

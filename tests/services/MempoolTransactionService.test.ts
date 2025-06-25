@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { afterAll, beforeAll, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { DB_NAME } from '../../src/config/constants.js'
 import { database } from '../../src/config/database.js'
 import { MempoolTransaction, MempoolTransactionService } from '../../src/services/MempoolTransactionService.js'
@@ -27,176 +27,180 @@ interface SetupArgs {
   db?: string[]
 }
 
-async function setup({ mempool, db }: SetupArgs = {}) {
-  vi.mocked(getRawTransactions).mockImplementation(async ids => ids.map(id => ({
-    success: true,
-    response: fs.readFileSync(dataPath('transactions', `${id}.hex`), 'utf8')
-  })))
+describe('MempoolTransactionService', () => {
+  describe('syncMempoolTransactions', () => {
+    async function setup({ mempool, db }: SetupArgs = {}) {
+      vi.mocked(getRawTransactions).mockImplementation(async ids => ids.map(id => ({
+        success: true,
+        response: fs.readFileSync(dataPath('transactions', `${id}.hex`), 'utf8')
+      })))
 
-  const service = new MempoolTransactionService()
-  const collection = database.getDb().collection<MempoolTransaction>(service.collectionName)
-  await collection.deleteMany()
+      const service = new MempoolTransactionService()
+      const collection = database.getDb().collection<MempoolTransaction>(service.collectionName)
+      await collection.deleteMany()
 
-  vi.mocked(getMempoolTransactionIds).mockResolvedValue(mempool ?? [])
+      vi.mocked(getMempoolTransactionIds).mockResolvedValue(mempool ?? [])
 
-  if (db != null) {
-    await collection.insertMany(db.map(txid => ({ txid })))
-  }
+      if (db != null) {
+        await collection.insertMany(db.map(txid => ({ txid })))
+      }
 
-  return { service, collection, mempool }
-}
+      return { service, collection, mempool }
+    }
 
-it('should add non existent transactions with correct mint ids', async () => {
-  const { service, collection, mempool } = await setup({
-    mempool: [
-      "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-      "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
-      "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
-    ]
+    it('should add non existent transactions with correct mint ids', async () => {
+      const { service, collection, mempool } = await setup({
+        mempool: [
+          "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+          "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
+          "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
+        ]
+      })
+      
+      const result = await service.syncMempoolTransactions()
+      
+      expect(result).toEqual({ deletedCount: 0, createdCount: 3 })
+      expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+      expect(getRawTransactions).toHaveBeenCalledExactlyOnceWith(mempool)
+
+      const documents = await collection.find().sort({ txid: 'asc' }).toArray()
+      expect(documents).toHaveLength(3)
+      expect(documents).toEqual([
+        expect.objectContaining({
+          txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
+        }),
+        expect.objectContaining({
+          txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
+          mintId: '2:21666'
+        }),
+        expect.objectContaining({
+          txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
+        })
+      ])
+    })
+
+    it('should ignore existing transactions', async () => {
+      const mempool = [
+        "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+        "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
+        "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
+      ]
+      const { service, collection } = await setup({
+        mempool, db: mempool
+      })
+      
+      const result = await service.syncMempoolTransactions()
+      
+      expect(result).toEqual({ deletedCount: 0, createdCount: 0 })
+      expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+      expect(getRawTransactions).not.toHaveBeenCalled()
+
+      const documents = await collection.find().sort({ txid: 'asc' }).toArray()
+      expect(documents).toHaveLength(3)
+      expect(documents).toEqual([
+        expect.objectContaining({
+          txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
+        }),
+        expect.objectContaining({
+          txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e'
+        }),
+        expect.objectContaining({
+          txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
+        })
+      ])
+    })
+      
+    it('should delete transactions not in mempool', async () => {
+      const mempool = [
+        "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+        "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0"
+      ]
+      const db = [
+        "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+        "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
+        "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
+      ]
+      const { service, collection } = await setup({ mempool, db })
+      
+      const result = await service.syncMempoolTransactions()
+      
+      expect(result).toEqual({ deletedCount: 1, createdCount: 0 })
+      expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+      expect(getRawTransactions).not.toHaveBeenCalled()
+
+      const documents = await collection.find().sort({ txid: 'asc' }).toArray()
+      expect(documents).toHaveLength(2)
+      expect(documents).toEqual([
+        expect.objectContaining({
+          txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
+        }),
+        expect.objectContaining({
+          txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e'
+        })
+      ])
+    })
+      
+    it('should filter out failed raw transaction responses', async () => {
+      const mempool = [
+        "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+        "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
+        "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
+      ]
+      const { service, collection } = await setup({ mempool })
+      
+      vi.mocked(getRawTransactions).mockResolvedValue([
+        { success: true, response: fs.readFileSync(dataPath('transactions', '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e.hex'), 'utf8') },
+        { success: false, error: new Error() },
+        { success: true, response: fs.readFileSync(dataPath('transactions', 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12.hex'), 'utf8') }
+      ])
+      
+      const result = await service.syncMempoolTransactions()
+      
+      expect(result).toEqual({ deletedCount: 0, createdCount: 2 })
+      expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+      expect(getRawTransactions).toHaveBeenCalledExactlyOnceWith(mempool)
+
+      const documents = await collection.find().sort({ txid: 'asc' }).toArray()
+      expect(documents).toHaveLength(2)
+      expect(documents).toEqual([
+        expect.objectContaining({
+          txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
+          mintId: '2:21666'
+        }),
+        expect.objectContaining({
+          txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
+        })
+      ])
+    })
+      
+    it('should handle both additions and deletions in the same call', async () => {
+      const mempool = [
+        "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
+        "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
+      ]
+      const db = [
+        { txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e', mintId: '2:21666' },
+        { txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12' }
+      ]
+      const { service, collection } = await setup({ mempool, db: db.map(tx => tx.txid) })
+
+      const result = await service.syncMempoolTransactions()
+
+      expect(result).toEqual({ deletedCount: 1, createdCount: 1 })
+      expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
+      expect(getRawTransactions)
+        .toHaveBeenCalledExactlyOnceWith(["138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0"])
+
+      const documents = await collection.find().sort({ txid: 'asc' }).toArray()
+      expect(documents).toHaveLength(2)
+      expect(documents).toEqual([
+        expect.objectContaining({
+          txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
+        }),
+        expect.objectContaining({
+          txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
+        })
+      ])
+    })
   })
-  
-  const result = await service.syncMempoolTransactions()
-  
-  expect(result).toEqual({ deletedCount: 0, createdCount: 3 })
-  expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
-  expect(getRawTransactions).toHaveBeenCalledExactlyOnceWith(mempool)
-
-  const documents = await collection.find().sort({ txid: 'asc' }).toArray()
-  expect(documents).toHaveLength(3)
-  expect(documents).toEqual([
-    expect.objectContaining({
-      txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
-    }),
-    expect.objectContaining({
-      txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
-      mintId: '2:21666'
-    }),
-    expect.objectContaining({
-      txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
-    })
-  ])
-})
-
-it('should ignore existing transactions', async () => {
-  const mempool = [
-    "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-    "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
-    "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
-  ]
-  const { service, collection } = await setup({
-    mempool, db: mempool
-  })
-  
-  const result = await service.syncMempoolTransactions()
-  
-  expect(result).toEqual({ deletedCount: 0, createdCount: 0 })
-  expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
-  expect(getRawTransactions).not.toHaveBeenCalled()
-
-  const documents = await collection.find().sort({ txid: 'asc' }).toArray()
-  expect(documents).toHaveLength(3)
-  expect(documents).toEqual([
-    expect.objectContaining({
-      txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
-    }),
-    expect.objectContaining({
-      txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e'
-    }),
-    expect.objectContaining({
-      txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
-    })
-  ])
-})
-  
-it('should delete transactions not in mempool', async () => {
-  const mempool = [
-    "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-    "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0"
-  ]
-  const db = [
-    "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-    "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
-    "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
-  ]
-  const { service, collection } = await setup({ mempool, db })
-  
-  const result = await service.syncMempoolTransactions()
-  
-  expect(result).toEqual({ deletedCount: 1, createdCount: 0 })
-  expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
-  expect(getRawTransactions).not.toHaveBeenCalled()
-
-  const documents = await collection.find().sort({ txid: 'asc' }).toArray()
-  expect(documents).toHaveLength(2)
-  expect(documents).toEqual([
-    expect.objectContaining({
-      txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
-    }),
-    expect.objectContaining({
-      txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e'
-    })
-  ])
-})
-  
-it('should filter out failed raw transaction responses', async () => {
-  const mempool = [
-    "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-    "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
-    "c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12"
-  ]
-  const { service, collection } = await setup({ mempool })
-  
-  vi.mocked(getRawTransactions).mockResolvedValue([
-    { success: true, response: fs.readFileSync(dataPath('transactions', '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e.hex'), 'utf8') },
-    { success: false, error: new Error() },
-    { success: true, response: fs.readFileSync(dataPath('transactions', 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12.hex'), 'utf8') }
-  ])
-  
-  const result = await service.syncMempoolTransactions()
-  
-  expect(result).toEqual({ deletedCount: 0, createdCount: 2 })
-  expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
-  expect(getRawTransactions).toHaveBeenCalledExactlyOnceWith(mempool)
-
-  const documents = await collection.find().sort({ txid: 'asc' }).toArray()
-  expect(documents).toHaveLength(2)
-  expect(documents).toEqual([
-    expect.objectContaining({
-      txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
-      mintId: '2:21666'
-    }),
-    expect.objectContaining({
-      txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'
-    })
-  ])
-})
-  
-it('should handle both additions and deletions in the same call', async () => {
-  const mempool = [
-    "5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e",
-    "138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0",
-  ]
-  const db = [
-    { txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e', mintId: '2:21666' },
-    { txid: 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12' }
-  ]
-  const { service, collection } = await setup({ mempool, db: db.map(tx => tx.txid) })
-
-  const result = await service.syncMempoolTransactions()
-
-  expect(result).toEqual({ deletedCount: 1, createdCount: 1 })
-  expect(getMempoolTransactionIds).toHaveBeenCalledOnce()
-  expect(getRawTransactions)
-    .toHaveBeenCalledExactlyOnceWith(["138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0"])
-
-  const documents = await collection.find().sort({ txid: 'asc' }).toArray()
-  expect(documents).toHaveLength(2)
-  expect(documents).toEqual([
-    expect.objectContaining({
-      txid: '138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'
-    }),
-    expect.objectContaining({
-      txid: '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e',
-    })
-  ])
 })

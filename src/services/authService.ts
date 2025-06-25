@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { ObjectId } from 'mongodb';
-import { BaseService } from './BaseService.js';
-import { UserService } from './userService.js';
+import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
+import { ObjectId } from 'mongodb'
+import { BaseService } from './BaseService.js'
+import { UserService } from './userService.js'
 
 export interface NonceData {
   _id?: string;
@@ -22,7 +22,7 @@ export interface JWTPayload {
 }
 
 export class AuthService extends BaseService<NonceData> {
-  protected readonly collectionName = 'auth_nonces';
+  readonly collectionName = 'auth_nonces';
   private readonly userService: UserService;
   private readonly jwtSecret: string;
   private readonly jwtExpiresIn: string;
