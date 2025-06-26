@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { validateRequest, validateParams } from '../middleware/validation.js';
 import { ReferralService } from '../services/referralService.js';
-import { enterReferralCodeSchema, walletAddressSchema } from '../validation/referralValidation.js';
+import { enterReferralCodeSchema, walletAddressSchema, createCustomLinkSchema } from '../validation/referralValidation.js';
 
 const router = Router();
 
@@ -35,6 +35,36 @@ router.get('/account/:walletAddress', validateParams(walletAddressSchema), async
     });
   } catch (error) {
     console.error('Error getting referral info:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Create custom referral link
+router.post('/create-custom-link', validateRequest(createCustomLinkSchema), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const referralService = new ReferralService();
+    const { walletAddress, customReferralId } = req.body;
+
+    const result = await referralService.createCustomReferralLink(walletAddress, customReferralId);
+    
+    if (!result.success) {
+      res.status(400).json({
+        success: false,
+        message: result.message
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: result.message
+    });
+  } catch (error) {
+    console.error('Error creating custom referral link:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
