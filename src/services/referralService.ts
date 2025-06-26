@@ -69,7 +69,7 @@ export class ReferralService extends BaseService<IUser> {
         return { success: false, message: 'User not found' };
       }
 
-      // Check if custom referral ID is already taken
+      // Check if custom referral ID is already taken by another user
       const existingUser = await this.collection.findOne({ 
         customReferralId: sanitizedId,
         _id: { $ne: user._id } // Exclude current user
@@ -85,7 +85,13 @@ export class ReferralService extends BaseService<IUser> {
         { $set: { customReferralId: sanitizedId } }
       );
 
-      return { success: true, message: 'Custom referral link created successfully' };
+      // Return appropriate message based on whether this is an update or creation
+      const isUpdate = user.customReferralId && user.customReferralId !== sanitizedId;
+      const message = isUpdate 
+        ? 'Custom referral link updated successfully' 
+        : 'Custom referral link created successfully';
+
+      return { success: true, message };
     } catch (error) {
       console.error('Error creating custom referral link:', error);
       throw new Error('Failed to create custom referral link');
