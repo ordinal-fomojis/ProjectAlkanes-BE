@@ -9,9 +9,7 @@ export async function ordiscanFetch<T extends z.ZodTypeAny>(schema: T, path: str
   })
   const urlParams = new URLSearchParams(params).toString()
   const response = await retrySchemaFetch(responseSchema, `https://api.ordiscan.com/v1/${path}?${urlParams}`, {
-    headers: {
-      'Authorization': `Bearer ${ORDISCAN_API_KEY}`,
-    }
+    headers: { 'Authorization': `Bearer ${ORDISCAN_API_KEY}` }
   })
   if (response.data != null) {
     return response.data

@@ -1,37 +1,58 @@
 import z from "zod"
+import { AlkaneToken } from "../../services/AlkaneTokenService.js"
 import { throttledPromiseAllSettled } from "../throttledPromise.js"
 import { ordiscanFetch } from "./ordiscanFetch.js"
 
 const BaseAlkanesSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  symbol: z.string(),
-  logo_url: z.string(),
+  name: z.string().nullable(),
+  symbol: z.string().nullable(),
+  logo_url: z.string().nullable(),
   premined_supply: z.string(),
-  amount_per_mint: z.string(),
-  mint_count_cap: z.string(),
-  deploy_txid: z.string(),
-  deploy_timestamp: z.string()
+  amount_per_mint: z.string().nullable(),
+  mint_count_cap: z.string().nullable(),
+  deploy_txid: z.string().nullable(),
+  deploy_timestamp: z.string().nullable()
 })
 
 const FullAlkanesSchema = BaseAlkanesSchema.extend({
   current_supply: z.string(),
-  current_mint_count: z.string()
+  current_mint_count: z.number()
 })
 
+const RATE_LIMIT = 100 // requests per minute
+
 export async function getAlkaneTokens(alkaneIds: string[]) {
-  await throttledPromiseAllSettled(alkaneIds.map(() => async () => {
-    const start = performance.now()
-    const result = await ordiscanFetch(FullAlkanesSchema, `alkane/${alkaneIds}`)
-    const duration = performance.now() - start
-    // Throttle to 100 requests per second
-    await new Promise(r => setTimeout(r, 10 - duration))
-    return result
+  const start = performance.now()
+  return await throttledPromiseAllSettled(alkaneIds.map((id, i) => async () => {
+    const allowedToStartAt = start + (i * (60000 / RATE_LIMIT)) * 1.1
+    const timeTilStart = allowedToStartAt - performance.now()
+    if (timeTilStart > 0) {
+      await new Promise(r => setTimeout(r, timeTilStart))
+    }
+    
+    const token = await ordiscanFetch(FullAlkanesSchema, `alkane/${id}`)
+    const alkane: AlkaneToken = {
+      alkaneId: token.id,
+      name: token.name,
+      symbol: token.symbol,
+      logoUrl: token.logo_url,
+      preminedSupply: parseInt(token.premined_supply),
+      amountPerMint: token.amount_per_mint == null ? null : parseInt(token.amount_per_mint),
+      mintCountCap: token.mint_count_cap == null ? null : parseInt(token.mint_count_cap),
+      deployTxid: token.deploy_txid,
+      currentSupply: parseInt(token.current_supply),
+      currentMintCount: token.current_mint_count,
+      synced: true,
+      blockSyncedAt: 0,
+      deployTimestamp: token.deploy_timestamp == null ? null : new Date(token.deploy_timestamp)
+    }
+    return alkane
   }))
 }
 
-export async function getAlkaneIdsAfterTimestamp(minTimestamp: Date) {
-  const alkanes: string[] = []
+export async function getAlkaneIdsAfterTimestamp(minTimestamp: Date | null) {
+  const alkanes: AlkaneToken[] = []
   let page = 1
   while (true) {
     const result = await getPagedAlkaneIds(page)
@@ -39,9 +60,9 @@ export async function getAlkaneIdsAfterTimestamp(minTimestamp: Date) {
       return alkanes
     }
 
-    for (const { alkaneId, timestamp } of result) {
-      if (timestamp >= minTimestamp) {
-        alkanes.push(alkaneId)
+    for (const token of result) {
+      if (minTimestamp == null || token.deployTimestamp == null || token.deployTimestamp >= minTimestamp) {
+        alkanes.push(token)
       } else {
         return alkanes
       }
@@ -50,10 +71,24 @@ export async function getAlkaneIdsAfterTimestamp(minTimestamp: Date) {
   }
 }
 
-async function getPagedAlkaneIds(page: number) {
+async function getPagedAlkaneIds(page: number): Promise<AlkaneToken[]> {
   return (await ordiscanFetch(z.array(BaseAlkanesSchema), 'alkanes', {
     sort: 'newest',
     type: 'TOKEN',
     page: page.toString()
-  })).map(a => ({ alkaneId: a.id, timestamp: new Date(a.deploy_timestamp) }))
+  })).map(a => ({
+    alkaneId: a.id,
+    name: a.name,
+    symbol: a.symbol,
+    logoUrl: a.logo_url,
+    preminedSupply: parseInt(a.premined_supply),
+    amountPerMint: a.amount_per_mint == null ? null : parseInt(a.amount_per_mint),
+    mintCountCap: a.mint_count_cap == null ? null : parseInt(a.mint_count_cap),
+    deployTxid: a.deploy_txid,
+    currentSupply: 0,
+    currentMintCount: 0,
+    synced: false,
+    blockSyncedAt: 0,
+    deployTimestamp: a.deploy_timestamp == null ? null : new Date(a.deploy_timestamp)
+  }))
 }

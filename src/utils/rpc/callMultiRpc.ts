@@ -1,7 +1,19 @@
 import z from "zod"
 import { callRpc } from "./callRpc.js"
 
-export async function callMultiRpc<T extends z.ZodTypeAny>(schema: T, params: [string, unknown[]][]) {
+export type MultiRpcResponse<T, K extends unknown[]> = {
+  success: false
+  error: Error
+  params: K
+} | {
+  success: true
+  response: T
+  params: K
+}
+
+export async function callMultiRpc<T extends z.ZodTypeAny, K extends unknown[]>(
+  schema: T, params: [string, K][]
+): Promise<MultiRpcResponse<z.infer<T>, K>[]> {
   const rpcSchema = z.array(z.object({
     result: schema.nullish().optional(),
     error: z.any().nullish().optional()
@@ -9,14 +21,13 @@ export async function callMultiRpc<T extends z.ZodTypeAny>(schema: T, params: [s
   
   const response = await callRpc(rpcSchema, 'sandshrew_multicall', params)
   const responseList = response.map((response, index) => {
+    const [method, param] = params[index]!
     if (response.result == null) {
-      const method = params[index]?.[0]
-      const param = JSON.stringify(params[index]?.[1])
       const errorMessage = JSON.stringify(response.error ?? 'Unknown error')
-      const error = new Error(`Bitcoin RPC error for ${method} with params ${param}: ${errorMessage}`)
-      return { success: false, error } as const
+      const error = new Error(`Bitcoin RPC error for ${method} with params ${JSON.stringify(param)}: ${errorMessage}`)
+      return { success: false, error, params: param } as const
     }
-    return { success: true, response: response.result } as const
+    return { success: true, response: response.result, params: param } as const
   })
   
   return responseList

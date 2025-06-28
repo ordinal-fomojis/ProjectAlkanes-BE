@@ -28,7 +28,6 @@ describe('ordiscanFetch', () => {
   it('should throw an error when no data is returned', async () => {
     vi.mocked(retrySchemaFetch).mockResolvedValue({ error: 'Invalid request' })
 
-    // Act & Assert
     await expect(ordiscanFetch(z.object({ id: z.string() }), 'inscriptions/detail'))
       .rejects.toThrow('Ordiscan error: "Invalid request"')
   })

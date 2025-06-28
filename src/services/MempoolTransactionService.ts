@@ -27,13 +27,15 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
       await this.collection.deleteMany({ txid: { $in: txnsToDelete } })
     }
 
-    const mempoolTransactions = newTxns.length === 0 ? [] : (await getRawTransactions(newTxns)).filter(x => x.success)
-      .map(x => {
-        const tx = Transaction.fromHex(x.response)
-        const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
-        const txid = tx.getId()
-        return mintId == null ? { txid } : { txid, mintId }
-      })
+    const mempoolTransactions = newTxns.length === 0 ? [] : (
+      await getRawTransactions(newTxns.slice(0, 2000))).filter(x => x.success)
+        .map(x => {
+          const tx = Transaction.fromHex(x.response)
+          const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
+          const txid = tx.getId()
+          return mintId == null ? { txid } : { txid, mintId }
+        }
+      )
 
     if (mempoolTransactions.length > 0) {
       await this.collection.insertMany(mempoolTransactions)

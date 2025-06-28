@@ -1,4 +1,4 @@
-import { Db, MongoClient } from 'mongodb'
+import { ClientSession, Db, MongoClient, WithTransactionCallback } from 'mongodb'
 
 class Database {
   private client: MongoClient | null = null;
@@ -27,11 +27,29 @@ class Database {
     }
   }
 
+  get isConnected(): boolean {
+    return this.db != null
+  }
+
   getDb(): Db {
-    if (!this.db) {
+    if (this.db == null) {
       throw new Error('Database not connected. Call connect() first.');
     }
     return this.db;
+  }
+
+  async withTransaction<T>(
+    callback: WithTransactionCallback<T>, options?: Parameters<ClientSession['withTransaction']>[1]
+  ) {
+    if (this.client == null) {
+      throw new Error('Database client not initialized. Call connect() first.');
+    }
+    const session = this.client.startSession()
+    try {
+      return await session.withTransaction(callback, options)
+    } finally {
+      await session.endSession()
+    }
   }
 }
 

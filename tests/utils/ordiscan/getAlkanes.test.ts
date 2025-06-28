@@ -1,0 +1,171 @@
+import { describe, expect, it, vi } from 'vitest'
+import z from 'zod'
+import { getAlkaneIdsAfterTimestamp, getAlkaneTokens } from '../../../src/utils/ordiscan/getAlkanes.js'
+import { ordiscanFetch } from '../../../src/utils/ordiscan/ordiscanFetch.js'
+
+vi.mock('../../../src/utils/ordiscan/ordiscanFetch.js')
+
+describe('getAlkaneTokens', () => {
+  it('should throttle to 100 requests per second', async () => {
+    const token = {
+      id: '2:1',
+      name: 'Test Alkane',
+      symbol: 'TALK',
+      logo_url: 'https://example.com/logo.png',
+      premined_supply: '1000',
+      amount_per_mint: '10',
+      mint_count_cap: '100',
+      deploy_txid: 'tx123',
+      deploy_timestamp: '2025-01-01T00:00:00Z',
+      current_supply: '500',
+      current_mint_count: '50'
+    }
+    vi.mocked(ordiscanFetch).mockResolvedValue(token)
+
+    const alkaneIds = Array.from({ length: 51 }, (_, i) => `2:${i + 1}`)
+    const start = performance.now()
+    const result = await getAlkaneTokens(alkaneIds)
+    
+    // 51 requests should take at least 500ms (extra request due to the sign post problem)
+    expect(performance.now() - start).toBeGreaterThanOrEqual(500)
+    expect(result.every(r => r.status === 'fulfilled')).toBe(true)
+    const data = result.filter(r => r.status === 'fulfilled').map(r => r.value)
+    expect(data).toEqual(Array(51).fill(token))
+  })
+})
+
+describe('getAlkaneIdsAfterTimestamp', () => {
+  it('should return empty array when no alkanes are found', async () => {
+    vi.mocked(ordiscanFetch).mockResolvedValueOnce([])
+
+    const result = await getAlkaneIdsAfterTimestamp(new Date('2025-01-01'))
+
+    expect(result).toEqual([])
+    expect(ordiscanFetch).toHaveBeenCalledTimes(1)
+    expect(ordiscanFetch).toHaveBeenCalledWith(
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '1' }
+    )
+  })
+
+  it('should return alkane IDs with timestamps after the minimum timestamp', async () => {
+    vi.mocked(ordiscanFetch).mockResolvedValueOnce([
+      {
+        id: '2:1',
+        deploy_timestamp: '2025-01-20T12:00:00Z' // After min timestamp
+      },
+      {
+        id: '2:2',
+        deploy_timestamp: '2025-01-18T12:00:00Z' // After min timestamp
+      },
+      {
+        id: '2:3',
+        deploy_timestamp: '2025-01-10T12:00:00Z' // Before min timestamp
+      }
+    ])
+    
+    const result = await getAlkaneIdsAfterTimestamp(new Date('2025-01-15'))
+
+    expect(result).toEqual(['2:1', '2:2'])
+    expect(ordiscanFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('should stop fetching pages once it encounters an alkane before the minimum timestamp', async () => {
+    // all after min timestamp
+    const page1 = [
+      {
+        id: '2:1',
+        deploy_timestamp: '2025-01-25T12:00:00Z'
+      },
+      {
+        id: '2:2',
+        deploy_timestamp: '2025-01-20T12:00:00Z'
+      }
+    ]
+    
+    // Second page - mixed (before and after min timestamp)
+    const page2 = [
+      {
+        id: '2:3',
+        deploy_timestamp: '2025-01-18T12:00:00Z' // After min timestamp
+      },
+      {
+        id: '2:4',
+        deploy_timestamp: '2025-01-10T12:00:00Z' // Before min timestamp
+      }
+    ]
+
+    vi.mocked(ordiscanFetch)
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2)
+
+    // Act
+    const result = await getAlkaneIdsAfterTimestamp(new Date('2025-01-15'))
+
+    // Assert
+    expect(result).toEqual(['2:1', '2:2', '2:3'])
+    expect(ordiscanFetch).toHaveBeenCalledTimes(2)
+    expect(ordiscanFetch).toHaveBeenNthCalledWith(
+      1,
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '1' }
+    )
+    expect(ordiscanFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '2' }
+    )
+  })
+
+  it('should fetch multiple pages until no more results are found', async () => {
+    const page1 = [
+      {
+        id: '2:1',
+        deploy_timestamp: '2025-03-25T12:00:00Z'
+      },
+      {
+        id: '2:2',
+        deploy_timestamp: '2025-02-20T12:00:00Z'
+      }
+    ]
+    
+    // Second page
+    const page2 = [
+      {
+        id: '2:3',
+        deploy_timestamp: '2025-01-18T12:00:00Z'
+      }
+    ]
+
+    vi.mocked(ordiscanFetch)
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2)
+      .mockResolvedValueOnce([])
+
+    const result = await getAlkaneIdsAfterTimestamp(new Date('2024-12-01'))
+
+    expect(result).toEqual(['2:1', '2:2', '2:3'])
+    expect(ordiscanFetch).toHaveBeenCalledTimes(3)
+    expect(ordiscanFetch).toHaveBeenNthCalledWith(
+      1,
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '1' }
+    )
+    expect(ordiscanFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '2' }
+    )
+    expect(ordiscanFetch).toHaveBeenNthCalledWith(
+      3,
+      expect.any(z.ZodType),
+      'alkanes',
+      { sort: 'newest', type: 'TOKEN', page: '3' }
+    )
+  })
+})
