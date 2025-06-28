@@ -114,7 +114,9 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
 
     const tokens = await getAlkaneTokens(unsyncedTokens.map(t => t.alkaneId))
     const successfulTokens = tokens.filter(r => r.status === 'fulfilled').map(r => r.value)
-
+    tokens.filter(r => r.status === 'rejected').forEach(r => {
+      console.error(`Failed to fetch alkane token: ${r.reason}`)
+    })
     if (successfulTokens.length === 0) return { syncedTokens: 0, failedToSync: unsyncedTokens.length }
 
     await this.collection.bulkWrite(successfulTokens.map(token => ({

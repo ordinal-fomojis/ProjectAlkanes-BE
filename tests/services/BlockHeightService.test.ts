@@ -24,7 +24,7 @@ async function setup({ initialData }: SetupArgs = {}) {
   const service = new BlockHeightService()
   const collection = database.getDb().collection<BlockHeight>(service.collectionName)
   
-  await collection.deleteMany({})
+  await collection.deleteMany()
   
   if (initialData?.length) {
     await collection.insertMany(initialData.map(data => ({ ...data, timestamp: new Date() })))
@@ -116,6 +116,50 @@ describe('BlockHeightService', () => {
           timestamp: expect.any(Date)
         }
       ])
+    })
+  })
+  
+  describe('getUnsyncedBlocks', () => {
+    it('should return empty array when no unsynced blocks exist', async () => {
+      const { service } = await setup({
+        initialData: [
+          { height: 123456, synced: true },
+          { height: 234567, synced: true },
+        ]
+      })
+      
+      const unsyncedBlocks = await service.getUnsyncedBlocks()
+      
+      expect(unsyncedBlocks).toEqual([])
+    })
+    
+    it('should return array of unsynced block heights', async () => {
+      const { service } = await setup({
+        initialData: [
+          { height: 123456, synced: false },
+          { height: 234567, synced: true },
+          { height: 345678, synced: false },
+          { height: 456789, synced: true },
+          { height: 567890, synced: false },
+        ]
+      })
+      
+      const unsyncedBlocks = await service.getUnsyncedBlocks()
+      
+      expect(unsyncedBlocks).toHaveLength(3)
+      expect(unsyncedBlocks).toContain(123456)
+      expect(unsyncedBlocks).toContain(345678)
+      expect(unsyncedBlocks).toContain(567890)
+      expect(unsyncedBlocks).not.toContain(234567)
+      expect(unsyncedBlocks).not.toContain(456789)
+    })
+    
+    it('should return empty array when no blocks exist', async () => {
+      const { service } = await setup()
+      
+      const unsyncedBlocks = await service.getUnsyncedBlocks()
+      
+      expect(unsyncedBlocks).toEqual([])
     })
   })
 })
