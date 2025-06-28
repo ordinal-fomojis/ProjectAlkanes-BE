@@ -26,8 +26,8 @@ describe('callMultiRpc', () => {
     )
     
     expect(result).toEqual([
-      { success: true, response: 'result1' },
-      { success: true, response: 'result2' }
+      { success: true, response: 'result1', params: ['param1'] },
+      { success: true, response: 'result2', params: ['param2'] }
     ])
   })
 
@@ -45,8 +45,8 @@ describe('callMultiRpc', () => {
     const result = await callMultiRpc(z.string(), params)
     
     expect(result).toEqual([
-      { success: true, response: 'result1' },
-      { success: false, error: expect.any(Error) }
+      { success: true, response: 'result1', params: ['param1'] },
+      { success: false, error: expect.any(Error), params: ['param2'] }
     ])
   })
 
@@ -67,9 +67,9 @@ describe('callMultiRpc', () => {
     const result = await callMultiRpc(z.string().nullish(), params)
     
     expect(result).toEqual([
-      { success: false, error: expect.any(Error) },
-      { success: false, error: expect.any(Error) },
-      { success: false, error: expect.any(Error) }
+      { success: false, error: expect.any(Error), params: ['param1'] },
+      { success: false, error: expect.any(Error), params: ['param2'] },
+      { success: false, error: expect.any(Error), params: ['param3'] }
     ])
   })
 })

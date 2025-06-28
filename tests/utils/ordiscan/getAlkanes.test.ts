@@ -6,7 +6,7 @@ import { ordiscanFetch } from '../../../src/utils/ordiscan/ordiscanFetch.js'
 vi.mock('../../../src/utils/ordiscan/ordiscanFetch.js')
 
 describe('getAlkaneTokens', () => {
-  it('should throttle to 100 requests per second', async () => {
+  it('should throttle to 100 requests per minute', async () => {
     const token = {
       id: '2:1',
       name: 'Test Alkane',
@@ -18,19 +18,32 @@ describe('getAlkaneTokens', () => {
       deploy_txid: 'tx123',
       deploy_timestamp: '2025-01-01T00:00:00Z',
       current_supply: '500',
-      current_mint_count: '50'
+      current_mint_count: 50
     }
     vi.mocked(ordiscanFetch).mockResolvedValue(token)
 
-    const alkaneIds = Array.from({ length: 51 }, (_, i) => `2:${i + 1}`)
+    const alkaneIds = Array.from({ length: 5 }, (_, i) => `2:${i + 1}`)
     const start = performance.now()
     const result = await getAlkaneTokens(alkaneIds)
     
-    // 51 requests should take at least 500ms (extra request due to the sign post problem)
-    expect(performance.now() - start).toBeGreaterThanOrEqual(500)
+    expect(performance.now() - start).toBeGreaterThanOrEqual(2500)
     expect(result.every(r => r.status === 'fulfilled')).toBe(true)
     const data = result.filter(r => r.status === 'fulfilled').map(r => r.value)
-    expect(data).toEqual(Array(51).fill(token))
+    expect(data).toEqual(Array(5).fill({
+      alkaneId: '2:1',
+      name: 'Test Alkane',
+      symbol: 'TALK',
+      logoUrl: 'https://example.com/logo.png',
+      preminedSupply: 1000,
+      amountPerMint: 10,
+      mintCountCap: 100,
+      deployTxid: 'tx123',
+      deployTimestamp: expect.any(Date),
+      currentSupply: 500,
+      currentMintCount: 50,
+      synced: true,
+      blockSyncedAt: 0
+    }))
   })
 })
 
@@ -67,7 +80,10 @@ describe('getAlkaneIdsAfterTimestamp', () => {
     
     const result = await getAlkaneIdsAfterTimestamp(new Date('2025-01-15'))
 
-    expect(result).toEqual(['2:1', '2:2'])
+    expect(result).toEqual([
+      expect.objectContaining({ alkaneId: '2:1' }),
+      expect.objectContaining({ alkaneId: '2:2' })
+    ])
     expect(ordiscanFetch).toHaveBeenCalledTimes(1)
   })
 
@@ -104,7 +120,11 @@ describe('getAlkaneIdsAfterTimestamp', () => {
     const result = await getAlkaneIdsAfterTimestamp(new Date('2025-01-15'))
 
     // Assert
-    expect(result).toEqual(['2:1', '2:2', '2:3'])
+    expect(result).toEqual([
+      expect.objectContaining({ alkaneId: '2:1' }),
+      expect.objectContaining({ alkaneId: '2:2' }),
+      expect.objectContaining({ alkaneId: '2:3' })
+    ])
     expect(ordiscanFetch).toHaveBeenCalledTimes(2)
     expect(ordiscanFetch).toHaveBeenNthCalledWith(
       1,
@@ -147,7 +167,11 @@ describe('getAlkaneIdsAfterTimestamp', () => {
 
     const result = await getAlkaneIdsAfterTimestamp(new Date('2024-12-01'))
 
-    expect(result).toEqual(['2:1', '2:2', '2:3'])
+    expect(result).toEqual([
+      expect.objectContaining({ alkaneId: '2:1' }),
+      expect.objectContaining({ alkaneId: '2:2' }),
+      expect.objectContaining({ alkaneId: '2:3' })
+    ])
     expect(ordiscanFetch).toHaveBeenCalledTimes(3)
     expect(ordiscanFetch).toHaveBeenNthCalledWith(
       1,

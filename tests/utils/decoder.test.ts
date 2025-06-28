@@ -1,4 +1,4 @@
-import { Transaction } from "bitcoinjs-lib"
+import { Block, Transaction } from "bitcoinjs-lib"
 import fs from "fs"
 import { describe, expect, it } from "vitest"
 import { decodeAlkaneOpCallsInBlock, decodeAlkaneOpCallsInTransaction } from "../../src/utils/decoder.js"
@@ -49,6 +49,6 @@ describe("decodeAlkaneOpCallsInBlock", () => {
     ]
   ])('should decode block correctly (case %$)', (block, opCalls) => {
     const hex = fs.readFileSync(dataPath('blocks', `${block}.hex`), 'utf8')
-    expect(decodeAlkaneOpCallsInBlock(hex)).toEqual(opCalls)
+    expect(decodeAlkaneOpCallsInBlock(Block.fromHex(hex))).toEqual(opCalls)
   })
 })

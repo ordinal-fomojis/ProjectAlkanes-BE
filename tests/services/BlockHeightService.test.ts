@@ -3,7 +3,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { DB_NAME } from '../../src/config/constants.js'
 import { database } from '../../src/config/database.js'
-import { BlockHeightService } from '../../src/services/BlockHeightService.js'
+import { BlockHeight, BlockHeightService } from '../../src/services/BlockHeightService.js'
 
 let mongodb: MongoMemoryServer
 beforeAll(async () => {
@@ -16,13 +16,8 @@ afterAll(async () => {
   await mongodb.stop()
 })
 
-interface BlockHeight {
-  name: string
-  height: number
-}
-
 interface SetupArgs {
-  initialData?: { name: string, height: number }[]
+  initialData?: { height: number, synced: boolean }[]
 }
 
 async function setup({ initialData }: SetupArgs = {}) {
@@ -32,7 +27,7 @@ async function setup({ initialData }: SetupArgs = {}) {
   await collection.deleteMany({})
   
   if (initialData?.length) {
-    await collection.insertMany(initialData)
+    await collection.insertMany(initialData.map(data => ({ ...data, timestamp: new Date() })))
   }
   
   return { service, collection }
@@ -43,71 +38,83 @@ describe('BlockHeightService', () => {
     it('should return null when block height does not exist', async () => {
       const { service } = await setup()
       
-      const height = await service.getBlockHeight('token_sync')
+      const height = await service.getBlockHeight()
       
       expect(height).toBeNull()
     })
     
-    it('should return the block height when it exists', async () => {
-      const blockName = 'token_sync'
-      const blockHeight = 123456
+    it('should return the maximum block height when it exists', async () => {
       const { service } = await setup({
-        initialData: [{ name: blockName, height: blockHeight }]
+        initialData: [
+          { height: 123456, synced: true },
+          { height: 234456, synced: true },
+          { height: 12345, synced: true },
+        ]
       })
       
-      const height = await service.getBlockHeight(blockName)
+      const height = await service.getBlockHeight()
       
-      expect(height).toBe(blockHeight)
+      expect(height).toMatchObject({ height: 234456 })
     })
   })
   
   describe('setBlockHeight', () => {
     it('should create a new block height when it does not exist', async () => {
-      const blockName = 'token_sync'
       const blockHeight = 123456
       const { service, collection } = await setup()
       
-      await service.setBlockHeight(blockName, blockHeight)
+      await service.setBlockHeights([{ height: blockHeight, synced: true, timestamp: new Date() }])
       
       const result = await collection.find().toArray()
       expect(result).toEqual([{
         _id: expect.any(ObjectId),
-        name: blockName,
-        height: blockHeight
+        height: blockHeight,
+        synced: true,
+        timestamp: expect.any(Date)
       }])
     })
     
     it('should update an existing block height', async () => {
-      const blockName = 'token_sync'
-      const initialHeight = 123456
-      const newHeight = 789012
+      const height = 123456
       const { service, collection } = await setup({
-        initialData: [{ name: blockName, height: initialHeight }]
+        initialData: [{ height, synced: true }]
       })
       
-      await service.setBlockHeight(blockName, newHeight)
+      await service.setBlockHeights([{ height, synced: false, timestamp: new Date() }])
       
       const result = await collection.find().toArray()
       expect(result).toEqual([{
         _id: expect.any(ObjectId),
-        name: blockName,
-        height: newHeight
+        height,
+        synced: false,
+        timestamp: expect.any(Date)
       }])
     })
     
-    it('should handle multiple block heights independently', async () => {
-      const block1 = { name: 'name1', height: 100000 }
-      const block2 = { name: 'name2', height: 200000 }
+    it('should handle create and update in the same call', async () => {
       const { service, collection } = await setup({
-        initialData: [block1]
+        initialData: [{ height: 123456, synced: true }]
       })
       
-      await service.setBlockHeight(block2.name, block2.height)
+      await service.setBlockHeights([
+        { height: 123456, synced: false, timestamp: new Date() }, // Update
+        { height: 234567, synced: true, timestamp: new Date() } // Create
+      ])
       
-      const results = await collection.find().sort({ name: 'asc' }).toArray()
-      expect(results).toEqual([
-        { _id: expect.any(ObjectId), name: block1.name, height: block1.height },
-        { _id: expect.any(ObjectId), name: block2.name, height: block2.height }
+      const result = await collection.find().toArray()
+      expect(result).toEqual([
+        {
+          _id: expect.any(ObjectId),
+          height: 123456,
+          synced: false,
+          timestamp: expect.any(Date)
+        },
+        {
+          _id: expect.any(ObjectId),
+          height: 234567,
+          synced: true,
+          timestamp: expect.any(Date)
+        }
       ])
     })
   })

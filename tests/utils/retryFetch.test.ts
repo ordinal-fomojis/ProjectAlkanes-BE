@@ -207,7 +207,7 @@ describe('retryFetch', () => {
     fetchMock.mockResponseOnce(JSON.stringify(invalidData))
     
     await expect(retrySchemaFetch(schema, Url))
-      .rejects.toThrow(z.ZodError)
+      .rejects.toThrow("Validation error")
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
