@@ -8,6 +8,7 @@ import { BaseService } from "./BaseService.js"
 import { BlockHeight, BlockHeightService } from "./BlockHeightService.js"
 
 const MAX_TOKENS_PER_SYNC = 200
+const MAX_BLOCKS_PER_SYNC = 3
 
 export interface AlkaneToken {
   alkaneId: string
@@ -60,7 +61,8 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     // Unsynced blocks are all those since the last sync, and any marked as unsynced in the database
     const blocksSinceLastSync = lastSyncHeight == null ? []
       : Array.from({ length: currentHeight - lastSyncHeight }, (_, i) => i + lastSyncHeight + 1)
-    const unsyncedBlocks = blocksSinceLastSync.concat(await this.blockHeightService.getUnsyncedBlocks())
+    const unsyncedBlocks = (await this.blockHeightService.getUnsyncedBlocks())
+      .concat(blocksSinceLastSync).slice(0, MAX_BLOCKS_PER_SYNC)
 
     if (unsyncedBlocks.length === 0) return { blocksSynced: 0, tokensUnsynced: 0 }
 
