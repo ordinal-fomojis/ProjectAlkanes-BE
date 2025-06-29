@@ -1,8 +1,10 @@
 import { Transaction } from 'bitcoinjs-lib'
 import { decodeAlkaneOpCallsInTransaction } from '../utils/decoder.js'
-import { getMempoolTransactionIds } from '../utils/getMempoolTransactionIds.js'
-import { getRawTransactions } from '../utils/getRawTransactions.js'
+import { getMempoolTransactionIds } from '../utils/rpc/getMempoolTransactionIds.js'
+import { getRawTransactions } from '../utils/rpc/getRawTransactions.js'
 import { BaseService } from './BaseService.js'
+
+const MAX_TXNS_PER_SYNC = 2000
 
 export interface MempoolTransaction {
   txid: string
@@ -10,7 +12,7 @@ export interface MempoolTransaction {
 }
 
 export class MempoolTransactionService extends BaseService<MempoolTransaction> {
-  protected collectionName = 'mempool_transactions'
+  collectionName = 'mempool_transactions'
 
   async syncMempoolTransactions() {
     const mempoolTxIds = await getMempoolTransactionIds()
@@ -27,15 +29,19 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
       await this.collection.deleteMany({ txid: { $in: txnsToDelete } })
     }
 
-    const mempoolTransactions = (await getRawTransactions(newTxns)).filter(x => x.success)
-      .map(x => {
-        const tx = Transaction.fromHex(x.response)
-        const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
-        const txid = tx.getId()
-        return mintId == null ? { txid } : { txid, mintId }
-      })
+    const mempoolTransactions = newTxns.length === 0 ? [] : (
+      await getRawTransactions(newTxns.slice(0, MAX_TXNS_PER_SYNC))).filter(x => x.success)
+        .map(x => {
+          const tx = Transaction.fromHex(x.response)
+          const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
+          const txid = tx.getId()
+          return mintId == null ? { txid } : { txid, mintId }
+        }
+      )
 
-    await this.collection.insertMany(mempoolTransactions)
+    if (mempoolTransactions.length > 0) {
+      await this.collection.insertMany(mempoolTransactions)
+    }
 
     return {
       deletedCount: txnsToDelete.length,

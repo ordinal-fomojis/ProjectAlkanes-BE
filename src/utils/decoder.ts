@@ -1,7 +1,6 @@
 import { Block, opcodes, script, Transaction } from "bitcoinjs-lib"
 
-export function decodeAlkaneOpCallsInBlock(blockHex: string) {
-  const block = Block.fromHex(blockHex)
+export function decodeAlkaneOpCallsInBlock(block: Block) {
   return (block.transactions ?? []).map(tx => ({
     txid: tx.getId(),
     opcalls: decodeAlkaneOpCallsInTransaction(tx)

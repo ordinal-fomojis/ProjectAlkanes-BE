@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { parse } from "./parse.js"
 
 export const DEFAULT_RETRY_FETCH_TIMES = 4
 
@@ -55,7 +56,7 @@ export async function retryBufferFetch(input: Parameters<typeof fetch>[0], init?
 }
 
 export async function retrySchemaFetch<T extends z.ZodTypeAny>(schema: T, ...args: Parameters<typeof retryJsonFetch>): Promise<z.infer<T>> {
-  return await retryJsonFetch(...args).then(response => schema.parse(response))
+  return await retryJsonFetch(...args).then(response => parse(schema, response))
 }
 
 async function calculateDelay(options: RetryFetchOptions, attempt: number, error: unknown) {
