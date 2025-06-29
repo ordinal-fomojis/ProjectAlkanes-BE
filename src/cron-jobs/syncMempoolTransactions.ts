@@ -1,6 +1,9 @@
+import { database } from "../config/database.js"
 import { MempoolTransactionService } from "../services/MempoolTransactionService.js"
 
 export async function syncMempoolTransactions() {
+  if (!database.isConnected) return
+  
   console.log('Starting mempool transactions synchronization...')
   const service = new MempoolTransactionService()
   const result = await service.syncMempoolTransactions()

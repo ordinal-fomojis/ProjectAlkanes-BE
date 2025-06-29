@@ -2,7 +2,7 @@ import { CreateUserRequest, IUser, User } from '../models/User.js'
 import { BaseService } from './BaseService.js'
 
 export class UserService extends BaseService<IUser> {
-  protected readonly collectionName = User.COLLECTION_NAME
+  readonly collectionName = User.COLLECTION_NAME
   
   private sanitizeWalletAddress(address: string): string {
     // Remove any HTML/script tags and normalize

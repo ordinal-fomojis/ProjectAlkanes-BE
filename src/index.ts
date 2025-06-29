@@ -4,13 +4,14 @@ import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import cron from 'node-cron'
-import { MempoolSyncCronJobOptions } from './config/constants.js'
+import { DB_NAME, MempoolSyncCronJobOptions, MONGODB_URI, TokenSyncCronJobOptions } from './config/constants.js'
 import { database } from './config/database.js'
 import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
+import { syncTokens } from './cron-jobs/syncTokens.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
-import userRoutes from './routes/userRoutes.js'
-import referralRoutes from './routes/referralRoutes.js'
 import authRoutes from './routes/authRoutes.js'
+import referralRoutes from './routes/referralRoutes.js'
+import userRoutes from './routes/userRoutes.js'
 
 // Load environment variables
 dotenv.config();
@@ -105,7 +106,7 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
 async function startServer() {
   try {
     // Connect to database
-    await database.connect();
+    await database.connect(MONGODB_URI, DB_NAME);
     
     // Start server
     app.listen(PORT, () => {
@@ -139,4 +140,9 @@ if (MempoolSyncCronJobOptions.enabled) {
   cron.schedule(MempoolSyncCronJobOptions.cronExpression, syncMempoolTransactions);
 }
 
-startServer(); 
+if (TokenSyncCronJobOptions.enabled) {
+  console.log(`🔄 Token sync cron job is enabled`);
+  cron.schedule(TokenSyncCronJobOptions.cronExpression, syncTokens);
+}
+
+startServer()

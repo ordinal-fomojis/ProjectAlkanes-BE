@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { BITCOIN_RPC_URL } from "../config/constants.js"
-import { retrySchemaFetch } from "./retryFetch.js"
+import { BITCOIN_RPC_URL } from "../../config/constants.js"
+import { retrySchemaFetch } from "../retryFetch.js"
 
 export async function callRpc<T extends z.ZodTypeAny>(schema: T, method: string, params: unknown[] = []) {
   const rpcSchema = z.object({
@@ -22,6 +22,6 @@ export async function callRpc<T extends z.ZodTypeAny>(schema: T, method: string,
   if (response.result != null) {
     return response.result
   } else {
-    throw new Error(`Bitcoin RPC error: ${JSON.stringify(response.error) ?? 'Unknown error'}`)
+    throw new Error(`Bitcoin RPC error: ${JSON.stringify(response.error ?? 'Unknown error')}`)
   }
 }
