@@ -8,7 +8,7 @@ export async function getRawBlock(height: number) {
   return await callRpc(z.string(), 'btc_getblock', [hash, 0])
 }
 
-type GetRawBlocksResponse = ({ height: number } & MultiRpcResponse<Block, unknown[]>)[]
+type GetRawBlocksResponse = ({ height: number } & MultiRpcResponse<Block, readonly unknown[]>)[]
 
 export async function getRawBlocks(heights: number[]): Promise<GetRawBlocksResponse> {
   const uniqueHeights = Array.from(new Set(heights))
