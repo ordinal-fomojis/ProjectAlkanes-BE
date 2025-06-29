@@ -4,6 +4,8 @@ import { getMempoolTransactionIds } from '../utils/rpc/getMempoolTransactionIds.
 import { getRawTransactions } from '../utils/rpc/getRawTransactions.js'
 import { BaseService } from './BaseService.js'
 
+const MAX_TXNS_PER_SYNC = 2000
+
 export interface MempoolTransaction {
   txid: string
   mintId?: string
@@ -28,7 +30,7 @@ export class MempoolTransactionService extends BaseService<MempoolTransaction> {
     }
 
     const mempoolTransactions = newTxns.length === 0 ? [] : (
-      await getRawTransactions(newTxns.slice(0, 2000))).filter(x => x.success)
+      await getRawTransactions(newTxns.slice(0, MAX_TXNS_PER_SYNC))).filter(x => x.success)
         .map(x => {
           const tx = Transaction.fromHex(x.response)
           const mintId = decodeAlkaneOpCallsInTransaction(tx).find(call => call.opcode === 77)?.alkaneId
