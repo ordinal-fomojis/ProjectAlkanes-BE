@@ -32,7 +32,8 @@ describe('MempoolTransactionService', () => {
     async function setup({ mempool, db }: SetupArgs = {}) {
       vi.mocked(getRawTransactions).mockImplementation(async ids => ids.map(id => ({
         success: true,
-        response: fs.readFileSync(dataPath('transactions', `${id}.hex`), 'utf8')
+        response: fs.readFileSync(dataPath('transactions', `${id}.hex`), 'utf8'),
+        params: [id]
       })))
 
       const service = new MempoolTransactionService()
@@ -149,9 +150,14 @@ describe('MempoolTransactionService', () => {
       const { service, collection } = await setup({ mempool })
       
       vi.mocked(getRawTransactions).mockResolvedValue([
-        { success: true, response: fs.readFileSync(dataPath('transactions', '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e.hex'), 'utf8') },
-        { success: false, error: new Error() },
-        { success: true, response: fs.readFileSync(dataPath('transactions', 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12.hex'), 'utf8') }
+        { success: true, params: ['5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e'],
+          response: fs.readFileSync(dataPath('transactions', '5ade9ef39ddc3b0607ecd425ac201cf02df89898b1a28677605e6bb9a68ec93e.hex'), 'utf8')
+        },
+        { success: false, params: ['138ba708c9024a720c2ba753e91e6c0c54c5eabc8c04c3ec62924420b2661fe0'], error: new Error() },
+        {
+          success: true, params: ['c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12'],
+          response: fs.readFileSync(dataPath('transactions', 'c1329565bb5787c7bd48644adfc1c3f86e6db479e8e7177feb082dba3708af12.hex'), 'utf8')
+        }
       ])
       
       const result = await service.syncMempoolTransactions()

@@ -9,8 +9,8 @@ vi.mock("../../../src/utils/rpc/callMultiRpc.js")
 describe('getRawTransactions', () => {
   it('should call rpc with correct parameters', async () => {
     const mockResponse = [
-      { success: true, response: Random.randomHex(100) } as const,
-      { success: true, response: Random.randomHex(100) } as const
+      { success: true, response: Random.randomHex(100), params: [Random.randomTransactionId()] } as const,
+      { success: true, response: Random.randomHex(100), params: [Random.randomTransactionId()] } as const
     ]
     vi.mocked(callMultiRpc).mockResolvedValue(mockResponse)
 
