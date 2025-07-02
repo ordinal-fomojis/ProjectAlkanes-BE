@@ -3,15 +3,14 @@ import dotenv from 'dotenv'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
-import cron from 'node-cron'
-import { DB_NAME, MempoolSyncCronJobOptions, MONGODB_URI, TokenSyncCronJobOptions } from './config/constants.js'
+import { DB_NAME, MONGODB_URI } from './config/constants.js'
 import { database } from './config/database.js'
-import { syncMempoolTransactions } from './cron-jobs/syncMempoolTransactions.js'
-import { syncTokens } from './cron-jobs/syncTokens.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import authRoutes from './routes/authRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
+import tokenRoutes from './routes/tokenRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import { ValidationError } from './utils/parse.js'
 
 // Load environment variables
 dotenv.config();
@@ -82,6 +81,7 @@ app.get('/health', (_: Request, res: Response) => {
 app.use('/api/users', userRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/tokens', tokenRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {
@@ -94,13 +94,23 @@ app.use((_: Request, res: Response) => {
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
-  console.error('Global error handler:', error);
+  if (error instanceof ValidationError) {
+    console.error('Validation error (400):', error)
+    res.status(400).json({
+      success: false,
+      message: 'Validation error',
+      error: error.message
+    })
+    return
+  }
+  
+  console.error('Unexpected error (500):', error)
   res.status(500).json({
     success: false,
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-  });
-});
+  })
+})
 
 // Start server
 async function startServer() {
@@ -134,15 +144,5 @@ process.on('SIGINT', async () => {
   await database.disconnect();
   process.exit(0);
 });
-
-if (MempoolSyncCronJobOptions.enabled) {
-  console.log(`🔄 Mempool sync cron job is enabled`);
-  cron.schedule(MempoolSyncCronJobOptions.cronExpression, syncMempoolTransactions);
-}
-
-if (TokenSyncCronJobOptions.enabled) {
-  console.log(`🔄 Token sync cron job is enabled`);
-  cron.schedule(TokenSyncCronJobOptions.cronExpression, syncTokens);
-}
 
 startServer()
