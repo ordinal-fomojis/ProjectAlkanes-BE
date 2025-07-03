@@ -55,6 +55,7 @@ jobs:
       with:
         repository: 'ordinal-fomojis/ProjectAlkanes-IAC'
         path: 'terraform'
+        token: ${{ secrets.ALKANES_IAC_PAT }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
