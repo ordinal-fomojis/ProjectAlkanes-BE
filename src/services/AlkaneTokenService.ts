@@ -18,7 +18,7 @@ export interface AlkaneToken {
   pendingMints?: number
 }
 
-type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp'
+type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
