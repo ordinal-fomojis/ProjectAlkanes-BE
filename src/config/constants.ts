@@ -1,8 +1,15 @@
-import dotenv from 'dotenv'
+import { config } from '@dotenvx/dotenvx'
 import { z } from 'zod'
 import { parse } from '../utils/parse.js'
 
-dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.sample' : undefined })
+config({
+  path: process.env.NODE_ENV === 'test'
+    ? '.env.sample'
+    : process.env.NODE_ENV === 'production'
+      ? 'env.production'
+      : undefined,
+  quiet: true
+})
 
 export type BitcoinNetwork = typeof BITCOIN_NETWORK
 export const BITCOIN_NETWORK = parse(z.enum(['mainnet', 'signet', 'testnet'])

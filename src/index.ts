@@ -1,5 +1,4 @@
 import cors from 'cors'
-import dotenv from 'dotenv'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
@@ -11,9 +10,6 @@ import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { ValidationError } from './utils/parse.js'
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
