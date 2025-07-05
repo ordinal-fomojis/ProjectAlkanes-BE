@@ -1,0 +1,79 @@
+name: Deploy Api
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - nonprod
+
+permissions:
+  id-token: write # Required for OIDC authentication with Azure
+  contents: read
+  issues: write
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ENVIRONMENT: ${{ inputs.environment || 'prod' }}
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'prod' }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure CLI Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22.x'
+
+    - name: Build Project
+      run: |
+        npm install 
+        npm run build
+        npm prune --omit=dev
+
+    - name: Checkout Terraform
+      uses: actions/checkout@v3
+      with:
+        repository: 'ordinal-fomojis/ProjectAlkanes-IAC'
+        path: 'terraform'
+        token: ${{ secrets.ALKANES_IAC_PAT }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+
+    - name: Get Terrform Outputs
+      id: tf-outputs
+      run: |
+        terraform init -backend-config="key=alkanes-${{ env.ENVIRONMENT }}.tfstate"
+        echo "webapp_name=$(terraform output -raw webapp_name)" >> $GITHUB_OUTPUT
+      working-directory: terraform
+
+    - name: Clean Up Terraform
+      run: |
+        rm -rf terraform
+
+    - name: Deploy Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}

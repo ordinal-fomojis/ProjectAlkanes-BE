@@ -10,7 +10,7 @@ beforeEach(() => {
   fetchMock.resetMocks()
 })
 
-afterEach(() => {
+afterEach(async () => {
   vi.clearAllTimers()
   vi.useRealTimers()
 })

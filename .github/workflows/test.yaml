@@ -1,11 +1,10 @@
-name: Validate Build
+name: Run Tests
 on: [pull_request, workflow_dispatch]
 
 jobs:
-  validate-build:
+  run-tests:
     runs-on: ubuntu-latest
-    environment: Preview
-          
+    name: Run Tests
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4

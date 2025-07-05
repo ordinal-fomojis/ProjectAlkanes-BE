@@ -1,8 +1,8 @@
-import { IUser, ReferralInfo, User } from '../models/User.js';
-import { BaseService } from './BaseService.js';
+import { IUser, ReferralInfo, User } from '../models/User.js'
+import { BaseService } from './BaseService.js'
 
 export class ReferralService extends BaseService<IUser> {
-  protected readonly collectionName = User.COLLECTION_NAME;
+  readonly collectionName = User.COLLECTION_NAME;
 
   async getReferralInfo(walletAddress: string): Promise<ReferralInfo | null> {
     try {
