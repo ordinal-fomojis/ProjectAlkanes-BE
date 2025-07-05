@@ -6,6 +6,7 @@ export interface IUser {
   createdAt: Date;
   lastLoginAt?: Date;
   referralCode?: string;
+  customReferralId?: string;
   referredBy?: ObjectId;
   referredUsers?: ObjectId[];
 }
@@ -17,14 +18,17 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   lastLoginAt?: Date;
   referralCode?: string;
+  customReferralId?: string;
   referredBy?: ObjectId;
 }
 
 export interface ReferralInfo {
   referralCode: string;
+  customReferralId?: string;
   referredBy?: {
     _id: ObjectId;
     walletAddress: string;
+    customReferralId?: string;
   };
   referredUsers: {
     _id: ObjectId;
@@ -59,6 +63,10 @@ export class User {
       updateData.referredBy = updates.referredBy;
     }
 
+    if (updates.customReferralId !== undefined) {
+      updateData.customReferralId = updates.customReferralId;
+    }
+
     return updateData;
   }
 
@@ -70,5 +78,20 @@ export class User {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+  }
+
+  static validateCustomReferralId(customId: string): boolean {
+    // Custom referral ID validation rules:
+    // - 3-20 characters long
+    // - Only alphanumeric characters and hyphens
+    // - Cannot start or end with hyphen
+    // - No consecutive hyphens
+    const pattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+    return customId.length >= 3 && customId.length <= 20 && pattern.test(customId) && !customId.includes('--');
+  }
+
+  static sanitizeCustomReferralId(customId: string): string {
+    // Convert to lowercase and remove any invalid characters
+    return customId.toLowerCase().replace(/[^a-z0-9-]/g, '');
   }
 } 

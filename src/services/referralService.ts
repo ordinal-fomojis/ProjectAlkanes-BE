@@ -21,7 +21,8 @@ export class ReferralService extends BaseService<IUser> {
         if (referrer) {
           referrerInfo = {
             _id: referrer._id!,
-            walletAddress: referrer.walletAddress
+            walletAddress: referrer.walletAddress,
+            customReferralId: referrer.customReferralId
           };
         }
       }
@@ -39,6 +40,7 @@ export class ReferralService extends BaseService<IUser> {
 
       return {
         referralCode: user.referralCode!,
+        customReferralId: user.customReferralId,
         referredBy: referrerInfo,
         referredUsers: referredUsersInfo,
         totalReferrals: referredUsersInfo.length
@@ -46,6 +48,53 @@ export class ReferralService extends BaseService<IUser> {
     } catch (error) {
       console.error('Error getting referral info:', error);
       throw new Error('Failed to get referral information');
+    }
+  }
+
+  async createCustomReferralLink(walletAddress: string, customReferralId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Validate custom referral ID
+      if (!User.validateCustomReferralId(customReferralId)) {
+        return { success: false, message: 'Invalid custom referral ID format' };
+      }
+
+      const sanitizedId = User.sanitizeCustomReferralId(customReferralId);
+
+      // Check if user exists
+      const user = await this.collection.findOne({ 
+        walletAddress: walletAddress.toLowerCase().trim() 
+      });
+
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+
+      // Check if custom referral ID is already taken by another user
+      const existingUser = await this.collection.findOne({ 
+        customReferralId: sanitizedId,
+        _id: { $ne: user._id } // Exclude current user
+      });
+
+      if (existingUser) {
+        return { success: false, message: 'Custom referral ID is already taken' };
+      }
+
+      // Update user with custom referral ID
+      await this.collection.updateOne(
+        { _id: user._id },
+        { $set: { customReferralId: sanitizedId } }
+      );
+
+      // Return appropriate message based on whether this is an update or creation
+      const isUpdate = user.customReferralId && user.customReferralId !== sanitizedId;
+      const message = isUpdate 
+        ? 'Custom referral link updated successfully' 
+        : 'Custom referral link created successfully';
+
+      return { success: true, message };
+    } catch (error) {
+      console.error('Error creating custom referral link:', error);
+      throw new Error('Failed to create custom referral link');
     }
   }
 
@@ -65,10 +114,16 @@ export class ReferralService extends BaseService<IUser> {
         return { success: false, message: 'User is already referred' };
       }
 
-      // Find referrer by referral code
-      const referrer = await this.collection.findOne({ referralCode });
+      // Find referrer by referral code OR custom referral ID
+      const referrer = await this.collection.findOne({
+        $or: [
+          { referralCode: referralCode.toUpperCase() },
+          { customReferralId: referralCode.toLowerCase() }
+        ]
+      });
+
       if (!referrer) {
-        return { success: false, message: 'Invalid referral code' };
+        return { success: false, message: 'Invalid referral code or custom ID' };
       }
 
       // Prevent self-referral
