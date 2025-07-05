@@ -17,9 +17,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.45.2",
     "bitcoinjs-lib": "^6.1.7",
     "cors": "^2.8.5",
-    "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.1",
     "helmet": "^8.1.0",

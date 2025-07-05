@@ -10,7 +10,7 @@ const ParamsSchema = z.object({
   search: z.string(),
   page: z.number({ coerce: true }).optional(),
   limit: z.number({ coerce: true }).optional(),
-  orderField: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted']).optional(),
+  orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted']).optional(),
   order: z.enum(['asc', 'desc']).optional()
 })
 
@@ -20,11 +20,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     search,
     page = 1,
     limit = 10,
-    orderField = 'deployTimestamp',
+    orderBy = 'deployTimestamp',
     order = 'asc'
   } = parse(ParamsSchema, req.query)
   const service = new AlkaneTokenService()
-  const tokens = await service.searchAlkaneTokens(search, page, limit, { field: orderField, order });
+  const tokens = await service.searchAlkaneTokens(search, page, limit, { field: orderBy, order });
   
   const tokenDetails = tokens.map(token => {
     const preminedSupply = toAlkane(token.preminedSupply)

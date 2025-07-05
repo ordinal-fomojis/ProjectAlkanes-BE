@@ -38,6 +38,7 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     }
 
     return this.collection.find(query)
+      .collation({ locale: "en" })
       .sort({ [order.field]: order.order })
       .skip(skip)
       .limit(limit)
