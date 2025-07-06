@@ -1,23 +1,12 @@
 import { payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { AddressType } from "./utils/getAddressType.js"
+import { AddressType, UnsupportedAddressType } from "./utils/getAddressType.js"
 import { BTC_JS_NETWORK } from "./utils/network.js"
 
 interface CreatePaymentArgs {
   addressType: AddressType
   publicKey: Buffer
   validateAddress?: string
-}
-
-export class UnsupportedAddressType extends Error {
-  constructor(public address: string) {
-    super(`Your payment address is an unsupported address type.\nAddress: ${address}`)
-  }
-
-  truncatedAddress() {
-    if (this.address.length < 14) return this.address
-    return `${this.address.slice(0, 6)}…${this.address.slice(this.address.length - 6)}`
-  }
 }
 
 export function createPayment({ addressType, publicKey, validateAddress } : CreatePaymentArgs) {

@@ -4,8 +4,9 @@ import { createPayment } from "./createPayment.js"
 import { dustLimit } from "./utils/dustLimit.js"
 import { AddressType } from "./utils/getAddressType.js"
 import './utils/init-ecc'
+import { randomKey } from "./utils/keys.js"
 import { BTC_JS_NETWORK } from "./utils/network.js"
-import { randomKey } from "./utils/randomKey.js"
+import { randomTransactionId } from "./utils/randomTransactionId.js"
 
 interface GetMintTransactionSizeArgs {
   runescript: Payment
@@ -28,10 +29,10 @@ export function getMintTransactionSize({ runescript, outputAddressType } : GetMi
   const psbt = new Psbt({ network: BTC_JS_NETWORK })
 
   psbt.addInput({
-    hash: "0000000000000000000000000000000000000000000000000000000000000000",
+    hash: randomTransactionId(),
     index: 0,
     sequence: 0xFFFFFFFD, 
-    tapInternalKey: toXOnly(inputKey.publicKey), 
+    tapInternalKey: inputPubKey, 
     witnessUtxo: { value: outputValue, script: inputPayment.output! }
   })
 

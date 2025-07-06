@@ -7,6 +7,7 @@ declare module 'ecpair' {
   }
 
   interface ECPairAPI {
+    fromWIF(wifString: string, network?: Network | Network[]): ECPairInterface
     makeRandom(options?: ECPairOptions): ECPairInterface
   }
 
