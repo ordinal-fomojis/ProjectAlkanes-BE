@@ -41,3 +41,5 @@ export const TokenSyncCronJobOptions = {
   enabled: parse(z.string().default("false"), process.env.TOKEN_SYNC_ENABLED) === 'true',
   cronExpression: parse(z.string().default('*/30 * * * * *'), process.env.TOKEN_SYNC_CRON_EXPRESSION)
 }
+
+export const MIN_FEE_RATE = 1
