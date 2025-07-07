@@ -1,10 +1,9 @@
-import { payments, Psbt } from "bitcoinjs-lib"
+import { crypto, payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { describe, expect, it, vi } from "vitest"
 import { getRawTransactions } from "../../src/utils/rpc/getRawTransactions.js"
-import { createInput } from "../../src/utils/transaction/createInput.js"
 import { createPayment } from "../../src/utils/transaction/createPayment.js"
-import { createUserTransaction } from "../../src/utils/transaction/createUserTransaction.js"
+import { createDummyTx, createUserTransaction, NotEnoughFundsError } from "../../src/utils/transaction/createUserTransaction.js"
 import { randomKey } from "../../src/utils/transaction/utils/keys.js"
 import { BTC_JS_NETWORK } from "../../src/utils/transaction/utils/network.js"
 import Random from "../test-utils/Random.js"
@@ -30,10 +29,20 @@ describe("createUserTransaction", () => {
     ['p2tr', 'p2wpkh'],
     ['p2tr', 'p2tr'],
   ] as const)('should succeed for when paying with %s and receiving to %s', async (paymentAddressType, receiveAddressType) => {
-    const key = randomKey()
-    const paymentAddress = createPayment({ addressType: paymentAddressType, publicKey: key.publicKey }).address!
+    let key = randomKey()
+    const pubkey = key.publicKey.toString('hex')
 
-    const receiverAddress = createPayment({
+    if (paymentAddressType === 'p2tr') {
+      key = key.tweak(
+        crypto.taggedHash('TapTweak', toXOnly(key.publicKey)),
+      )
+    }
+
+    const paymentAddress = paymentAddressType === 'p2tr'
+      ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK }).address!
+      : createPayment({ addressType: paymentAddressType, publicKey: key.publicKey }).address!
+
+    const receiveAddress = createPayment({
       addressType: receiveAddressType, publicKey: randomKey().publicKey
     }).address!
 
@@ -51,27 +60,84 @@ describe("createUserTransaction", () => {
       value: txValue
     }]
 
+    const { psbt } = await createUserTransaction({
+      feeRate: 10, alkaneId: "2:0", receiveAddress, paymentAddress,
+      paymentPubkey: pubkey, mintCount: 10, utxos
+    })
+
+    psbt.signAllInputs(key)
+    psbt.finalizeAllInputs()
+
+    psbt.extractTransaction()
+  })
+
+  it('should throw an error if there are not enough funds', async () => {
+    const key = randomKey()
+    const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
+
+    const txValue = 1000
+    const utxos = [{
+      txid: Random.randomTransactionId(),
+      vout: 0,
+      value: txValue
+    }]
+
     await expect(createUserTransaction({
-      feeRate: 10, alkaneId: "2:0", receiverAddress, paymentAddress,
+      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
       paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
-    })).resolves.toBeDefined()
+    })).rejects.toThrow(NotEnoughFundsError)
+  })
+  
+  it('should create tx with correct fee rate', async () => {
+    const key = randomKey()
+    const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
+
+    const txValue = 100000
+    const utxos = [{
+      txid: Random.randomTransactionId(),
+      vout: 0,
+      value: txValue
+    }]
+
+    const { psbt } = await createUserTransaction({
+      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
+    })
+
+    psbt.signAllInputs(key)
+    psbt.finalizeAllInputs()
+
+    expect(psbt.getFeeRate()).toEqual(expect.closeTo(10, 0.01))
+  })
+
+  it.each([
+    [1, 1],
+    [2, 1],
+    [24, 1],
+    [25, 2],
+    [40, 2],
+    [100, 5]
+  ])('it should create %d outputs for %d mints', async (mintCount, expectedOutputs) => {
+    const key = randomKey()
+    const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
+
+    const txValue = 10000000
+    const utxos = [{
+      txid: Random.randomTransactionId(),
+      vout: 0,
+      value: txValue
+    }]
+
+    const { psbt } = await createUserTransaction({
+      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos
+    })
+
+    psbt.signAllInputs(key)
+    psbt.finalizeAllInputs()
+
+    const tx = psbt.extractTransaction()
+    // -3 for change, service fee, and op return
+    expect(tx.outs.length - 3).toBe(expectedOutputs)
   })
 })
-
-async function createDummyTx(address: string, value: number) {
-  const psbt = new Psbt({ network: BTC_JS_NETWORK });
-  const key = randomKey();
-  const payment = payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK });
-  psbt.addInput(await createInput({
-    addressType: 'p2tr',
-    txid: Random.randomTransactionId(),
-    vout: 0,
-    publicKey: key.publicKey,
-    value: value + 10000,
-    payment
-  }));
-  psbt.addOutput({ address, value })
-  psbt.signAllInputs(key)
-  psbt.finalizeAllInputs()
-  return psbt.extractTransaction()
-}

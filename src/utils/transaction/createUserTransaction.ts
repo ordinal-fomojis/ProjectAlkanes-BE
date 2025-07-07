@@ -23,21 +23,21 @@ interface CreateUserTransactionArgs {
   feeRate: number
   paymentAddress: string
   paymentPubkey: string
-  receiverAddress: string
+  receiveAddress: string
   alkaneId: string
   mintCount: number
   utxos: Utxo[]
 }
 
 export async function createUserTransaction({
-  feeRate, alkaneId, receiverAddress, mintCount, utxos, paymentAddress, paymentPubkey
+  feeRate, alkaneId, receiveAddress, mintCount, utxos, paymentAddress, paymentPubkey
 } : CreateUserTransactionArgs) {
   feeRate = Math.max(feeRate, MIN_FEE_RATE)
   const internalKey = randomKey()
   const internalPubKey = toXOnly(internalKey.publicKey)
   const internalPayment = payments.p2tr({ pubkey: internalPubKey, network: BTC_JS_NETWORK })
   
-  const addressType = getAddressType(receiverAddress)
+  const addressType = getAddressType(receiveAddress)
 
   const runescript = createScriptForAlkaneMint(alkaneId)
   const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
@@ -49,12 +49,13 @@ export async function createUserTransaction({
   const serviceFee = getServiceFee(mintCount)
 
   const psbt = new Psbt({ network: BTC_JS_NETWORK })
-  psbt.addOutputs(Array.from({ length: Math.floor((mintCount - 1) / txnsPerGroup) }, () => ({
+  const fullGroupCount = Math.floor((mintCount - 1) / txnsPerGroup)
+  psbt.addOutputs(Array.from({ length: fullGroupCount }, () => ({
     script: internalPayment.output!,
     value: outputValue + txnsPerGroup * feePerMint
   })))
 
-  if (txnsInLastGroup > 0) {
+  if (txnsInLastGroup > 0 || fullGroupCount === 0) {
     psbt.addOutput({
       script: internalPayment.output!,
       value: outputValue + txnsInLastGroup * feePerMint
@@ -63,7 +64,7 @@ export async function createUserTransaction({
 
   if (serviceFee > dustLimit('p2tr')) {
     psbt.addOutput({
-      address: receiverAddress,
+      address: receiveAddress,
       value: serviceFee
     })
   }
@@ -73,11 +74,15 @@ export async function createUserTransaction({
     value: 0
   })
 
-  await addInputsAndCalculateFee({
+  const { networkFee } = await addInputsAndCalculateFee({
     psbt, utxos, feeRate, paymentAddress, paymentPubkey
   })
 
-  return { psbt, internalKey }
+  return {
+    psbt, internalKey, serviceFee,
+    networkFee: networkFee + (mintCount - 1) * feePerMint,
+    paddingCost: outputValue * (fullGroupCount + (txnsInLastGroup > 0 ? 1 : 0)),
+  }
 }
 
 interface AddInputsAndCalculateFeeArgs {
@@ -134,7 +139,10 @@ async function addInputsAndCalculateFee({
       dummyInputTx: addressType === 'p2pkh' ? await createDummyTx(dummyPayment.address!, utxo.value) : undefined
     }))
 
-    virtualSize = getVirtualSize(dummyPsbt, paymentAddress, dummyKey)
+    if (inputValue >= totalOutputValue) {
+      const change = inputValue - (totalOutputValue + virtualSize * feeRate)
+      virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
+    }
   }
 
   const change = inputValue - (totalOutputValue + virtualSize * feeRate)
@@ -144,14 +152,16 @@ async function addInputsAndCalculateFee({
       value: change
     })
   }
+
+  return { networkFee: virtualSize * feeRate }
 }
 
-function getVirtualSize(psbt: Psbt, changeAddress: string, key: Signer) {
+function getVirtualSize(psbt: Psbt, change: number, changeAddress: string, key: Signer) {
   const clone = psbt.clone()
 
   clone.addOutput({
     address: changeAddress,
-    value: 0
+    value: change
   })
 
   clone.signAllInputs(key)
@@ -159,7 +169,7 @@ function getVirtualSize(psbt: Psbt, changeAddress: string, key: Signer) {
   return clone.extractTransaction().virtualSize()
 }
 
-async function createDummyTx(address: string, value: number) {
+export async function createDummyTx(address: string, value: number) {
   const psbt = new Psbt({ network: BTC_JS_NETWORK });
   const key = randomKey();
   const payment = payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK });
