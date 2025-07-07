@@ -13,7 +13,7 @@ export async function unisatFetch<T extends z.ZodType>(schema: T, path: string) 
   const { code, msg, data } = await retrySchemaFetch(unisatSchema, `${baseUrl}${path}`, {
     headers: { Authorization: `Bearer ${UNISAT_API_KEY}` }
   })
-  
+
   if (code === -1 || data == null) {
     throw new Error(`Unisat request to ${path} failed with message: ${msg}`)
   }
