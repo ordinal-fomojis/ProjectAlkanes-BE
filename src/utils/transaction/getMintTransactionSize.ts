@@ -1,11 +1,10 @@
-import { Payment, payments, Psbt } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { Payment } from "bitcoinjs-lib"
+import { createAlkaneMintTransaction } from "./createAlkaneMintTransaction.js"
 import { createPayment } from "./createPayment.js"
 import { dustLimit } from "./utils/dustLimit.js"
 import { AddressType } from "./utils/getAddressType.js"
 import './utils/init-ecc'
 import { randomKey } from "./utils/keys.js"
-import { BTC_JS_NETWORK } from "./utils/network.js"
 import { randomTransactionId } from "./utils/randomTransactionId.js"
 
 interface GetMintTransactionSizeArgs {
@@ -14,40 +13,13 @@ interface GetMintTransactionSizeArgs {
 }
 
 export function getMintTransactionSize({ runescript, outputAddressType } : GetMintTransactionSizeArgs) {
-  const outputValue = dustLimit(outputAddressType)
-  const outputKey = randomKey()
-  const inputKey = randomKey()
-
-  const outputPayment = createPayment({
+  const outputAddress = createPayment({
     addressType: outputAddressType,
-    publicKey: outputKey.publicKey
-  })
-
-  const inputPubKey = toXOnly(inputKey.publicKey)
-  const inputPayment = payments.p2tr({ pubkey: inputPubKey, network: BTC_JS_NETWORK })
-
-  const psbt = new Psbt({ network: BTC_JS_NETWORK })
-
-  psbt.addInput({
-    hash: randomTransactionId(),
-    index: 0,
-    sequence: 0xFFFFFFFD, 
-    tapInternalKey: inputPubKey, 
-    witnessUtxo: { value: outputValue, script: inputPayment.output! }
-  })
-
-  psbt.addOutputs([
-    {
-      script: outputPayment.output!,
-      value: outputValue
-    },
-    {
-      script: runescript.output!,
-      value: 0
-    }
-  ])
+    publicKey: randomKey().publicKey
+  }).address!
   
-  psbt.signAllInputs(inputKey)
-  psbt.finalizeAllInputs()
-  return psbt.extractTransaction().virtualSize()
+  return createAlkaneMintTransaction({
+    runescript, outputAddress, key: randomKey(),
+    utxo: { txid: randomTransactionId(), vout: 0, value: dustLimit(outputAddressType) }
+  }).virtualSize()
 }

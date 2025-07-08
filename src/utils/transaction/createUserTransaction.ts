@@ -5,7 +5,7 @@ import { createInput } from "./createInput.js"
 import { createPayment } from "./createPayment.js"
 import { getMintTransactionSize } from "./getMintTransactionSize.js"
 import { Utxo } from "./getUtxos.js"
-import { createScriptForAlkaneMint } from "./protostone/createRunestoneForAlkaneMint.js"
+import { createScriptForAlkaneMint } from "./protostone/createScriptForAlkaneMint.js"
 import { dustLimit } from "./utils/dustLimit.js"
 import getAddressType from "./utils/getAddressType.js"
 import { getServiceFee } from "./utils/getServiceFee.js"
@@ -43,23 +43,28 @@ export async function createUserTransaction({
   const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
   const feePerMint = Math.ceil(feeRate * mintTxSize)
   const txnsPerGroup = MAX_UNCONFIRMED_DESCENDANT_TXNS
-  const txnsInLastGroup = (mintCount - 1) % MAX_UNCONFIRMED_DESCENDANT_TXNS
+  const txnsInLastGroup = (mintCount - 1) % txnsPerGroup
 
   const outputValue = dustLimit(addressType)
   const serviceFee = getServiceFee(mintCount)
 
   const psbt = new Psbt({ network: BTC_JS_NETWORK })
   const fullGroupCount = Math.floor((mintCount - 1) / txnsPerGroup)
-  psbt.addOutputs(Array.from({ length: fullGroupCount }, () => ({
-    script: internalPayment.output!,
-    value: outputValue + txnsPerGroup * feePerMint
-  })))
+  const mintsInEachOutput = Array.from({ length: fullGroupCount }, () => txnsPerGroup)
+  if (txnsInLastGroup > 0) {
+    mintsInEachOutput.push(txnsInLastGroup)
+  }
 
-  if (txnsInLastGroup > 0 || fullGroupCount === 0) {
+  if (mintCount === 1) {
     psbt.addOutput({
       script: internalPayment.output!,
-      value: outputValue + txnsInLastGroup * feePerMint
+      value: outputValue
     })
+  } else {
+    psbt.addOutputs(mintsInEachOutput.map(mints => ({
+      script: internalPayment.output!,
+      value: outputValue + mints * feePerMint
+    })))
   }
 
   if (serviceFee > dustLimit('p2tr')) {
@@ -80,8 +85,9 @@ export async function createUserTransaction({
 
   return {
     psbt, internalKey, serviceFee,
-    networkFee: networkFee + (mintCount - 1) * feePerMint,
-    paddingCost: outputValue * (fullGroupCount + (txnsInLastGroup > 0 ? 1 : 0)),
+    networkFee: networkFee + (mintCount - 1) * feePerMint, feePerMint,
+    paddingCost: mintCount === 1 ? outputValue : mintsInEachOutput.length * outputValue,
+    mintsInEachOutput
   }
 }
 
