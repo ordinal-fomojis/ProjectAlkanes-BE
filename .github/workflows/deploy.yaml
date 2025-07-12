@@ -67,13 +67,20 @@ jobs:
       run: |
         terraform init -backend-config="key=alkanes-${{ env.ENVIRONMENT }}.tfstate"
         echo "webapp_name=$(terraform output -raw webapp_name)" >> $GITHUB_OUTPUT
+        echo "mock_webapp_name=$(terraform output -raw mock_webapp_name)" >> $GITHUB_OUTPUT
       working-directory: terraform
 
     - name: Clean Up Terraform
       run: |
         rm -rf terraform
 
+    - name: Deploy Mock Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ steps.tf-outputs.outputs.mock_webapp_name }}
+
     - name: Deploy Web App
       uses: azure/webapps-deploy@v3
+      if: ${{ github.ref_name == 'main' }}
       with:
         app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
