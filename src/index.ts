@@ -8,6 +8,7 @@ import { sanitizeRequest, securityHeaders, validateContentType } from './middlew
 import authRoutes from './routes/authRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
+import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { ValidationError } from './utils/parse.js'
 
@@ -20,7 +21,7 @@ app.use(securityHeaders);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:8080',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -78,6 +79,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
+app.use('/api/tx', transactionRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

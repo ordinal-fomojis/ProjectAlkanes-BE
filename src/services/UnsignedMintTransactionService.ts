@@ -1,0 +1,36 @@
+import { ObjectId } from "mongodb"
+import { BaseService } from "./BaseService.js"
+
+export interface UnsignedMintTransaction {
+  psbt: string
+  wif: string
+  serviceFee: number
+  networkFee: number
+  paddingCost: number
+  totalCost: number
+  networkFeePerMint: number
+  mintsInEachOutput: number[]
+  alkaneId: string
+  mintCount: number
+  paymentAddress: string
+  receiveAddress: string
+  created: Date
+}
+
+export class UnsignedMintTransactionService extends BaseService<UnsignedMintTransaction> {
+  collectionName = 'unsigned_mint_transactions'
+
+  async createMintTransaction(mintTx: Omit<UnsignedMintTransaction, 'created' | 'totalCost'>) {
+    const { insertedId } = await this.collection.insertOne({
+      ...mintTx,
+      created: new Date(),
+      totalCost: mintTx.serviceFee + mintTx.networkFee + mintTx.paddingCost,
+    })
+
+    return insertedId.toString()
+  }
+
+  async getMintTransactionById(id: string) {
+    return await this.collection.findOne({ _id: new ObjectId(id) })
+  }
+}

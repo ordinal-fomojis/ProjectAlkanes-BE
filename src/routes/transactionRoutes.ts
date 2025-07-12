@@ -1,0 +1,138 @@
+import { Psbt } from 'bitcoinjs-lib'
+import { Router } from 'express'
+import { z } from 'zod'
+import { database } from '../config/database.js'
+import { MintTransactionService } from '../services/MintTransactionService.js'
+import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
+import { UnsignedMintTransactionService } from '../services/UnsignedMintTransactionService.js'
+import { parse } from '../utils/parse.js'
+import { throttledPromiseAll } from '../utils/throttledPromise.js'
+import { createAlkaneMintTransactionChain } from '../utils/transaction/createAlkaneMintTransactionChain.js'
+import { createUserTransaction } from '../utils/transaction/createUserTransaction.js'
+import { getUtxos } from '../utils/transaction/getUtxos.js'
+import { createScriptForAlkaneMint } from '../utils/transaction/protostone/createScriptForAlkaneMint.js'
+import { fromWIF } from '../utils/transaction/utils/keys.js'
+import { validatePsbtWithReference } from '../utils/transaction/validatePsbtWithReference.js'
+
+const router = Router();
+
+const CreateTransactionParamsSchema = z.object({
+  feeRate: z.number({ coerce: true }),
+  paymentAddress: z.string(), 
+  paymentPubkey: z.string(),
+  receiveAddress: z.string(),
+  alkaneId: z.string(),
+  mintCount: z.number({ coerce: true }).min(1)
+})
+
+router.get('/', async (req, res) => {
+  const {
+    feeRate, paymentAddress, paymentPubkey,
+    receiveAddress, alkaneId, mintCount
+  } = parse(CreateTransactionParamsSchema, req.query)
+
+  const service = new UnsignedMintTransactionService()
+
+  // TODO: validate token is mintable, and has at least mint count mints available
+  const utxos = await getUtxos(paymentAddress)
+  const {
+    psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, mintsInEachOutput
+  } = await createUserTransaction({
+    feeRate, paymentAddress, paymentPubkey, receiveAddress, alkaneId, mintCount, utxos
+  })
+
+  const psbtHex = psbt.toHex()
+  const id = await service.createMintTransaction({
+    psbt: psbt.toHex(),
+    wif: internalKey.toWIF(),
+    serviceFee,
+    networkFee,
+    paddingCost,
+    networkFeePerMint: feePerMint,
+    mintsInEachOutput,
+    alkaneId,
+    mintCount,
+    paymentAddress,
+    receiveAddress
+  })
+
+  res.status(200).json({
+    success: true,
+    message: 'Successfully fetched tokens',
+    data: { id, psbtHex }
+  })
+})
+
+const PostTransactionBodySchema = z.object({
+  psbt: z.string(),
+  id: z.string()
+})
+
+router.post('/', async (req, res) => {
+  const { psbt, id } = parse(PostTransactionBodySchema, req.body)
+  const unsignedMints = new UnsignedMintTransactionService()
+  const mintTxns = new MintTransactionService()
+  const txnService = new UnconfirmedTransactionService()
+  const mintTx = await unsignedMints.getMintTransactionById(id)
+
+  if (mintTx === null) {
+    res.status(404).json({
+      success: false,
+      message: 'Mint transaction not found or expired'
+    })
+    return
+  }
+
+  const signedPsbt = Psbt.fromHex(psbt)
+  const unsignedPsbt = Psbt.fromHex(mintTx.psbt)
+
+  if (!validatePsbtWithReference(signedPsbt, unsignedPsbt)) {
+    res.status(400).json({
+      success: false,
+      message: 'Signed PSBT does not match the expected PSBT'
+    })
+    return
+  }
+
+  const tx = signedPsbt.extractTransaction()
+  const txid = tx.getId()
+  const key = fromWIF(mintTx.wif)
+  const runescript = createScriptForAlkaneMint(mintTx.alkaneId)
+  const transactions = await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
+    feePerMint: mintTx.networkFeePerMint,
+    runescript, key,
+    mintCount, outputAddress: mintTx.receiveAddress,
+    utxo: { txid, vout: index, value: tx.outs[index]?.value ?? 0 }
+  })))
+
+  const allTransactions = transactions.flat().concat([tx])
+
+  await database.withTransaction(async (session) => {
+    const id = await mintTxns.createMintTransaction({
+      wif: mintTx.wif,
+      serviceFee: mintTx.serviceFee,
+      networkFee: mintTx.networkFee,
+      paddingCost: mintTx.paddingCost,
+      totalCost: mintTx.totalCost,
+      paymentTxid: txid,
+      alkaneId: mintTx.alkaneId,
+      mintCount: mintTx.mintCount,
+      paymentAddress: mintTx.paymentAddress,
+      receiveAddress: mintTx.receiveAddress,
+      txids: allTransactions.map(tx => tx.getId()),
+    }, session)
+    await txnService.createTransactionsForMint({
+      txns: allTransactions,
+      wif: mintTx.wif,
+      mintTx: id
+    }, session)
+  })
+
+  res.status(200).json({
+    success: true,
+    message: 'Successfully created mint transactions',
+    data: { txid, mintCount: mintTx.mintCount }
+  })
+})
+
+export default router; 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import z from 'zod'
 import { parse } from '../../src/utils/parse.js'
 
-describe('parse utility', () => {
+describe('parse', () => {
   it('should successfully parse valid data according to schema', () => {
     const schema = z.object({
       name: z.string(),

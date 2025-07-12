@@ -21,6 +21,9 @@ export const SANDSHREW_API_KEY = parse(
 export const ORDISCAN_API_KEY = parse(
   z.string({ message: "ORDISCAN_API_KEY is missing" }), process.env.ORDISCAN_API_KEY)
 
+export const UNISAT_API_KEY = parse(
+  z.string({ message: "UNISAT_API_KEY is missing" }), process.env.UNISAT_API_KEY)
+
 const BitcoinRpcUrls = {
   'mainnet': `https://mainnet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
   'signet': `https://signet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
@@ -32,12 +35,7 @@ export const BITCOIN_RPC_URL = BitcoinRpcUrls[BITCOIN_NETWORK]
 export const MONGODB_URI = parse(z.string({ message: "MONGODB_URI is missing" }), process.env.MONGODB_URI)
 export const DB_NAME = parse(z.string().default('project-alkanes'), process.env.MONGODB_DB_NAME)
 
-export const MempoolSyncCronJobOptions = {
-  enabled: parse(z.string().default("false"), process.env.MEMPOOL_SYNC_ENABLED) === 'true',
-  cronExpression: parse(z.string().default('*/30 * * * * *'), process.env.MEMPOOL_SYNC_CRON_EXPRESSION)
-}
-
-export const TokenSyncCronJobOptions = {
-  enabled: parse(z.string().default("false"), process.env.TOKEN_SYNC_ENABLED) === 'true',
-  cronExpression: parse(z.string().default('*/30 * * * * *'), process.env.TOKEN_SYNC_CRON_EXPRESSION)
-}
+export const MIN_FEE_RATE = 1
+export const MAX_UNCONFIRMED_DESCENDANT_TXNS = 23
+export const RECEIVE_ADDRESS = parse(z.string({ message: "RECEIVE_ADDRESS is missing" }), process.env.RECEIVE_ADDRESS)
+export const MOCK_BTC = parse(z.enum(['true', 'false']).default('true'), process.env.MOCK_BTC) === 'true'
