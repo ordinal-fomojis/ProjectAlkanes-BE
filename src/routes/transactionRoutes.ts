@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { database } from '../config/database.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
-import { TransactionService } from '../services/TransactionService.js'
+import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
 import { UnsignedMintTransactionService } from '../services/UnsignedMintTransactionService.js'
 import { parse } from '../utils/parse.js'
 import { throttledPromiseAll } from '../utils/throttledPromise.js'
@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
   const { psbt, id } = parse(PostTransactionBodySchema, req.body)
   const unsignedMints = new UnsignedMintTransactionService()
   const mintTxns = new MintTransactionService()
-  const txnService = new TransactionService()
+  const txnService = new UnconfirmedTransactionService()
   const mintTx = await unsignedMints.getMintTransactionById(id)
 
   if (mintTx === null) {
