@@ -74,7 +74,7 @@ jobs:
       run: |
         rm -rf terraform
 
-    - name: Deploy Web App
+    - name: Deploy Mock Web App
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.tf-outputs.outputs.mock_webapp_name }}
