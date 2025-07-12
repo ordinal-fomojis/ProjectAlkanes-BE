@@ -17,12 +17,12 @@ import { validatePsbtWithReference } from '../utils/transaction/validatePsbtWith
 const router = Router();
 
 const CreateTransactionParamsSchema = z.object({
-  feeRate: z.number({ coerce: true }),
+  feeRate: z.coerce.number(),
   paymentAddress: z.string(), 
   paymentPubkey: z.string(),
   receiveAddress: z.string(),
   alkaneId: z.string(),
-  mintCount: z.number({ coerce: true }).min(1)
+  mintCount: z.coerce.number().min(1)
 })
 
 router.get('/', async (req, res) => {

@@ -34,10 +34,10 @@ describe('parse', () => {
     // Error is about the age field being a string instead of a number,
     // rather than about it being a number instead of a string
     const data1 = Array.from({ length: 1000 }, (_, i) => (i === 15 ? { age: i.toString() } : { age: i }))
-    expect(() => parse(unionSchema, data1)).toThrow(/^Validation error: Expected number, received string at "\[15\].age"$/)
+    expect(() => parse(unionSchema, data1)).toThrow(/^Validation error: Expected number at "\[15\].age"$/)
 
     // Now it is the other way around, the error is about the string instead of the number
     const data2 = Array.from({ length: 1000 }, (_, i) => (i === 15 ? { age: i } : { age: i.toString() }))
-    expect(() => parse(unionSchema, data2)).toThrow(/^Validation error: Expected string, received number at "\[15\].age"$/)
+    expect(() => parse(unionSchema, data2)).toThrow(/^Validation error: Expected string at "\[15\].age"$/)
   })
 })
