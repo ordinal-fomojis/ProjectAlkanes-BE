@@ -4,7 +4,7 @@ export function validatePsbtWithReference(signed: Psbt, unsigned: Psbt) {
   // Both Psbt's must have the same inputs and outputs
   if (signed.txInputs.length !== unsigned.txInputs.length ||
       signed.txOutputs.length !== unsigned.txOutputs.length) {
-    return false;
+    return false
   }
 
   for (let i = 0; i < signed.txInputs.length; i++) {
@@ -14,7 +14,7 @@ export function validatePsbtWithReference(signed: Psbt, unsigned: Psbt) {
 
     if (signedInput.hash.toString('hex') !== unsignedInput.hash.toString('hex') ||
         signedInput.index !== unsignedInput.index) {
-      return false;
+      return false
     }
   }
 
@@ -26,9 +26,9 @@ export function validatePsbtWithReference(signed: Psbt, unsigned: Psbt) {
     
     if (signedOutput.value !== unsignedOutput.value ||
         signedOutput.script?.toString('hex') !== unsignedOutput.script?.toString('hex')) {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 }
