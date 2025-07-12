@@ -25,9 +25,9 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
   collectionName = 'alkane_tokens'
 
   async searchAlkaneTokens(
-    searchTerm: string, page: number, limit: number, order: SortOrder
+    searchTerm: string, page: number, pageSize: number, order: SortOrder
   ): Promise<AlkaneToken[]> {
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * pageSize
     searchTerm = searchTerm.trim()
     const query: Document = searchTerm.length === 0 ? {} : {
       $or: [
@@ -41,7 +41,7 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       .collation({ locale: "en" })
       .sort({ [order.field]: order.order })
       .skip(skip)
-      .limit(limit)
+      .limit(pageSize)
       .toArray()
   }
 }
