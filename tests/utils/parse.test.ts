@@ -22,7 +22,7 @@ describe('parse', () => {
     
     const invalidData = { name: 'John', age: '30' }
     
-    expect(() => parse(schema, invalidData)).toThrow(/Expected number, received string/)
+    expect(() => parse(schema, invalidData)).toThrow(/^Validation error: Expected number at "age"$/)
   })
 
   it('should simplify union error messages by picking the simplest error', () => {
