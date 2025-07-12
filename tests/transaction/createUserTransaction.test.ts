@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest"
 import { getRawTransactions } from "../../src/utils/rpc/getRawTransactions.js"
 import { createPayment } from "../../src/utils/transaction/createPayment.js"
 import { createDummyTx, createUserTransaction, NotEnoughFundsError } from "../../src/utils/transaction/createUserTransaction.js"
+import { dustLimit } from "../../src/utils/transaction/utils/dustLimit.js"
+import { getServiceFee } from "../../src/utils/transaction/utils/getServiceFee.js"
 import { randomKey } from "../../src/utils/transaction/utils/keys.js"
 import { BTC_JS_NETWORK } from "../../src/utils/transaction/utils/network.js"
 import Random from "../test-utils/Random.js"
@@ -137,7 +139,8 @@ describe("createUserTransaction", () => {
     psbt.finalizeAllInputs()
 
     const tx = psbt.extractTransaction()
-    // -3 for change, service fee, and op return
-    expect(tx.outs.length - 3).toBe(expectedOutputs)
+    const serviceFeeHasOutput = getServiceFee(mintCount) >= dustLimit('p2wpkh')
+    // subtracting change, service fee, and op return outputs
+    expect(tx.outs.length - (serviceFeeHasOutput ? 3 : 2)).toBe(expectedOutputs)
   })
 })

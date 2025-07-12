@@ -1,9 +1,19 @@
 import { opcodes, payments, script } from "bitcoinjs-lib"
 import { leb128encode } from "../utils/leb128encode.js"
 
-const PROTORUNE_TAG = 16383
-const CALLDATA_TAG = 81
-const MINT_OP_CODE = 77
+const RuneTag = {
+  Protocol: 16383
+}
+
+const ProtoTag = {
+  Message: 81,
+  Pointer: 91,
+  Refund: 93,
+}
+
+const AlkaneOpCode = {
+  Mint: 77
+}
 
 export function createScriptForAlkaneMint(alkaneId: string) {
   const runestone = createRunestoneForAlkaneMint(alkaneId)
@@ -17,19 +27,24 @@ function createRunestoneForAlkaneMint(alkaneId: string) {
   if (idParts.length !== 2 || idParts.some(isNaN)) {
     throw new Error(`Invalid alkaneId format: ${alkaneId}`)
   }
-  const protostoneMessage = [...idParts, MINT_OP_CODE]
+  const protostoneMessage = [...idParts, AlkaneOpCode.Mint]
   return encodeRunestone(protostoneMessage)
 }
 
 function encodeRunestone(protostoneMessage: number[]) {
   const protostone = encodeProtostoneMessage(protostoneMessage)
-  return Buffer.concat(encodeTag(PROTORUNE_TAG, protostone))
+  return Buffer.concat(encodeTag(RuneTag.Protocol, protostone))
 }
 
 function encodeProtostoneMessage(protostoneMessage: number[]) {
   const protocol = leb128encode(1)
-  const size = leb128encode(protostoneMessage.length)
-  const tags = encodeTag(CALLDATA_TAG, Buffer.concat(protostoneMessage.map(leb128encode)))
+  const zeroBuffer = Buffer.alloc(1, 0)
+  const tags = [
+    encodeTag(ProtoTag.Pointer, zeroBuffer),
+    encodeTag(ProtoTag.Refund, zeroBuffer),
+    encodeTag(ProtoTag.Message, Buffer.concat(protostoneMessage.map(leb128encode))),
+  ].flat()
+  const size = leb128encode(tags.length)
   return Buffer.concat([protocol, size, ...tags])
 }
 

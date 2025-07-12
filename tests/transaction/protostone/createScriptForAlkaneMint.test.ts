@@ -3,8 +3,8 @@ import { createScriptForAlkaneMint } from "../../../src/utils/transaction/protos
 
 describe("createScriptForAlkaneMint", () => {
   it.each([
-    ['2:0', "6a5d0aff7f8186c4928890ad01"],
-    ['2:194', "6a5d0bff7f8186c492c8f0a1f404"],
+    ['2:0', "6a5d0eff7f818cec82d08bc0a88281d215"],
+    ['2:194', "6a5d0fff7f818cec82d08bc0a882899ec44e"],
   ])("should create correct runstone: case %#", (value, expected) => {
     const result = createScriptForAlkaneMint(value)
     expect(result.output?.toString('hex')).toEqual(expected)

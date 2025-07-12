@@ -38,4 +38,4 @@ export const DB_NAME = parse(z.string().default('project-alkanes'), process.env.
 export const MIN_FEE_RATE = 1
 export const MAX_UNCONFIRMED_DESCENDANT_TXNS = 23
 export const RECEIVE_ADDRESS = parse(z.string({ message: "RECEIVE_ADDRESS is missing" }), process.env.RECEIVE_ADDRESS)
-export const MOCK_BTC = parse(z.enum(['true', 'false']).default('true'), process.env.MOCK_BTC)
+export const MOCK_BTC = parse(z.enum(['true', 'false']).default('true'), process.env.MOCK_BTC) === 'true'

@@ -1,4 +1,4 @@
 // TODO
 export function getServiceFee(mintCount: number) {
-  return mintCount * 1000
+  return mintCount * 0
 }

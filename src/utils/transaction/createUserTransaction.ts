@@ -1,6 +1,6 @@
 import { crypto, payments, Psbt, Signer } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE } from "../../config/constants.js"
+import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../config/constants.js"
 import { createInput } from "./createInput.js"
 import { createPayment } from "./createPayment.js"
 import { getMintTransactionSize } from "./getMintTransactionSize.js"
@@ -69,7 +69,7 @@ export async function createUserTransaction({
 
   if (serviceFee > dustLimit('p2tr')) {
     psbt.addOutput({
-      address: receiveAddress,
+      address: RECEIVE_ADDRESS,
       value: serviceFee
     })
   }
