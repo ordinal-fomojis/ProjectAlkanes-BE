@@ -78,7 +78,7 @@ jobs:
     - name: Deploy Mock Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.main_name }}
+        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
 
     - name: Deploy Web App
       uses: azure/webapps-deploy@v3
