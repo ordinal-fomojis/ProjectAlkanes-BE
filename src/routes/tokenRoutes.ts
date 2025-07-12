@@ -8,8 +8,8 @@ const router = Router();
 
 const ParamsSchema = z.object({
   search: z.string(),
-  page: z.number({ coerce: true }).optional(),
-  pageSize: z.number({ coerce: true }).optional(),
+  page: z.coerce.number().optional(),
+  pageSize: z.coerce.number().optional(),
   orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted']).optional(),
   order: z.enum(['asc', 'desc']).optional()
 })
