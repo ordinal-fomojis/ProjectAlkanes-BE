@@ -10,7 +10,7 @@ import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
-import { ValidationError } from './utils/parse.js'
+import { UserError } from './utils/errors.js'
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -92,13 +92,12 @@ app.use((_: Request, res: Response) => {
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
-  if (error instanceof ValidationError) {
-    console.error('Validation error (400):', error)
-    res.status(400).json({
+  if (error instanceof UserError) {
+    console.warn(`${error.name} (${error.status}):`, error);
+    res.status(error.status).json({
       success: false,
-      message: 'Validation error',
-      error: error.message
-    })
+      message: error.message
+    });
     return
   }
   
