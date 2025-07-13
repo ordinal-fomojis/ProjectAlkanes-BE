@@ -112,7 +112,8 @@ router.post('/', async (req, res) => {
   if (!MOCK_BTC) {
     try {
       await sendTransaction(paymentTx.txHex)
-    } catch {
+    } catch (error: unknown) {
+      console.warn('Failed to broadcast payment transaction:', error)
       throw new UserError('Failed to broadcast payment transaction').withStatus(500)
     }
   }

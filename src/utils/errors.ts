@@ -1,5 +1,7 @@
 // UserError is a generic error class for user-facing errors.
 // These are safe to be sent to the client, and should be presented to the user.
+// They can be either 4xx or 5xx status error codes, depending on the error, so they are not always client errors,
+// they are just errors that are safe to present to the user.
 export class UserError extends Error {
   status = 400
 
