@@ -1,11 +1,14 @@
 import { Psbt } from 'bitcoinjs-lib'
 import { Router } from 'express'
 import { z } from 'zod'
+import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
 import { UnsignedMintTransactionService } from '../services/UnsignedMintTransactionService.js'
+import { UserError } from '../utils/errors.js'
 import { parse } from '../utils/parse.js'
+import { sendTransaction } from '../utils/rpc/sendTransactions.js'
 import { throttledPromiseAll } from '../utils/throttledPromise.js'
 import { createAlkaneMintTransactionChain } from '../utils/transaction/createAlkaneMintTransactionChain.js'
 import { createUserTransaction } from '../utils/transaction/createUserTransaction.js'
@@ -95,17 +98,26 @@ router.post('/', async (req, res) => {
   }
 
   const tx = signedPsbt.extractTransaction()
-  const txid = tx.getId()
+  const paymentTx = { tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: true }
+  
   const key = fromWIF(mintTx.wif)
   const runescript = createScriptForAlkaneMint(mintTx.alkaneId)
-  const transactions = await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
+  const transactions = (await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
     feePerMint: mintTx.networkFeePerMint,
     runescript, key,
     mintCount, outputAddress: mintTx.receiveAddress,
-    utxo: { txid, vout: index, value: tx.outs[index]?.value ?? 0 }
-  })))
+    utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? 0 }
+  })))).map(chain => chain.map(tx => ({ tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: false })))
 
-  const allTransactions = transactions.flat().concat([tx])
+  if (!MOCK_BTC) {
+    try {
+      await sendTransaction(paymentTx.txHex)
+    } catch {
+      throw new UserError('Failed to broadcast payment transaction').withStatus(500)
+    }
+  }
+
+  const allTransactions = [paymentTx].concat(transactions.flat())
 
   await database.withTransaction(async (session) => {
     const id = await mintTxns.createMintTransaction({
@@ -114,12 +126,12 @@ router.post('/', async (req, res) => {
       networkFee: mintTx.networkFee,
       paddingCost: mintTx.paddingCost,
       totalCost: mintTx.totalCost,
-      paymentTxid: txid,
+      paymentTxid: paymentTx.txid,
       alkaneId: mintTx.alkaneId,
       mintCount: mintTx.mintCount,
       paymentAddress: mintTx.paymentAddress,
       receiveAddress: mintTx.receiveAddress,
-      txids: allTransactions.map(tx => tx.getId()),
+      txids: allTransactions.map(tx => tx.txid),
     }, session)
     await txnService.createTransactionsForMint({
       txns: allTransactions,
@@ -131,7 +143,7 @@ router.post('/', async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Successfully created mint transactions',
-    data: { txid, mintCount: mintTx.mintCount }
+    data: { txid: paymentTx.txid, mintCount: mintTx.mintCount }
   })
 })
 

@@ -1,6 +1,7 @@
 import { crypto, payments, Psbt, Signer } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../config/constants.js"
+import { UserError } from "../errors.js"
 import { createInput } from "./createInput.js"
 import { createPayment } from "./createPayment.js"
 import { getMintTransactionSize } from "./getMintTransactionSize.js"
@@ -13,9 +14,9 @@ import { randomKey } from "./utils/keys.js"
 import { BTC_JS_NETWORK } from "./utils/network.js"
 import { randomTransactionId } from "./utils/randomTransactionId.js"
 
-export class NotEnoughFundsError extends Error {
+export class NotEnoughFundsError extends UserError {
   constructor(public cost: number) {
-    super(`Not enough funds to cover cost of ${cost} satoshis`)
+    super(`Not enough funds to cover cost of ${cost} sats`)
   }
 }
 
