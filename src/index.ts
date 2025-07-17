@@ -10,6 +10,7 @@ import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import portfolioRoutes from './routes/portfolioRoutes.js'
 import { UserError } from './utils/errors.js'
 
 const app = express();
@@ -80,6 +81,7 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/tx', transactionRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {
@@ -117,11 +119,12 @@ async function startServer() {
     
     // Start server
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📡 API available at http://localhost:${PORT}`);
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-      console.log(`👥 User API: http://localhost:${PORT}/api/users`);
-      console.log(`🎯 Referral API: http://localhost:${PORT}/api/referral`);
+          console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`📡 API available at http://localhost:${PORT}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    console.log(`👥 User API: http://localhost:${PORT}/api/users`);
+    console.log(`🎯 Referral API: http://localhost:${PORT}/api/referral`);
+    console.log(`💼 Portfolio API: http://localhost:${PORT}/api/portfolio`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
