@@ -24,6 +24,9 @@ export const ORDISCAN_API_KEY = parse(
 export const UNISAT_API_KEY = parse(
   z.string({ message: "UNISAT_API_KEY is missing" }), process.env.UNISAT_API_KEY)
 
+export const MEMPOOL_API_URL = parse(
+  z.string({ message: "MEMPOOL_API_URL is missing" }), process.env.MEMPOOL_API_URL)
+
 const BitcoinRpcUrls = {
   'mainnet': `https://mainnet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
   'signet': `https://signet.sandshrew.io/v1/${SANDSHREW_API_KEY}`,
