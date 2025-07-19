@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Response, Router } from 'express'
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
