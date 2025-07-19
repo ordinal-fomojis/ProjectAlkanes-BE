@@ -72,14 +72,15 @@ app.get('/health', (_: Request, res: Response) => {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       message: 'Database not connected'
-    });
+    })
+    return
   }
   res.json({
     status: 'OK',
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
-  });
-});
+  })
+})
 
 // API routes
 app.use('/api/users', userRoutes);

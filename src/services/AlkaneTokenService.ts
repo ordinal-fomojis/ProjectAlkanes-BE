@@ -51,18 +51,20 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       ]
     }
 
-    let query = this.collection.find(searchQuery)
-      .collation({ locale: "en" })
-      .sort({ [order.field]: order.order })
-
     if (mintable !== null) {
-      query = query.filter({ mintable })
+      searchQuery.mintable = mintable
     }
 
     if (mintedOut !== null) {
-      query = query.filter({ mintedOut })
+      searchQuery.mintedOut = mintedOut
     }
 
-    return await query.skip(skip).limit(pageSize).toArray()
+    return await this.collection
+      .find(searchQuery)
+      .collation({ locale: "en" })
+      .sort({ [order.field]: order.order })
+      .skip(skip)
+      .limit(pageSize)
+      .toArray()
   }
 }
