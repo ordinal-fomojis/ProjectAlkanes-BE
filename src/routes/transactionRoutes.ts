@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb'
 import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
+import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
@@ -37,8 +38,8 @@ router.get('/', async (req, res) => {
   } = parse(CreateTransactionParamsSchema, req.query)
 
   const service = new UnsignedMintTransactionService()
-
-  // TODO: validate token is mintable, and has at least mint count mints available
+  await validateAlkaneToken(alkaneId)
+  
   const utxos = await getUtxos(paymentAddress)
   const {
     psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, mintsInEachOutput
@@ -107,6 +108,8 @@ router.post('/', async (req, res) => {
     return
   }
 
+  await validateAlkaneToken(mintTx.alkaneId)
+
   const signedPsbt = Psbt.fromHex(psbt)
   const unsignedPsbt = Psbt.fromHex(mintTx.psbt)
 
@@ -168,5 +171,19 @@ router.post('/', async (req, res) => {
     data: { txid: paymentTx.txid, mintCount: mintTx.mintCount }
   })
 })
+
+async function validateAlkaneToken(alkaneId: string) {
+  const alkanesService = new AlkaneTokenService()
+  const alkane = await alkanesService.getAlkaneById(alkaneId)
+  if (alkane === null) {
+    throw new UserError('Alkane token not found').withStatus(404)
+  }
+  if (!alkane.mintable) {
+    throw new UserError('Alkane token is not mintable').withStatus(400)
+  }
+  if (alkane.mintedOut) {
+    throw new UserError('Alkane token has already minted out').withStatus(400)
+  }
+}
 
 export default router; 

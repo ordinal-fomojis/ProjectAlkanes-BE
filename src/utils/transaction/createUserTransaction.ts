@@ -58,7 +58,7 @@ export async function createUserTransaction({
 
   if (mintCount === 1) {
     psbt.addOutput({
-      script: internalPayment.output!,
+      address: receiveAddress,
       value: outputValue
     })
   } else {
