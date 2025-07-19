@@ -43,7 +43,9 @@ export class ReferralService extends BaseService<IUser> {
         customReferralId: user.customReferralId,
         referredBy: referrerInfo,
         referredUsers: referredUsersInfo,
-        totalReferrals: referredUsersInfo.length
+        totalReferrals: referredUsersInfo.length,
+        points: user.points || 0, // User's total points balance
+        pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0 // Cached value - no calculation needed!
       };
     } catch (error) {
       console.error('Error getting referral info:', error);
