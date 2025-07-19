@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import { validateRequest, validateParams } from '../middleware/validation.js';
+import { validateParams, validateRequest } from '../middleware/validation.js';
 import { ReferralService } from '../services/referralService.js';
-import { enterReferralCodeSchema, walletAddressSchema, createCustomLinkSchema } from '../validation/referralValidation.js';
+import { createCustomLinkSchema, enterReferralCodeSchema, walletAddressSchema } from '../validation/referralValidation.js';
 
 const router = Router();
 

@@ -7,6 +7,7 @@ import { database } from './config/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import authRoutes from './routes/authRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
+import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
@@ -91,6 +92,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/tx', transactionRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/points', pointsRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

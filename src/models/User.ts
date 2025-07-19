@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { TierConfig } from '../config/tiers.js';
 
 export interface IUser {
   _id?: ObjectId;
@@ -9,6 +10,8 @@ export interface IUser {
   customReferralId?: string;
   referredBy?: ObjectId;
   referredUsers?: ObjectId[];
+  points?: number; // Referral points balance
+  pointsEarnedFromReferrals?: number; // Cached value of points earned from referred users
 }
 
 export interface CreateUserRequest {
@@ -36,6 +39,11 @@ export interface ReferralInfo {
     createdAt: Date;
   }[];
   totalReferrals: number;
+  points: number; // User's total points balance
+  pointsEarnedFromReferrals: number; // Points earned specifically from referred users' mints
+  tier: TierConfig; // Current tier information
+  nextTier?: TierConfig; // Next tier to reach (if any)
+  pointsToNextTier?: number; // Points needed to reach next tier
 }
 
 export class User {

@@ -1,9 +1,11 @@
 import { Psbt } from 'bitcoinjs-lib'
 import { Router } from 'express'
+import { ObjectId } from 'mongodb'
 import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
+import { PointsService } from '../services/PointsService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
 import { UnsignedMintTransactionService } from '../services/UnsignedMintTransactionService.js'
 import { UserError } from '../utils/errors.js'
@@ -58,6 +60,25 @@ router.get('/', async (req, res) => {
     paymentAddress,
     receiveAddress
   })
+
+  // Award referral points immediately when mint is initiated (from temporary storage)
+  try {
+    const pointsService = new PointsService()
+    const pointsResult = await pointsService.awardReferralPoints(
+      paymentAddress, // The wallet that is paying for minting
+      mintCount,      // Number of tokens minted = points to award
+      new ObjectId(id) // The unsigned mint transaction ID for tracking
+      // No session parameter - this is not in a transaction
+    )
+    
+    if (pointsResult.awarded) {
+      console.log(`Successfully awarded ${pointsResult.pointsAwarded} points (${pointsResult.basePoints} base × ${pointsResult.bonus} ${pointsResult.tier} bonus) to referrer ${pointsResult.referrerWallet} for mint initiation by ${paymentAddress}`)
+    }
+  } catch (pointsError) {
+    // Log the error but don't fail the mint transaction creation
+    console.error('Error awarding referral points during mint initiation:', pointsError)
+    // Points awarding failure should not block the mint transaction creation
+  }
 
   res.status(200).json({
     success: true,
