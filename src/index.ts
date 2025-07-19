@@ -10,6 +10,7 @@ import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
+import transactionConfirmationRoutes from './routes/transactionConfirmationRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { FeeService } from './services/FeeService.js'
@@ -91,6 +92,7 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/tx', transactionRoutes);
+app.use('/api/transaction', transactionConfirmationRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/points', pointsRoutes);
 
