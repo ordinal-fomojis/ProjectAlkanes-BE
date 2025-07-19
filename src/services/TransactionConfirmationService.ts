@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { MEMPOOL_API_URL } from '../config/constants.js';
-import { retrySchemaFetch } from '../utils/retryFetch.js';
+import { z } from 'zod'
+import { MEMPOOL_API_URL } from '../config/constants.js'
+import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool transaction API response
 const TransactionResponseSchema = z.object({
@@ -20,10 +20,10 @@ const TransactionResponseSchema = z.object({
   })
 });
 
-export type TransactionConfirmationResponse = {
+export interface TransactionConfirmationResponse {
   confirmed: boolean;
   txid: string;
-};
+}
 
 export class TransactionConfirmationService {
   /**
