@@ -31,7 +31,7 @@ describe('Tier Bonus System Integration', () => {
 
     // Create trader
     const traderWallet = randomAddress()
-    const trader = await userService.createUser({ walletAddress: traderWallet })
+    const _trader = await userService.createUser({ walletAddress: traderWallet })
 
     // Set up referral relationship
     await referralService.enterReferralCode(traderWallet, referrer.referralCode!)
