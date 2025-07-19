@@ -66,11 +66,18 @@ app.get('/', (_: Request, res: Response) => {
 
 // Health check route
 app.get('/health', (_: Request, res: Response) => {
+  if (!database.isConnected) {
+    res.status(503).json({
+      status: 'ERROR',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      message: 'Database not connected'
+    });
+  }
   res.json({
     status: 'OK',
     uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    database: 'connected' // Simplified for now
+    timestamp: new Date().toISOString()
   });
 });
 
