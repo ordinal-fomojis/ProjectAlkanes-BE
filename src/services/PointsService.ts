@@ -21,10 +21,10 @@ export class PointsService extends BaseService<IUser> {
   async addPoints(
     walletAddress: string, 
     points: number, 
-    reason: string = 'Referral mint reward',
+    _reason: string = 'Referral mint reward',
     session?: ClientSession,
-    fromWallet?: string,
-    mintTxId?: ObjectId
+    _fromWallet?: string,
+    _mintTxId?: ObjectId
   ): Promise<boolean> {
     try {
       // Simple increment - works for any points (not just referral points)
@@ -71,6 +71,9 @@ export class PointsService extends BaseService<IUser> {
       
       // Apply tier bonus to base points
       const bonusPoints = calculateBonusPoints(basePoints, currentTier);
+      
+      // Log the referral points transaction for debugging/analytics
+      console.log(`Adding referral points: ${reason}, from: ${fromWallet || 'unknown'}, mintTx: ${mintTxId || 'unknown'}, points: ${bonusPoints}`);
       
       // Update both points and pointsEarnedFromReferrals atomically
       const result = await this.collection.updateOne(
