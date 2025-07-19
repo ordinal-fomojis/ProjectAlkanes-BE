@@ -35,7 +35,7 @@ describe('Referral Points Integration Flow', () => {
 
     // 2. Create Trader User  
     const traderWallet = randomAddress()
-    const _trader = await userService.createUser({ walletAddress: traderWallet })
+    await userService.createUser({ walletAddress: traderWallet })
     console.log('✓ Created trader')
 
     // 3. Trader enters referral code
