@@ -49,6 +49,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     pendingMints: token.pendingMints ?? 0,
     currentSupply: token.currentSupply,
     currentMintCount: token.currentMintCount,
+    mintedOut: token.mintedOut,
     deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
     clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom
   }))
