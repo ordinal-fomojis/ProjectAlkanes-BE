@@ -21,12 +21,15 @@ export class PointsService extends BaseService<IUser> {
   async addPoints(
     walletAddress: string, 
     points: number, 
-    _reason: string = 'Referral mint reward',
+    reason = 'Referral mint reward',
     session?: ClientSession,
-    _fromWallet?: string,
-    _mintTxId?: ObjectId
+    fromWallet?: string,
+    mintTxId?: ObjectId
   ): Promise<boolean> {
     try {
+      // Log parameters for debugging (to avoid unused variable warnings)
+      console.debug('Adding points:', { walletAddress, points, reason, fromWallet, mintTxId });
+      
       // Simple increment - works for any points (not just referral points)
       const result = await this.collection.updateOne(
         { walletAddress: walletAddress.toLowerCase().trim() },
@@ -50,7 +53,7 @@ export class PointsService extends BaseService<IUser> {
   async addReferralPoints(
     walletAddress: string, 
     basePoints: number, 
-    reason: string = 'Referral mint reward',
+    reason = 'Referral mint reward',
     session?: ClientSession,
     fromWallet?: string,
     mintTxId?: ObjectId
