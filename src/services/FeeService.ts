@@ -16,8 +16,8 @@ export type FeesData = z.infer<typeof FeesResponseSchema>
 export class FeeService {
   private static instance: FeeService
   private cachedFees: FeesData | null = null
-  private lastFetchTime: number = 0
-  private isInitialized: boolean = false
+  private lastFetchTime = 0
+  private isInitialized = false
   private fetchInterval: NodeJS.Timeout | null = null
 
   constructor() {
