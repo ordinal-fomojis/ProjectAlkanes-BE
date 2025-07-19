@@ -6,10 +6,12 @@ import { DB_NAME, MONGODB_URI } from './config/constants.js'
 import { database } from './config/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import authRoutes from './routes/authRoutes.js'
+import feeRoutes from './routes/feeRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import tokenRoutes from './routes/tokenRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import { FeeService } from './services/FeeService.js'
 import { UserError } from './utils/errors.js'
 
 const app = express();
@@ -88,6 +90,7 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/tx', transactionRoutes);
+app.use('/api/fees', feeRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {
@@ -123,6 +126,10 @@ async function startServer() {
     // Connect to database
     await database.connect(MONGODB_URI, DB_NAME);
     
+    // Initialize fee service
+    const feeService = FeeService.getInstance();
+    await feeService.initialize();
+    
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
@@ -130,6 +137,7 @@ async function startServer() {
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`👥 User API: http://localhost:${PORT}/api/users`);
       console.log(`🎯 Referral API: http://localhost:${PORT}/api/referral`);
+      console.log(`💰 Fee API: http://localhost:${PORT}/api/fees/recommended`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
@@ -140,12 +148,14 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('🛑 SIGTERM received, shutting down gracefully');
+  FeeService.getInstance().destroy();
   await database.disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('🛑 SIGINT received, shutting down gracefully');
+  FeeService.getInstance().destroy();
   await database.disconnect();
   process.exit(0);
 });
