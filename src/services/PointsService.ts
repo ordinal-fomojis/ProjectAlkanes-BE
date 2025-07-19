@@ -1,4 +1,5 @@
 import { ClientSession, ObjectId } from 'mongodb'
+import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js'
 import { IUser, User } from '../models/User.js'
 import { BaseService } from './BaseService.js'
 
@@ -43,30 +44,55 @@ export class PointsService extends BaseService<IUser> {
   }
 
   /**
-   * Add referral points to a user's balance (updates both total points and referral-specific points)
+   * Add referral points to a user's balance with tier bonus applied
+   * (updates both total points and referral-specific points)
    */
   async addReferralPoints(
     walletAddress: string, 
-    points: number, 
+    basePoints: number, 
     reason: string = 'Referral mint reward',
     session?: ClientSession,
     fromWallet?: string,
     mintTxId?: ObjectId
-  ): Promise<boolean> {
+  ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
     try {
+      // First, get the user's current tier to determine bonus
+      const user = await this.collection.findOne({ 
+        walletAddress: walletAddress.toLowerCase().trim() 
+      }, { session });
+
+      if (!user) {
+        throw new Error('User not found for referral points');
+      }
+
+      // Calculate current tier based on existing referral points
+      const currentReferralPoints = user.pointsEarnedFromReferrals || 0;
+      const currentTier = getTierByPoints(currentReferralPoints);
+      
+      // Apply tier bonus to base points
+      const bonusPoints = calculateBonusPoints(basePoints, currentTier);
+      
       // Update both points and pointsEarnedFromReferrals atomically
       const result = await this.collection.updateOne(
         { walletAddress: walletAddress.toLowerCase().trim() },
         { 
           $inc: { 
-            points: points,
-            pointsEarnedFromReferrals: points
+            points: bonusPoints,
+            pointsEarnedFromReferrals: bonusPoints
           }
         },
         { session, upsert: false }
       );
 
-      return result.modifiedCount > 0;
+      if (result.modifiedCount === 0) {
+        throw new Error('Failed to update user points');
+      }
+
+      return {
+        pointsAwarded: bonusPoints,
+        tier: currentTier.level,
+        bonus: currentTier.bonus
+      };
     } catch (error) {
       console.error('Error adding referral points:', error);
       throw new Error('Failed to add referral points');
@@ -107,7 +133,14 @@ export class PointsService extends BaseService<IUser> {
     mintCount: number,
     mintTxId: ObjectId,
     session?: ClientSession
-  ): Promise<{ awarded: boolean; referrerWallet?: string; pointsAwarded?: number }> {
+  ): Promise<{ 
+    awarded: boolean; 
+    referrerWallet?: string; 
+    pointsAwarded?: number;
+    tier?: string;
+    bonus?: number;
+    basePoints?: number;
+  }> {
     try {
       // Find the user who did the minting
       const minter = await this.collection.findOne({ 
@@ -129,29 +162,27 @@ export class PointsService extends BaseService<IUser> {
         return { awarded: false };
       }
 
-      // Award points equal to mint count to the referrer
-      const pointsToAward = mintCount;
-      const success = await this.addReferralPoints(
+      // Award points with tier bonus applied
+      const basePointsToAward = mintCount; // 1 token = 1 base point
+      const pointsResult = await this.addReferralPoints(
         referrer.walletAddress,
-        pointsToAward,
+        basePointsToAward,
         `Referral mint reward from ${minterWalletAddress}`,
         session,
         minterWalletAddress,
         mintTxId
       );
 
-      // Note: pointsEarnedFromReferrals is now updated atomically in addReferralPoints() method above
-
-      if (success) {
-        console.log(`Awarded ${pointsToAward} points to referrer ${referrer.walletAddress} for mint by ${minterWalletAddress}`);
-        return { 
-          awarded: true, 
-          referrerWallet: referrer.walletAddress, 
-          pointsAwarded: pointsToAward 
-        };
-      }
-
-      return { awarded: false };
+      console.log(`Awarded ${pointsResult.pointsAwarded} points (${basePointsToAward} base × ${pointsResult.bonus} ${pointsResult.tier} bonus) to referrer ${referrer.walletAddress} for mint by ${minterWalletAddress}`);
+      
+      return { 
+        awarded: true, 
+        referrerWallet: referrer.walletAddress, 
+        pointsAwarded: pointsResult.pointsAwarded,
+        tier: pointsResult.tier,
+        bonus: pointsResult.bonus,
+        basePoints: basePointsToAward
+      };
     } catch (error) {
       console.error('Error awarding referral points:', error);
       throw new Error('Failed to award referral points');

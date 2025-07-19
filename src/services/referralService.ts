@@ -1,3 +1,4 @@
+import { getNextTier, getTierByPoints } from '../config/tiers.js'
 import { IUser, ReferralInfo, User } from '../models/User.js'
 import { BaseService } from './BaseService.js'
 
@@ -38,6 +39,12 @@ export class ReferralService extends BaseService<IUser> {
         createdAt: u.createdAt
       }));
 
+      // Calculate tier information
+      const pointsFromReferrals = user.pointsEarnedFromReferrals || 0;
+      const currentTier = getTierByPoints(pointsFromReferrals);
+      const nextTier = getNextTier(currentTier);
+      const pointsToNextTier = nextTier ? nextTier.threshold - pointsFromReferrals : undefined;
+
       return {
         referralCode: user.referralCode!,
         customReferralId: user.customReferralId,
@@ -45,7 +52,10 @@ export class ReferralService extends BaseService<IUser> {
         referredUsers: referredUsersInfo,
         totalReferrals: referredUsersInfo.length,
         points: user.points || 0, // User's total points balance
-        pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0 // Cached value - no calculation needed!
+        pointsEarnedFromReferrals: pointsFromReferrals, // Cached value - no calculation needed!
+        tier: currentTier, // Current tier based on referral points
+        nextTier: nextTier || undefined, // Next tier to unlock
+        pointsToNextTier: pointsToNextTier // Points needed for next tier
       };
     } catch (error) {
       console.error('Error getting referral info:', error);

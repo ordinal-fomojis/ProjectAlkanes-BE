@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
     )
     
     if (pointsResult.awarded) {
-      console.log(`Successfully awarded ${pointsResult.pointsAwarded} points to referrer ${pointsResult.referrerWallet} for mint initiation by ${paymentAddress}`)
+      console.log(`Successfully awarded ${pointsResult.pointsAwarded} points (${pointsResult.basePoints} base × ${pointsResult.bonus} ${pointsResult.tier} bonus) to referrer ${pointsResult.referrerWallet} for mint initiation by ${paymentAddress}`)
     }
   } catch (pointsError) {
     // Log the error but don't fail the mint transaction creation
