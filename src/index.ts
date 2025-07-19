@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import { DB_NAME, MONGODB_URI } from './config/constants.js'
 import { database } from './config/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
+import activityRoutes from './routes/activityRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
@@ -91,6 +92,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/tx', transactionRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/activity', activityRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

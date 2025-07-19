@@ -27,4 +27,11 @@ export class MintTransactionService extends BaseService<MintTransaction> {
 
     return insertedId
   }
+
+  async getMintTransactionsByPaymentAddress(paymentAddress: string) {
+    return await this.collection
+      .find({ paymentAddress })
+      .sort({ created: -1 })
+      .toArray()
+  }
 }

@@ -67,4 +67,10 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       .limit(pageSize)
       .toArray()
   }
+
+  async getTokensByAlkaneIds(alkaneIds: string[]) {
+    return await this.collection
+      .find({ alkaneId: { $in: alkaneIds } })
+      .toArray()
+  }
 }
