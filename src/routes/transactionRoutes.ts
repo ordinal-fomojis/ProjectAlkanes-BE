@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb'
 import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
+import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
@@ -37,8 +38,32 @@ router.get('/', async (req, res) => {
   } = parse(CreateTransactionParamsSchema, req.query)
 
   const service = new UnsignedMintTransactionService()
+  const alkanesService = new AlkaneTokenService()
+  const alkane = await alkanesService.getAlkaneById(alkaneId)
+  if (alkane === null) {
+    res.status(404).json({
+      success: false,
+      message: 'Alkane token not found'
+    })
+    return
+  }
 
-  // TODO: validate token is mintable, and has at least mint count mints available
+  if (!alkane.mintable) {
+    res.status(400).json({
+      success: false,
+      message: 'Alkane token is not mintable'
+    })
+    return
+  }
+
+  if (alkane.mintedOut) {
+    res.status(400).json({
+      success: false,
+      message: 'Alkane token has already minted out'
+    })
+    return
+  }
+  
   const utxos = await getUtxos(paymentAddress)
   const {
     psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, mintsInEachOutput
@@ -97,12 +122,39 @@ router.post('/', async (req, res) => {
   const unsignedMints = new UnsignedMintTransactionService()
   const mintTxns = new MintTransactionService()
   const txnService = new UnconfirmedTransactionService()
+
+  const alkanesService = new AlkaneTokenService()
   const mintTx = await unsignedMints.getMintTransactionById(id)
 
   if (mintTx === null) {
     res.status(404).json({
       success: false,
       message: 'Mint transaction not found or expired'
+    })
+    return
+  }
+
+  const alkane = await alkanesService.getAlkaneById(mintTx.alkaneId)
+  if (alkane === null) {
+    res.status(404).json({
+      success: false,
+      message: 'Alkane token not found'
+    })
+    return
+  }
+
+  if (!alkane.mintable) {
+    res.status(400).json({
+      success: false,
+      message: 'Alkane token is not mintable'
+    })
+    return
+  }
+
+  if (alkane.mintedOut) {
+    res.status(400).json({
+      success: false,
+      message: 'Alkane token has already minted out'
     })
     return
   }

@@ -73,4 +73,8 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       .find({ alkaneId: { $in: alkaneIds } })
       .toArray()
   }
+
+  async getAlkaneById(alkaneId: string): Promise<AlkaneToken | null> {
+    return await this.collection.findOne({ alkaneId })
+  }
 }
