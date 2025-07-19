@@ -38,31 +38,7 @@ router.get('/', async (req, res) => {
   } = parse(CreateTransactionParamsSchema, req.query)
 
   const service = new UnsignedMintTransactionService()
-  const alkanesService = new AlkaneTokenService()
-  const alkane = await alkanesService.getAlkaneById(alkaneId)
-  if (alkane === null) {
-    res.status(404).json({
-      success: false,
-      message: 'Alkane token not found'
-    })
-    return
-  }
-
-  if (!alkane.mintable) {
-    res.status(400).json({
-      success: false,
-      message: 'Alkane token is not mintable'
-    })
-    return
-  }
-
-  if (alkane.mintedOut) {
-    res.status(400).json({
-      success: false,
-      message: 'Alkane token has already minted out'
-    })
-    return
-  }
+  await validateAlkaneToken(alkaneId)
   
   const utxos = await getUtxos(paymentAddress)
   const {
@@ -122,8 +98,6 @@ router.post('/', async (req, res) => {
   const unsignedMints = new UnsignedMintTransactionService()
   const mintTxns = new MintTransactionService()
   const txnService = new UnconfirmedTransactionService()
-
-  const alkanesService = new AlkaneTokenService()
   const mintTx = await unsignedMints.getMintTransactionById(id)
 
   if (mintTx === null) {
@@ -134,30 +108,7 @@ router.post('/', async (req, res) => {
     return
   }
 
-  const alkane = await alkanesService.getAlkaneById(mintTx.alkaneId)
-  if (alkane === null) {
-    res.status(404).json({
-      success: false,
-      message: 'Alkane token not found'
-    })
-    return
-  }
-
-  if (!alkane.mintable) {
-    res.status(400).json({
-      success: false,
-      message: 'Alkane token is not mintable'
-    })
-    return
-  }
-
-  if (alkane.mintedOut) {
-    res.status(400).json({
-      success: false,
-      message: 'Alkane token has already minted out'
-    })
-    return
-  }
+  await validateAlkaneToken(mintTx.alkaneId)
 
   const signedPsbt = Psbt.fromHex(psbt)
   const unsignedPsbt = Psbt.fromHex(mintTx.psbt)
@@ -220,5 +171,19 @@ router.post('/', async (req, res) => {
     data: { txid: paymentTx.txid, mintCount: mintTx.mintCount }
   })
 })
+
+async function validateAlkaneToken(alkaneId: string) {
+  const alkanesService = new AlkaneTokenService()
+  const alkane = await alkanesService.getAlkaneById(alkaneId)
+  if (alkane === null) {
+    throw new UserError('Alkane token not found').withStatus(404)
+  }
+  if (!alkane.mintable) {
+    throw new UserError('Alkane token is not mintable').withStatus(400)
+  }
+  if (alkane.mintedOut) {
+    throw new UserError('Alkane token has already minted out').withStatus(400)
+  }
+}
 
 export default router; 
