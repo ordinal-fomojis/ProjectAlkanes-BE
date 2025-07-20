@@ -22,16 +22,16 @@ export async function createAlkaneMintTransactionChain({
   
   const txns: Transaction[] = []
   for (let i = 0; i < mintCount; i++) {
+    const fee = i === mintCount - 1 ? feeOfFinalMint : feePerMint
     const txn = createAlkaneMintTransaction({
-      runescript, utxo, key,
-      fee: i === mintCount - 1 ? feeOfFinalMint : feePerMint,
-      outputAddress: i === mintCount - 1 ? outputAddress : payment.address!, 
+      runescript, utxo, key, fee,
+      outputAddress: i === mintCount - 1 ? outputAddress : payment.address!,
     })
     txns.push(txn)
     utxo = {
       txid: txn.getId(),
       vout: 0,
-      value: utxo.value - feePerMint
+      value: utxo.value - fee
     }
   }
 
