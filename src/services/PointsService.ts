@@ -111,7 +111,7 @@ export class PointsService extends BaseService<IUser> {
   async awardMintPoints(
     minterWalletAddress: string,
     mintCount: number,
-    basePointsPerMint: number = 10,
+    basePointsPerMint = 10,
     session?: ClientSession
   ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
     try {
@@ -180,7 +180,7 @@ export class PointsService extends BaseService<IUser> {
   async awardFixedReferralPoints(
     referrerWalletAddress: string,
     pointsToAward: number,
-    reason: string = 'Referral reward',
+    reason = 'Referral reward',
     session?: ClientSession,
     fromWallet?: string,
     mintTxId?: ObjectId

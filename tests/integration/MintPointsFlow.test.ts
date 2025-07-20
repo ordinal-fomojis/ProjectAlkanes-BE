@@ -190,7 +190,6 @@ describe('Complete Mint Points Flow Integration', () => {
     )
 
     // === EACH REFERRED USER MINTS 2 TOKENS ===
-    let totalReferralPointsForEve = 25000 // Starting amount
     
     for (const { wallet } of referredUsers) {
       console.log(`=== User ${wallet.slice(0, 8)}... mints 2 tokens ===`)
@@ -206,8 +205,6 @@ describe('Complete Mint Points Flow Integration', () => {
       )
       expect(referralResult.awarded).toBe(true)
       expect(referralResult.pointsAwarded).toBe(2) // Always fixed 1 point per mint
-      
-      totalReferralPointsForEve += 2
     }
 
     // === EVE MINTS 1 TOKEN (should get Epic tier bonus) ===
