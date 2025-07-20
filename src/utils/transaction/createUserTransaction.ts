@@ -41,8 +41,10 @@ export async function createUserTransaction({
   const addressType = getAddressType(receiveAddress)
 
   const runescript = createScriptForAlkaneMint(alkaneId)
-  const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
+  const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: 'p2tr' })
+  const finalMintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
   const feePerMint = Math.ceil(feeRate * mintTxSize)
+  const feeOfFinalMint = Math.ceil(feeRate * finalMintTxSize)
   const txnsPerGroup = MAX_UNCONFIRMED_DESCENDANT_TXNS
   const txnsInLastGroup = (mintCount - 1) % txnsPerGroup
 
@@ -58,13 +60,13 @@ export async function createUserTransaction({
 
   if (mintCount === 1) {
     psbt.addOutput({
-      script: internalPayment.output!,
+      address: receiveAddress,
       value: outputValue
     })
   } else {
     psbt.addOutputs(mintsInEachOutput.map(mints => ({
       script: internalPayment.output!,
-      value: outputValue + mints * feePerMint
+      value: outputValue + (mints - 1) * feePerMint + feeOfFinalMint
     })))
   }
 
@@ -86,7 +88,8 @@ export async function createUserTransaction({
 
   return {
     psbt, internalKey, serviceFee,
-    networkFee: networkFee + (mintCount - 1) * feePerMint, feePerMint,
+    networkFee: networkFee + (mintCount - 1 - mintsInEachOutput.length) * feePerMint + mintsInEachOutput.length * feeOfFinalMint,
+    feePerMint, feeOfFinalMint,
     paddingCost: mintCount === 1 ? outputValue : mintsInEachOutput.length * outputValue,
     mintsInEachOutput
   }
@@ -120,10 +123,10 @@ async function addInputsAndCalculateFee({
   let inputValue = 0
   let virtualSize = 0
   const dummyPsbt = psbt.clone()
-  while (inputValue < (totalOutputValue + virtualSize * feeRate)) {
+  while (inputValue < (totalOutputValue + Math.ceil(virtualSize * feeRate))) {
     const utxo = utxos.pop()
     if (utxo == null) {
-      throw new NotEnoughFundsError(totalOutputValue + virtualSize * feeRate)
+      throw new NotEnoughFundsError(totalOutputValue + Math.ceil(virtualSize * feeRate))
     }
 
     inputValue += utxo.value
@@ -147,12 +150,12 @@ async function addInputsAndCalculateFee({
     }))
 
     if (inputValue >= totalOutputValue) {
-      const change = inputValue - (totalOutputValue + virtualSize * feeRate)
+      const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
       virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
     }
   }
 
-  const change = inputValue - (totalOutputValue + virtualSize * feeRate)
+  const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
   if (change > dustLimit(addressType)) {
     psbt.addOutput({
       address: paymentAddress,
@@ -160,7 +163,7 @@ async function addInputsAndCalculateFee({
     })
   }
 
-  return { networkFee: virtualSize * feeRate }
+  return { networkFee: Math.ceil(virtualSize * feeRate) }
 }
 
 function getVirtualSize(psbt: Psbt, change: number, changeAddress: string, key: Signer) {

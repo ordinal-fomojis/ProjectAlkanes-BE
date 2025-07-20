@@ -56,6 +56,7 @@ describe('Referral Points Integration Flow', () => {
       networkFee: 50,
       paddingCost: 10,
       networkFeePerMint: 5,
+      networkFeeOfFinalMint: 10,
       mintsInEachOutput: [5],
       alkaneId: '2:0',
       mintCount: 5,

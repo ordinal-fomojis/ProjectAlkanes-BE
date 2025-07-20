@@ -27,6 +27,7 @@ describe('UnsignedMintTransactionService', () => {
       networkFee: 50,
       paddingCost: 10,
       networkFeePerMint: 5,
+      networkFeeOfFinalMint: 10,
       mintsInEachOutput: [1, 2, 3],
       alkaneId: '2:0',
       mintCount: 6,
