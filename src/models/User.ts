@@ -52,7 +52,9 @@ export class User {
   static createUser(walletAddress: string): Omit<IUser, '_id'> {
     return {
       walletAddress: walletAddress.toLowerCase().trim(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      points: 0,
+      pointsEarnedFromReferrals: 0
     };
   }
 
