@@ -7,6 +7,7 @@ import { BTC_JS_NETWORK } from "./utils/network.js"
 interface CreateAlkaneMintTransactionChainArgs {
   utxo: Utxo
   feePerMint: number
+  feeOfFinalMint: number
   runescript: Payment
   mintCount: number
   key: Signer
@@ -14,22 +15,23 @@ interface CreateAlkaneMintTransactionChainArgs {
 }
 
 export async function createAlkaneMintTransactionChain({
-  utxo, feePerMint, runescript, mintCount, key, outputAddress
+  utxo, feePerMint, runescript, mintCount, key, outputAddress, feeOfFinalMint
 } : CreateAlkaneMintTransactionChainArgs) {
   const pubkey = toXOnly(key.publicKey)
   const payment = payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK })
   
   const txns: Transaction[] = []
   for (let i = 0; i < mintCount; i++) {
+    const fee = i === mintCount - 1 ? feeOfFinalMint : feePerMint
     const txn = createAlkaneMintTransaction({
-      runescript, fee: feePerMint, utxo, key,
-      outputAddress: i === mintCount - 1 ? outputAddress : payment.address!, 
+      runescript, utxo, key, fee,
+      outputAddress: i === mintCount - 1 ? outputAddress : payment.address!,
     })
     txns.push(txn)
     utxo = {
       txid: txn.getId(),
       vout: 0,
-      value: utxo.value - feePerMint
+      value: utxo.value - fee
     }
   }
 
