@@ -63,22 +63,30 @@ router.get('/', async (req, res) => {
     receiveAddress
   })
 
-  // Award referral points immediately when mint is initiated (from temporary storage)
+  // Award points immediately when mint is initiated (from temporary storage)
   try {
     const pointsService = new PointsService()
-    const pointsResult = await pointsService.awardReferralPoints(
+    
+    // 1. Award mint points to the person who is minting (10 base points + tier bonus)
+    const mintPointsResult = await pointsService.awardMintPoints(
       paymentAddress, // The wallet that is paying for minting
-      mintCount,      // Number of tokens minted = points to award
+      mintCount       // Number of tokens minted
+    )
+    console.log(`Awarded ${mintPointsResult.pointsAwarded} mint points (${mintCount * 10} base × ${mintPointsResult.bonus} ${mintPointsResult.tier} bonus) to minter ${paymentAddress}`)
+    
+    // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
+    const referralPointsResult = await pointsService.awardReferralPoints(
+      paymentAddress, // The wallet that is paying for minting
+      mintCount,      // Number of tokens minted = points to award to referrer
       new ObjectId(id) // The unsigned mint transaction ID for tracking
-      // No session parameter - this is not in a transaction
     )
     
-    if (pointsResult.awarded) {
-      console.log(`Successfully awarded ${pointsResult.pointsAwarded} points (${pointsResult.basePoints} base × ${pointsResult.bonus} ${pointsResult.tier} bonus) to referrer ${pointsResult.referrerWallet} for mint initiation by ${paymentAddress}`)
+    if (referralPointsResult.awarded) {
+      console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by ${paymentAddress}`)
     }
   } catch (pointsError) {
     // Log the error but don't fail the mint transaction creation
-    console.error('Error awarding referral points during mint initiation:', pointsError)
+    console.error('Error awarding points during mint initiation:', pointsError)
     // Points awarding failure should not block the mint transaction creation
   }
 
