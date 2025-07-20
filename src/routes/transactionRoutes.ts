@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
   
   const utxos = await getUtxos(paymentAddress)
   const {
-    psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, mintsInEachOutput
+    psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, feeOfFinalMint, mintsInEachOutput
   } = await createUserTransaction({
     feeRate, paymentAddress, paymentPubkey, receiveAddress, alkaneId, mintCount, utxos
   })
@@ -55,6 +55,7 @@ router.get('/', async (req, res) => {
     networkFee,
     paddingCost,
     networkFeePerMint: feePerMint,
+    networkFeeOfFinalMint: feeOfFinalMint,
     mintsInEachOutput,
     alkaneId,
     mintCount,
@@ -128,6 +129,7 @@ router.post('/', async (req, res) => {
   const runescript = createScriptForAlkaneMint(mintTx.alkaneId)
   const transactions = (await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
     feePerMint: mintTx.networkFeePerMint,
+    feeOfFinalMint: mintTx.networkFeeOfFinalMint,
     runescript, key,
     mintCount, outputAddress: mintTx.receiveAddress,
     utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? 0 }

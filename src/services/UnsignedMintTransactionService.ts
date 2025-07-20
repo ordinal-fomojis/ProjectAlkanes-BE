@@ -9,6 +9,7 @@ export interface UnsignedMintTransaction {
   paddingCost: number
   totalCost: number
   networkFeePerMint: number
+  networkFeeOfFinalMint: number
   mintsInEachOutput: number[]
   alkaneId: string
   mintCount: number
