@@ -43,7 +43,6 @@ export async function createUserTransaction({
   const runescript = createScriptForAlkaneMint(alkaneId)
   const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: 'p2tr' })
   const finalMintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
-  console.log(`Mint transaction size: ${mintTxSize} bytes`)
   const feePerMint = Math.ceil(feeRate * mintTxSize)
   const feeOfFinalMint = Math.ceil(feeRate * finalMintTxSize)
   const txnsPerGroup = MAX_UNCONFIRMED_DESCENDANT_TXNS
