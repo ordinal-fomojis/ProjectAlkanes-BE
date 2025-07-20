@@ -30,7 +30,9 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200
 };
-app.use(cors(corsOptions));
+if (process.env.CORS_ENABLED !== 'false') {
+  app.use(cors(corsOptions));
+}
 
 // Rate limiting
 const limiter = rateLimit({
