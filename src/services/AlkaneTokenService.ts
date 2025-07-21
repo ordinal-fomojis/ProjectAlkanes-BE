@@ -23,7 +23,7 @@ export interface AlkaneToken {
   mintable?: boolean
 }
 
-type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted'
+type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {

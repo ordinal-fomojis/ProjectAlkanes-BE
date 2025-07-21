@@ -9,7 +9,7 @@ const ParamsSchema = z.object({
   search: z.string(),
   page: z.coerce.number().optional(),
   pageSize: z.coerce.number().optional(),
-  orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted']).optional(),
+  orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted', 'mintCountCap']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
   mintable: z.enum(['true', 'false']).optional(),
   mintedOut: z.enum(['true', 'false']).optional()
