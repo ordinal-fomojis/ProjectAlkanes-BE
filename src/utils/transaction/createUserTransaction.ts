@@ -151,7 +151,9 @@ async function addInputsAndCalculateFee({
     }))
     
     const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
-    virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
+    if (change >= 0) {
+      virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
+    }
   }
 
   const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
