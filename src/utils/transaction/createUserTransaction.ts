@@ -17,6 +17,7 @@ import { randomTransactionId } from "./utils/randomTransactionId.js"
 export class NotEnoughFundsError extends UserError {
   constructor(public cost: number) {
     super(`Not enough funds to cover cost of ${cost} sats`)
+    this.name = 'NotEnoughFundsError'
   }
 }
 
@@ -148,9 +149,9 @@ async function addInputsAndCalculateFee({
       payment: dummyPayment,
       dummyInputTx: addressType === 'p2pkh' ? await createDummyTx(dummyPayment.address!, utxo.value) : undefined
     }))
-
-    if (inputValue >= totalOutputValue) {
-      const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
+    
+    const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
+    if (change >= 0) {
       virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
     }
   }
@@ -169,10 +170,12 @@ async function addInputsAndCalculateFee({
 function getVirtualSize(psbt: Psbt, change: number, changeAddress: string, key: Signer) {
   const clone = psbt.clone()
 
-  clone.addOutput({
-    address: changeAddress,
-    value: change
-  })
+  if (change > dustLimit(getAddressType(changeAddress))) {
+    clone.addOutput({
+      address: changeAddress,
+      value: change
+    })
+  }
 
   clone.signAllInputs(key)
   clone.finalizeAllInputs()

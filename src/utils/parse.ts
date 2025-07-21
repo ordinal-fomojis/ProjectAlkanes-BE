@@ -2,7 +2,12 @@ import z, { ZodError } from "zod"
 import { createErrorMap, fromZodError } from "zod-validation-error/v4"
 import { UserError } from "./errors.js"
 
-export class ValidationError extends UserError {}
+export class ValidationError extends UserError {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
 
 export function parse<Output, Input>(schema: z.ZodType<Output, Input>, obj: unknown) {
   const result = schema.safeParse(obj)

@@ -115,6 +115,7 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
     console.warn(`${error.name} (${error.status}):`, error);
     res.status(error.status).json({
       success: false,
+      name: error.name,
       message: error.message
     });
     return
