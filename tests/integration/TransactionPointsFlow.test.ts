@@ -96,7 +96,7 @@ describe('Transaction Points Flow Integration', () => {
       receiveAddress: randomAddress(),
     }
 
-    const unsignedTxId = await unsignedMintService.createMintTransaction(unsignedMintTx)
+    await unsignedMintService.createMintTransaction(unsignedMintTx)
 
     // === VERIFY: NO POINTS AWARDED YET ===
     console.log('=== Verifying no points awarded during unsigned transaction creation ===')
@@ -258,7 +258,7 @@ describe('Transaction Points Flow Integration', () => {
     await unsignedMintService.createMintTransaction(unsignedMintTx)
 
     // Process transaction with points awarding (without session for test simplicity)
-    const mintTxId = await mintTransactionService.createMintTransaction({
+    await mintTransactionService.createMintTransaction({
       wif: unsignedMintTx.wif,
       serviceFee: unsignedMintTx.serviceFee,
       networkFee: unsignedMintTx.networkFee,
