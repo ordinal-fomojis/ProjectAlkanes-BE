@@ -27,6 +27,7 @@ const CreateTransactionParamsSchema = z.object({
   paymentAddress: z.string(), 
   paymentPubkey: z.string(),
   receiveAddress: z.string(),
+  userAddress: z.string().optional(), // Optional user address for points awarding
   alkaneId: z.string(),
   mintCount: z.coerce.number().min(1)
 })
@@ -34,7 +35,7 @@ const CreateTransactionParamsSchema = z.object({
 router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const {
     feeRate, paymentAddress, paymentPubkey,
-    receiveAddress, alkaneId, mintCount
+    receiveAddress, userAddress, alkaneId, mintCount
   } = parse(CreateTransactionParamsSchema, req.query)
 
   const service = new UnsignedMintTransactionService()
@@ -61,7 +62,8 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
     mintCount,
     paymentAddress,
     receiveAddress,
-    authenticatedUserAddress: req.user?.walletAddress
+    authenticatedUserAddress: userAddress || receiveAddress // Use userAddress if provided, otherwise fall back to receiveAddress
+
   })
 
   // Points will be awarded later after successful broadcasting, not here
@@ -157,13 +159,16 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
       const pointsService = new PointsService()
       
       // Use authenticated user's wallet address for points (ordinal address), not payment address
-      const userWalletAddress = mintTx.authenticatedUserAddress || req.user?.walletAddress || mintTx.paymentAddress
+
+      // Priority: authenticatedUserAddress > receiveAddress > paymentAddress (fallback)
+      const userWalletAddress = mintTx.authenticatedUserAddress || mintTx.receiveAddress
       
-      console.log(`Awarding points to authenticated user: ${userWalletAddress} (payment from: ${mintTx.paymentAddress})`)
+      console.log(`Awarding points to user: ${userWalletAddress} (payment from: ${mintTx.paymentAddress})`)
       
-      // 1. Award mint points to the authenticated user (ordinal address)
+      // 1. Award mint points to the user
       const mintPointsResult = await pointsService.awardMintPoints(
-        userWalletAddress, // Use authenticated user's ordinal address
+        userWalletAddress, // Use user's ordinal address
+
         mintTx.mintCount,      // Number of tokens minted
         10,                    // Base points per mint
         session                // Use the same session for consistency
@@ -172,7 +177,7 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
       
       // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
       const referralPointsResult = await pointsService.awardReferralPoints(
-        userWalletAddress, // Use authenticated user's ordinal address
+        userWalletAddress, // Use user's ordinal address
         mintTx.mintCount,      // Number of tokens minted = points to award to referrer
         mintTxId,              // The mint transaction ID for tracking
         session                // Use the same session for consistency
