@@ -23,7 +23,7 @@ export interface AlkaneToken {
   mintable?: boolean
 }
 
-type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted'
+type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {
@@ -59,10 +59,21 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       searchQuery.mintedOut = mintedOut
     }
 
+    // Build sort object with primary and secondary sorting
+    let sortObject: Document = { [order.field]: order.order }
+    
+    // Add secondary sort by deployTimestamp (newest first) when sorting by pendingMints
+    if (order.field === 'pendingMints') {
+      sortObject = { 
+        [order.field]: order.order,
+        deployTimestamp: 'desc' // Newest tokens first as secondary sort
+      }
+    }
+
     return await this.collection
       .find(searchQuery)
       .collation({ locale: "en" })
-      .sort({ [order.field]: order.order })
+      .sort(sortObject)
       .skip(skip)
       .limit(pageSize)
       .toArray()
