@@ -12,6 +12,7 @@ export interface MintTransaction {
   mintCount: number
   paymentAddress: string
   receiveAddress: string
+  authenticatedUserAddress?: string
   txids: string[]
   created: Date
 }
