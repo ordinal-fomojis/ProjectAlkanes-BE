@@ -12,7 +12,8 @@ const ParamsSchema = z.object({
   orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted', 'mintCountCap']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
   mintable: z.enum(['true', 'false']).optional(),
-  mintedOut: z.enum(['true', 'false']).optional()
+  mintedOut: z.enum(['true', 'false']).optional(),
+  noPremine: z.enum(['true', 'false']).optional()
 })
 
 const UNSYNCED_FACTORY_CLONE_ID = "UNKNOWN"
@@ -25,13 +26,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     orderBy = 'deployTimestamp',
     order = 'asc',
     mintable = null,
-    mintedOut = null
+    mintedOut = null,
+    noPremine = null
   } = parse(ParamsSchema, req.query)
   const service = new AlkaneTokenService()
   const tokens = await service.searchAlkaneTokens({
     searchTerm: search, page, pageSize, order: { field: orderBy, order },
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
-    mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null
+    mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
+    noPremine: typeof noPremine === 'string' ? noPremine === 'true' : null
   });
   
   const tokenDetails = tokens.map(token => ({
