@@ -1,6 +1,5 @@
 import { Psbt } from 'bitcoinjs-lib'
 import { Router } from 'express'
-import { ObjectId } from 'mongodb'
 import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
@@ -63,33 +62,8 @@ router.get('/', async (req, res) => {
     receiveAddress
   })
 
-  // Award points immediately when mint is initiated (from temporary storage)
-  try {
-    const pointsService = new PointsService()
-    
-    // 1. Award mint points to the person who is minting (10 base points + tier bonus)
-    const mintPointsResult = await pointsService.awardMintPoints(
-      paymentAddress, // The wallet that is paying for minting
-      mintCount       // Number of tokens minted
-    )
-    console.log(`Awarded ${mintPointsResult.pointsAwarded} mint points (${mintCount * 10} base × ${mintPointsResult.bonus} ${mintPointsResult.tier} bonus) to minter ${paymentAddress}`)
-    
-    // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
-    const referralPointsResult = await pointsService.awardReferralPoints(
-      paymentAddress, // The wallet that is paying for minting
-      mintCount,      // Number of tokens minted = points to award to referrer
-      new ObjectId(id) // The unsigned mint transaction ID for tracking
-    )
-    
-    if (referralPointsResult.awarded) {
-      console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by ${paymentAddress}`)
-    }
-  } catch (pointsError) {
-    // Log the error but don't fail the mint transaction creation
-    console.error('Error awarding points during mint initiation:', pointsError)
-    // Points awarding failure should not block the mint transaction creation
-  }
-
+  // Points will be awarded later after successful broadcasting, not here
+  
   res.status(200).json({
     success: true,
     message: 'Successfully fetched tokens',
@@ -155,7 +129,7 @@ router.post('/', async (req, res) => {
   const allTransactions = [paymentTx].concat(transactions.flat())
 
   await database.withTransaction(async (session) => {
-    const id = await mintTxns.createMintTransaction({
+    const mintTxId = await mintTxns.createMintTransaction({
       wif: mintTx.wif,
       serviceFee: mintTx.serviceFee,
       networkFee: mintTx.networkFee,
@@ -168,11 +142,42 @@ router.post('/', async (req, res) => {
       receiveAddress: mintTx.receiveAddress,
       txids: allTransactions.map(tx => tx.txid),
     }, session)
+    
     await txnService.createTransactionsForMint({
       txns: allTransactions,
       wif: mintTx.wif,
-      mintTx: id
+      mintTx: mintTxId
     }, session)
+
+    // Award points after successful broadcasting and transaction storage
+    try {
+      const pointsService = new PointsService()
+      
+      // 1. Award mint points to the person who is minting (10 base points + tier bonus)
+      const mintPointsResult = await pointsService.awardMintPoints(
+        mintTx.paymentAddress, // The wallet that paid for minting
+        mintTx.mintCount,      // Number of tokens minted
+        10,                    // Base points per mint
+        session                // Use the same session for consistency
+      )
+      console.log(`Awarded ${mintPointsResult.pointsAwarded} mint points (${mintTx.mintCount * 10} base × ${mintPointsResult.bonus} ${mintPointsResult.tier} bonus) to minter ${mintTx.paymentAddress}`)
+      
+      // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
+      const referralPointsResult = await pointsService.awardReferralPoints(
+        mintTx.paymentAddress, // The wallet that paid for minting
+        mintTx.mintCount,      // Number of tokens minted = points to award to referrer
+        mintTxId,              // The mint transaction ID for tracking
+        session                // Use the same session for consistency
+      )
+      
+      if (referralPointsResult.awarded) {
+        console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by ${mintTx.paymentAddress}`)
+      }
+    } catch (pointsError) {
+      console.error('Error awarding points after broadcast:', pointsError)
+      // Re-throw to rollback the entire transaction if points awarding fails
+      throw new UserError('Failed to award points after successful mint').withStatus(500)
+    }
   })
 
   res.status(200).json({
