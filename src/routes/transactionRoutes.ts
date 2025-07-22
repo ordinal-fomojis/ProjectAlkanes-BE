@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
+import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
@@ -31,7 +32,7 @@ const CreateTransactionParamsSchema = z.object({
   mintCount: z.coerce.number().min(1)
 })
 
-router.get('/', async (req, res) => {
+router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const {
     feeRate, paymentAddress, paymentPubkey,
     receiveAddress, userAddress, alkaneId, mintCount
@@ -62,6 +63,7 @@ router.get('/', async (req, res) => {
     paymentAddress,
     receiveAddress,
     authenticatedUserAddress: userAddress || receiveAddress // Use userAddress if provided, otherwise fall back to receiveAddress
+
   })
 
   // Points will be awarded later after successful broadcasting, not here
@@ -78,7 +80,7 @@ const PostTransactionBodySchema = z.object({
   id: z.string()
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { psbt, id } = parse(PostTransactionBodySchema, req.body)
   const unsignedMints = new UnsignedMintTransactionService()
   const mintTxns = new MintTransactionService()
@@ -157,6 +159,7 @@ router.post('/', async (req, res) => {
       const pointsService = new PointsService()
       
       // Use authenticated user's wallet address for points (ordinal address), not payment address
+
       // Priority: authenticatedUserAddress > receiveAddress > paymentAddress (fallback)
       const userWalletAddress = mintTx.authenticatedUserAddress || mintTx.receiveAddress
       
@@ -165,6 +168,7 @@ router.post('/', async (req, res) => {
       // 1. Award mint points to the user
       const mintPointsResult = await pointsService.awardMintPoints(
         userWalletAddress, // Use user's ordinal address
+
         mintTx.mintCount,      // Number of tokens minted
         10,                    // Base points per mint
         session                // Use the same session for consistency
