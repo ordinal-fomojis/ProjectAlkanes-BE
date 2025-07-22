@@ -1,3 +1,4 @@
+import { Transaction } from "bitcoinjs-lib"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 import { DB_NAME } from "../../src/config/constants.js"
@@ -114,8 +115,15 @@ describe('Transaction Points Flow Integration', () => {
     
     // Create mock transactions (simulating successful broadcast)
     const paymentTxId = Random.randomTransactionId()
+    const mockTransaction = {
+      getId: () => paymentTxId,
+      toHex: () => Random.randomHex(200),
+      ins: [],
+      outs: []
+    } as unknown as Transaction
+    
     const allTransactions = [
-      { tx: {} as any, txHex: Random.randomHex(200), txid: paymentTxId, broadcasted: true }
+      { tx: mockTransaction, txHex: Random.randomHex(200), txid: paymentTxId, broadcasted: true }
     ]
 
     // Store the mint transaction (without session for test simplicity)
