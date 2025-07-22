@@ -33,17 +33,18 @@ interface AlkanesSearchQuery {
   order: SortOrder
   mintable: boolean | null
   mintedOut: boolean | null
+  noPremine: boolean | null
 }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
   collectionName = 'alkane_tokens'
 
   async searchAlkaneTokens(
-    { searchTerm, page, pageSize, order, mintable, mintedOut }: AlkanesSearchQuery
+    { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery
   ): Promise<AlkaneToken[]> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm.trim()
-    const searchQuery: Document = searchTerm.length === 0 ? {} : {
+    let searchQuery: Document = searchTerm.length === 0 ? {} : {
       $or: [
         { name: { $regex: searchTerm, $options: 'i' } },
         { symbol: { $regex: searchTerm, $options: 'i' } },
@@ -57,6 +58,27 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
 
     if (mintedOut !== null) {
       searchQuery.mintedOut = mintedOut
+    }
+
+    if (noPremine !== null) {
+      if (noPremine) {
+        // Filter for tokens with no premined supply (null, undefined, or "0")
+        const noPremineQuery = {
+          $or: [
+            { preminedSupply: { $exists: false } },
+            { preminedSupply: null },
+            { preminedSupply: "" },
+            { preminedSupply: "0" }
+          ]
+        }
+        
+        // If we already have a search query, combine them with $and
+        if (Object.keys(searchQuery).length > 0) {
+          searchQuery = { $and: [searchQuery, noPremineQuery] }
+        } else {
+          searchQuery = noPremineQuery
+        }
+      }
     }
 
     // Build sort object with primary and secondary sorting
