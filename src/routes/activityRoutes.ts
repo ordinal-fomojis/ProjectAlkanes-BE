@@ -22,7 +22,8 @@ router.get('/recent-mints', authenticateJWT, async (req: AuthenticatedRequest, r
     const transactionConfirmationService = new TransactionConfirmationService();
 
     // Get all mint transactions for the authenticated user's wallet
-    const mintTransactions = await mintTransactionService.getMintTransactionsByPaymentAddress(req.user.walletAddress);
+    // Search by both payment address and receive address to handle address mismatches
+    const mintTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(req.user.walletAddress);
 
     // Get all unique alkane IDs to fetch token details
     const alkaneIds = [...new Set(mintTransactions.map(mint => mint.alkaneId))];

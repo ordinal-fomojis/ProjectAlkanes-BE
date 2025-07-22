@@ -34,4 +34,16 @@ export class MintTransactionService extends BaseService<MintTransaction> {
       .sort({ created: -1 })
       .toArray()
   }
+
+  async getMintTransactionsByWalletAddress(walletAddress: string) {
+    return await this.collection
+      .find({
+        $or: [
+          { paymentAddress: walletAddress },
+          { receiveAddress: walletAddress }
+        ]
+      })
+      .sort({ created: -1 })
+      .toArray()
+  }
 }
