@@ -175,7 +175,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
   it('should maintain backward compatibility when payment address equals ordinal address', async () => {
     // === SETUP: Same Address Scenario (like Unisat) ===
     const charlieWallet = randomAddress()
-    const charlie = await userService.createUser({ walletAddress: charlieWallet })
+    await userService.createUser({ walletAddress: charlieWallet })
 
     const unsignedMintTx = {
       psbt: Random.randomHex(100),
@@ -217,7 +217,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     const davidP2WPKHAddress = randomAddress()  // Native Segwit address
     
     // Create user with ordinal address
-    const david = await userService.createUser({ walletAddress: davidOrdinalAddress })
+    await userService.createUser({ walletAddress: davidOrdinalAddress })
 
     console.log('=== Multi-Wallet Address Test ===')
     console.log(`David Ordinal: ${davidOrdinalAddress}`)
@@ -325,7 +325,6 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     const eve = await userService.createUser({ walletAddress: eveOrdinal })
 
     const frankOrdinal = randomAddress()
-    const frankPayment = randomAddress()
     const frank = await userService.createUser({ walletAddress: frankOrdinal })
 
     // Frank was referred by Eve
@@ -410,7 +409,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       broadcasted: true
     }]
 
-    const mintTxId = await mintTransactionService.createMintTransaction({
+    await mintTransactionService.createMintTransaction({
       wif: xverseMintTx.wif,
       serviceFee: xverseMintTx.serviceFee,
       networkFee: xverseMintTx.networkFee,
@@ -470,7 +469,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     const userOrdinalAddress = randomAddress() // User's authenticated address
     const userPaymentAddress = randomAddress() // Different payment address
     
-    const user = await userService.createUser({ walletAddress: userOrdinalAddress })
+    await userService.createUser({ walletAddress: userOrdinalAddress })
 
     console.log('=== Legacy Transaction Activity Test ===')
     console.log(`User Ordinal: ${userOrdinalAddress}`)
@@ -569,7 +568,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
   it('should correctly expose minting activity through API route', async () => {
     // === SETUP: User with ordinal address ===
     const userOrdinalAddress = randomAddress()
-    const user = await userService.createUser({ walletAddress: userOrdinalAddress })
+    await userService.createUser({ walletAddress: userOrdinalAddress })
 
     // === Create multiple transactions with different scenarios ===
     
