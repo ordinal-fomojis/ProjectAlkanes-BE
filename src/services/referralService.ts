@@ -19,13 +19,23 @@ export class ReferralService extends BaseService<IUser> {
       // Get referrer info if user was referred
       let referrerInfo = undefined;
       if (user.referredBy) {
-        const referrer = await this.collection.findOne({ _id: user.referredBy });
-        if (referrer) {
+        // Check if this is the bootstrap referrer
+        const bootstrapReferrerId = new ObjectId('000000000000000000000001');
+        if (user.referredBy.equals(bootstrapReferrerId)) {
           referrerInfo = {
-            _id: referrer._id!,
-            walletAddress: referrer.walletAddress,
-            customReferralId: referrer.customReferralId
+            _id: bootstrapReferrerId,
+            walletAddress: 'BOOTSTRAP_SYSTEM',
+            customReferralId: undefined
           };
+        } else {
+          const referrer = await this.collection.findOne({ _id: user.referredBy });
+          if (referrer) {
+            referrerInfo = {
+              _id: referrer._id!,
+              walletAddress: referrer.walletAddress,
+              customReferralId: referrer.customReferralId
+            };
+          }
         }
       }
 
