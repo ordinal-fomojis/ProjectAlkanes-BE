@@ -69,6 +69,9 @@ router.get('/user/:walletAddress', validateParams(walletAddressSchema), async (r
     const nextTier = getNextTier(currentTier);
     const pointsToNextTier = nextTier ? nextTier.threshold - totalPoints : undefined;
 
+    // Only show referral code and custom ID if user has been referred
+    const canRefer = !!user.referredBy;
+
     res.json({
       success: true,
       data: {
@@ -78,8 +81,8 @@ router.get('/user/:walletAddress', validateParams(walletAddressSchema), async (r
         pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,
-        referralCode: user.referralCode,
-        customReferralId: user.customReferralId,
+        referralCode: canRefer ? user.referralCode : undefined,
+        customReferralId: canRefer ? user.customReferralId : undefined,
         totalReferrals: user.referredUsers?.length || 0,
         tier: {
           level: currentTier.level,

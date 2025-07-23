@@ -46,9 +46,12 @@ export class ReferralService extends BaseService<IUser> {
       const nextTier = getNextTier(currentTier);
       const pointsToNextTier = nextTier ? nextTier.threshold - totalPoints : undefined;
 
+      // Only show referral code and custom ID if user has been referred
+      const canRefer = !!user.referredBy;
+      
       return {
-        referralCode: user.referralCode!,
-        customReferralId: user.customReferralId,
+        referralCode: canRefer ? user.referralCode : undefined,
+        customReferralId: canRefer ? user.customReferralId : undefined,
         referredBy: referrerInfo,
         referredUsers: referredUsersInfo,
         totalReferrals: referredUsersInfo.length,
