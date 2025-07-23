@@ -103,7 +103,8 @@ describe('Tier Calculation with Total Points System', () => {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const referrer = await userService.getUserByWalletAddress(referrerWallet)
-        await referralService.enterReferralCode(wallet, referrer?.referralCode!)
+        expect(referrer?.referralCode).toBeDefined()
+        await referralService.enterReferralCode(wallet, referrer!.referralCode!)
         referredUsers.push(wallet)
       }
 
@@ -131,7 +132,8 @@ describe('Tier Calculation with Total Points System', () => {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const user = await userService.getUserByWalletAddress(userWallet)
-        await referralService.enterReferralCode(wallet, user?.referralCode!)
+        expect(user?.referralCode).toBeDefined()
+        await referralService.enterReferralCode(wallet, user!.referralCode!)
         await pointsService.awardReferralPoints(wallet, 10, new ObjectId())
       }
 
@@ -173,7 +175,8 @@ describe('Tier Calculation with Total Points System', () => {
       const referredWallet = randomAddress()
       await userService.createUser({ walletAddress: referredWallet })
       const referrer = await userService.getUserByWalletAddress(referrerWallet)
-      await referralService.enterReferralCode(referredWallet, referrer?.referralCode!)
+      expect(referrer?.referralCode).toBeDefined()
+      await referralService.enterReferralCode(referredWallet, referrer!.referralCode!)
 
       // Award referral points (should get Rare tier bonus)
       const referralResult = await pointsService.awardReferralPoints(referredWallet, 10, new ObjectId())

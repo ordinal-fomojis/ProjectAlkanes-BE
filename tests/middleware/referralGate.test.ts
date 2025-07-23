@@ -12,7 +12,9 @@ describe('Referral Gate Middleware', () => {
   let mockRequest: Partial<AuthenticatedRequest>
   let mockResponse: Partial<Response>
   let mockNext: ReturnType<typeof vi.fn>
-  let mockUserService: any
+  let mockUserService: {
+    getUserByWalletAddress: ReturnType<typeof vi.fn>
+  }
 
   beforeEach(() => {
     mockRequest = {
@@ -33,7 +35,7 @@ describe('Referral Gate Middleware', () => {
       getUserByWalletAddress: vi.fn()
     }
     
-    // @ts-ignore
+    // @ts-expect-error
     UserService.mockImplementation(() => mockUserService)
     
     vi.clearAllMocks()
