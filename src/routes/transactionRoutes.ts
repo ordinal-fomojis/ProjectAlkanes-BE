@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { MOCK_BTC } from '../config/constants.js'
 import { database } from '../config/database.js'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
+import { requireReferral } from '../middleware/referralGate.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
@@ -32,7 +33,7 @@ const CreateTransactionParamsSchema = z.object({
   mintCount: z.coerce.number().min(1)
 })
 
-router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
   const {
     feeRate, paymentAddress, paymentPubkey,
     receiveAddress, userAddress, alkaneId, mintCount
@@ -80,7 +81,7 @@ const PostTransactionBodySchema = z.object({
   id: z.string()
 })
 
-router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
   const { psbt, id } = parse(PostTransactionBodySchema, req.body)
   const unsignedMints = new UnsignedMintTransactionService()
   const mintTxns = new MintTransactionService()

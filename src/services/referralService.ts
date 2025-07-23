@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb'
 import { getNextTier, getTierByPoints } from '../config/tiers.js'
 import { IUser, ReferralInfo, User } from '../models/User.js'
 import { BaseService } from './BaseService.js'
@@ -124,6 +125,21 @@ export class ReferralService extends BaseService<IUser> {
       // Check if user is already referred
       if (user.referredBy) {
         return { success: false, message: 'User is already referred' };
+      }
+
+      // Handle bootstrap referral code for first users
+      const BOOTSTRAP_REFERRAL_CODE = 'BOOTSTRAP';
+      if (referralCode.toUpperCase() === BOOTSTRAP_REFERRAL_CODE) {
+        // Create a virtual "bootstrap" referrer to satisfy the referral requirement
+        // We'll use a special ObjectId that represents the bootstrap system
+        const bootstrapReferrerId = new ObjectId('000000000000000000000001'); // Special ID for bootstrap
+        
+        await this.collection.updateOne(
+          { _id: user._id },
+          { $set: { referredBy: bootstrapReferrerId } }
+        );
+
+        return { success: true, message: 'Bootstrap referral code applied successfully' };
       }
 
       // Find referrer by referral code OR custom referral ID
