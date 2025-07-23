@@ -114,10 +114,10 @@ app.use('/api/points', pointsRoutes);
 app.use('/api/activity', activityRoutes);
 
 // 404 handler
-app.use((_: Request, res: Response) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found: ' + req.path
   });
 });
 
