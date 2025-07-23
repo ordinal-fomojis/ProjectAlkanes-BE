@@ -15,6 +15,7 @@ export interface UnsignedMintTransaction {
   mintCount: number
   paymentAddress: string
   receiveAddress: string
+  authenticatedUserAddress?: string
   created: Date
 }
 

@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js'
-import { MintTransactionService } from '../services/MintTransactionService.js'
+import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
+import { MintTransactionService } from '../services/MintTransactionService.js'
 import { TransactionConfirmationService } from '../services/TransactionConfirmationService.js'
 
 const router = Router();
@@ -21,8 +21,13 @@ router.get('/recent-mints', authenticateJWT, async (req: AuthenticatedRequest, r
     const alkaneTokenService = new AlkaneTokenService();
     const transactionConfirmationService = new TransactionConfirmationService();
 
-    // Get all mint transactions for the authenticated user's wallet
-    const mintTransactions = await mintTransactionService.getMintTransactionsByPaymentAddress(req.user.walletAddress);
+    // Get all mint transactions for the authenticated user
+    // Enhanced search handles:
+    // 1. NEW transactions: authenticatedUserAddress field (most reliable)
+    // 2. LEGACY transactions: receiveAddress = user's ordinal address  
+    // 3. SAME-ADDRESS transactions: paymentAddress = user's address (Unisat style)
+    // This ensures users see ALL their transactions including historical ones
+    const mintTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(req.user.walletAddress);
 
     // Get all unique alkane IDs to fetch token details
     const alkaneIds = [...new Set(mintTransactions.map(mint => mint.alkaneId))];

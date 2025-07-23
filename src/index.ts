@@ -37,7 +37,7 @@ if (process.env.CORS_ENABLED !== 'false') {
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '500'), // limit each IP to 1000 requests per windowMs (increased from 100)
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.'
@@ -62,7 +62,7 @@ app.use((req: Request, _: Response, next) => {
 });
 
 // Basic routes
-app.get('/', (_: Request, res: Response) => {
+app.get('/api', (_: Request, res: Response) => {
   res.json({
     message: 'Welcome to Project Alkanes Backend API!',
     status: 'Server is running',
@@ -72,7 +72,7 @@ app.get('/', (_: Request, res: Response) => {
 });
 
 // Health check route
-app.get('/health', (_: Request, res: Response) => {
+app.get('/api/health', (_: Request, res: Response) => {
   if (!database.isConnected) {
     res.status(503).json({
       status: 'ERROR',
