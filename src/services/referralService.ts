@@ -40,11 +40,11 @@ export class ReferralService extends BaseService<IUser> {
         createdAt: u.createdAt
       }));
 
-      // Calculate tier information
-      const pointsFromReferrals = user.pointsEarnedFromReferrals || 0;
-      const currentTier = getTierByPoints(pointsFromReferrals);
+      // Calculate tier information based on total points
+      const totalPoints = user.points || 0;
+      const currentTier = getTierByPoints(totalPoints);
       const nextTier = getNextTier(currentTier);
-      const pointsToNextTier = nextTier ? nextTier.threshold - pointsFromReferrals : undefined;
+      const pointsToNextTier = nextTier ? nextTier.threshold - totalPoints : undefined;
 
       return {
         referralCode: user.referralCode!,
@@ -53,8 +53,8 @@ export class ReferralService extends BaseService<IUser> {
         referredUsers: referredUsersInfo,
         totalReferrals: referredUsersInfo.length,
         points: user.points || 0, // User's total points balance
-        pointsEarnedFromReferrals: pointsFromReferrals, // Cached value - no calculation needed!
-        tier: currentTier, // Current tier based on referral points
+        pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0, // Cached value - no calculation needed!
+        tier: currentTier, // Current tier based on total points
         nextTier: nextTier || undefined, // Next tier to unlock
         pointsToNextTier: pointsToNextTier // Points needed for next tier
       };

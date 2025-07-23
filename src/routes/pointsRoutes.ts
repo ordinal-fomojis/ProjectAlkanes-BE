@@ -63,11 +63,11 @@ router.get('/user/:walletAddress', validateParams(walletAddressSchema), async (r
       return;
     }
 
-    // Calculate tier information
-    const pointsFromReferrals = user.pointsEarnedFromReferrals || 0;
-    const currentTier = getTierByPoints(pointsFromReferrals);
+    // Calculate tier information based on total points
+    const totalPoints = user.points || 0;
+    const currentTier = getTierByPoints(totalPoints);
     const nextTier = getNextTier(currentTier);
-    const pointsToNextTier = nextTier ? nextTier.threshold - pointsFromReferrals : undefined;
+    const pointsToNextTier = nextTier ? nextTier.threshold - totalPoints : undefined;
 
     res.json({
       success: true,
@@ -75,7 +75,7 @@ router.get('/user/:walletAddress', validateParams(walletAddressSchema), async (r
         _id: user._id,
         walletAddress: user.walletAddress,
         points: user.points || 0,
-        pointsEarnedFromReferrals: pointsFromReferrals,
+        pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,
         referralCode: user.referralCode,
