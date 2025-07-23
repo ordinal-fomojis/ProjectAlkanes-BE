@@ -1,7 +1,7 @@
-import { ClientSession, ObjectId } from 'mongodb'
-import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js'
-import { IUser, User } from '../models/User.js'
-import { BaseService } from './BaseService.js'
+import { ClientSession, ObjectId } from 'mongodb';
+import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js';
+import { IUser, User } from '../models/User.js';
+import { BaseService } from './BaseService.js';
 
 export interface PointsTransaction {
   userId: ObjectId;
@@ -68,9 +68,9 @@ export class PointsService extends BaseService<IUser> {
         throw new Error('User not found for referral points');
       }
 
-      // Calculate current tier based on existing referral points
-      const currentReferralPoints = user.pointsEarnedFromReferrals || 0;
-      const currentTier = getTierByPoints(currentReferralPoints);
+      // Calculate current tier based on total points
+      const totalPoints = user.points || 0;
+      const currentTier = getTierByPoints(totalPoints);
       
       // Apply tier bonus to base points
       const bonusPoints = calculateBonusPoints(basePoints, currentTier);
@@ -142,9 +142,9 @@ export class PointsService extends BaseService<IUser> {
         };
       }
 
-      // Calculate current tier based on referral points
-      const currentReferralPoints = user.pointsEarnedFromReferrals || 0;
-      const currentTier = getTierByPoints(currentReferralPoints);
+      // Calculate current tier based on total points
+      const totalPoints = user.points || 0;
+      const currentTier = getTierByPoints(totalPoints);
       
       // Apply tier bonus to mint points
       const basePoints = mintCount * basePointsPerMint;

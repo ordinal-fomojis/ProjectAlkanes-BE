@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb'
 import { getNextTier, getTierByPoints } from '../config/tiers.js'
 import { IUser, ReferralInfo, User } from '../models/User.js'
 import { BaseService } from './BaseService.js'
@@ -18,13 +19,23 @@ export class ReferralService extends BaseService<IUser> {
       // Get referrer info if user was referred
       let referrerInfo = undefined;
       if (user.referredBy) {
-        const referrer = await this.collection.findOne({ _id: user.referredBy });
-        if (referrer) {
+        // Check if this is the bootstrap referrer
+        const bootstrapReferrerId = new ObjectId('000000000000000000000001');
+        if (user.referredBy.equals(bootstrapReferrerId)) {
           referrerInfo = {
-            _id: referrer._id!,
-            walletAddress: referrer.walletAddress,
-            customReferralId: referrer.customReferralId
+            _id: bootstrapReferrerId,
+            walletAddress: 'BOOTSTRAP_SYSTEM',
+            customReferralId: undefined
           };
+        } else {
+          const referrer = await this.collection.findOne({ _id: user.referredBy });
+          if (referrer) {
+            referrerInfo = {
+              _id: referrer._id!,
+              walletAddress: referrer.walletAddress,
+              customReferralId: referrer.customReferralId
+            };
+          }
         }
       }
 
@@ -39,21 +50,24 @@ export class ReferralService extends BaseService<IUser> {
         createdAt: u.createdAt
       }));
 
-      // Calculate tier information
-      const pointsFromReferrals = user.pointsEarnedFromReferrals || 0;
-      const currentTier = getTierByPoints(pointsFromReferrals);
+      // Calculate tier information based on total points
+      const totalPoints = user.points || 0;
+      const currentTier = getTierByPoints(totalPoints);
       const nextTier = getNextTier(currentTier);
-      const pointsToNextTier = nextTier ? nextTier.threshold - pointsFromReferrals : undefined;
+      const pointsToNextTier = nextTier ? nextTier.threshold - totalPoints : undefined;
 
+      // Only show referral code and custom ID if user has been referred
+      const canRefer = !!user.referredBy;
+      
       return {
-        referralCode: user.referralCode!,
-        customReferralId: user.customReferralId,
+        referralCode: canRefer ? user.referralCode : undefined,
+        customReferralId: canRefer ? user.customReferralId : undefined,
         referredBy: referrerInfo,
         referredUsers: referredUsersInfo,
         totalReferrals: referredUsersInfo.length,
         points: user.points || 0, // User's total points balance
-        pointsEarnedFromReferrals: pointsFromReferrals, // Cached value - no calculation needed!
-        tier: currentTier, // Current tier based on referral points
+        pointsEarnedFromReferrals: user.pointsEarnedFromReferrals || 0, // Cached value - no calculation needed!
+        tier: currentTier, // Current tier based on total points
         nextTier: nextTier || undefined, // Next tier to unlock
         pointsToNextTier: pointsToNextTier // Points needed for next tier
       };
@@ -124,6 +138,21 @@ export class ReferralService extends BaseService<IUser> {
       // Check if user is already referred
       if (user.referredBy) {
         return { success: false, message: 'User is already referred' };
+      }
+
+      // Handle bootstrap referral code for first users
+      const BOOTSTRAP_REFERRAL_CODE = 'BOOTSTRAP';
+      if (referralCode.toUpperCase() === BOOTSTRAP_REFERRAL_CODE) {
+        // Create a virtual "bootstrap" referrer to satisfy the referral requirement
+        // We'll use a special ObjectId that represents the bootstrap system
+        const bootstrapReferrerId = new ObjectId('000000000000000000000001'); // Special ID for bootstrap
+        
+        await this.collection.updateOne(
+          { _id: user._id },
+          { $set: { referredBy: bootstrapReferrerId } }
+        );
+
+        return { success: true, message: 'Bootstrap referral code applied successfully' };
       }
 
       // Find referrer by referral code OR custom referral ID

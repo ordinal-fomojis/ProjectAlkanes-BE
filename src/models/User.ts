@@ -26,8 +26,8 @@ export interface UpdateUserRequest {
 }
 
 export interface ReferralInfo {
-  referralCode: string;
-  customReferralId?: string;
+  referralCode?: string; // Only present if user has been referred
+  customReferralId?: string; // Only present if user has been referred
   referredBy?: {
     _id: ObjectId;
     walletAddress: string;

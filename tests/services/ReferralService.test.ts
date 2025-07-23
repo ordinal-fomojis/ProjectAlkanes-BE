@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { DB_NAME } from "../../src/config/constants.js"
@@ -33,7 +34,8 @@ describe('ReferralService', () => {
       { 
         $set: { 
           points: 30, // Total points
-          pointsEarnedFromReferrals: pointsFromReferrals // Points from referrals specifically
+          pointsEarnedFromReferrals: pointsFromReferrals, // Points from referrals specifically
+          referredBy: new ObjectId('000000000000000000000001') // Bootstrap referrer - needed to see referral code
         } 
       }
     )
@@ -99,10 +101,13 @@ describe('ReferralService', () => {
     const user = await userService.createUser({ walletAddress: userWallet })
     const customId = 'mycoollink'
 
-    // Set custom referral ID
+    // FIRST: User must be referred to see their referral codes
     await database.getDb().collection('users').updateOne(
       { _id: user._id! },
-      { $set: { customReferralId: customId } }
+      { $set: { 
+        customReferralId: customId,
+        referredBy: new ObjectId('000000000000000000000001') // Bootstrap referrer
+      } }
     )
 
     const referralInfo = await referralService.getReferralInfo(userWallet)
