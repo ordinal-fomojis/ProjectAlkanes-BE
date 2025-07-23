@@ -62,7 +62,7 @@ app.use((req: Request, _: Response, next) => {
 });
 
 // Basic routes
-app.get('/', (_: Request, res: Response) => {
+app.get('/api', (_: Request, res: Response) => {
   res.json({
     message: 'Welcome to Project Alkanes Backend API!',
     status: 'Server is running',
@@ -72,7 +72,7 @@ app.get('/', (_: Request, res: Response) => {
 });
 
 // Health check route
-app.get('/health', (_: Request, res: Response) => {
+app.get('/api/health', (_: Request, res: Response) => {
   if (!database.isConnected) {
     res.status(503).json({
       status: 'ERROR',
