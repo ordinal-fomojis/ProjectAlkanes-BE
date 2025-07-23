@@ -35,7 +35,7 @@ describe('Referral Gate Middleware', () => {
       getUserByWalletAddress: vi.fn()
     }
     
-    // @ts-expect-error
+    // @ts-expect-error - Mocking UserService constructor for testing
     UserService.mockImplementation(() => mockUserService)
     
     vi.clearAllMocks()
