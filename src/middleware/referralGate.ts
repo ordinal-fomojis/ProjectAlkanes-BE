@@ -1,9 +1,6 @@
-import { NextFunction, Response } from 'express';
-import { UserService } from '../services/userService.js';
-import { AuthenticatedRequest } from './auth.js';
-
-// Bootstrap referral code that allows first users to bypass the gate
-const BOOTSTRAP_REFERRAL_CODE = 'BOOTSTRAP';
+import { NextFunction, Response } from 'express'
+import { UserService } from '../services/userService.js'
+import { AuthenticatedRequest } from './auth.js'
 
 export async function requireReferral(
   req: AuthenticatedRequest, 
