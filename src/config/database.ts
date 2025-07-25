@@ -11,6 +11,9 @@ class Database {
       this.db = this.client.db(dbName);
       console.log('✅ Connected to MongoDB');
       console.log(`📊 Database: ${dbName}`);
+      
+      // Create indexes for optimal sorting performance
+      await this.createIndexes();
     } catch (error) {
       console.error('❌ Failed to connect to MongoDB:', error);
       throw error;
@@ -49,6 +52,36 @@ class Database {
       return await session.withTransaction(callback, options)
     } finally {
       await session.endSession()
+    }
+  }
+
+  private async createIndexes() {
+    if (!this.db) return;
+    
+    const collection = this.db.collection('alkane_tokens');
+    
+    try {
+      // Create composite indexes for optimal sorting performance
+      await collection.createIndex({ currentMintCount: 1, deployTimestamp: -1 });
+      await collection.createIndex({ pendingMints: 1, deployTimestamp: -1 });
+      
+      // Create indexes for other sortable fields
+      await collection.createIndex({ percentageMinted: 1 });
+      await collection.createIndex({ mintCountCap: 1 });
+      await collection.createIndex({ name: 1 });
+      await collection.createIndex({ symbol: 1 });
+      await collection.createIndex({ deployTimestamp: -1 });
+      
+      // Create indexes for filtering
+      await collection.createIndex({ mintable: 1 });
+      await collection.createIndex({ mintedOut: 1 });
+      await collection.createIndex({ preminedSupply: 1 });
+      await collection.createIndex({ maxSupply: 1 });
+      
+      console.log('✅ Database indexes created successfully');
+    } catch (error) {
+      console.error('❌ Error creating database indexes:', error);
+      // Don't throw error as indexes might already exist
     }
   }
 }

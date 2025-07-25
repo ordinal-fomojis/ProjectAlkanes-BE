@@ -9,7 +9,7 @@ const ParamsSchema = z.object({
   search: z.string(),
   page: z.coerce.number().optional(),
   pageSize: z.coerce.number().optional(),
-  orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted', 'mintCountCap']).optional(),
+  orderBy: z.enum(['pendingMints', 'name', 'symbol', 'deployTimestamp', 'percentageMinted', 'mintCountCap', 'currentMintCount', 'preminedSupplyPercentage']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
   mintable: z.enum(['true', 'false']).optional(),
   mintedOut: z.enum(['true', 'false']).optional(),
@@ -54,7 +54,8 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     currentMintCount: token.currentMintCount,
     mintedOut: token.mintedOut,
     deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
-    clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom
+    clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom,
+    preminedSupplyPercentage: token.preminedSupplyPercentage ?? 0
   }))
 
   res.status(200).json({
