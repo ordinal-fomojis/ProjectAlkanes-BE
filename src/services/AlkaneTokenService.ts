@@ -74,9 +74,10 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     }
 
     const direction = order.order === 'asc' ? 1 : -1 as const
+    const orderField = (order.field === 'mintCountCap') ? 'approximateMintCountCap' : order.field
     const sortObject = order.field === 'deployTimestamp'
-      ? { [order.field]: direction } as const
-      : { [order.field]: direction, deployTimestamp: -1 } as const // Newest tokens first as secondary sort
+      ? { [orderField]: direction } as const
+      : { [orderField]: direction, deployTimestamp: -1 } as const // Newest tokens first as secondary sort
 
     return await this.collection
       .find(query)
