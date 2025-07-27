@@ -52,7 +52,7 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm.trim()
     
-    let query: Document = {}
+    const query: Document = {}
     if (searchTerm.length > 0) {
       query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
