@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
+import { DatabaseCollection } from '../database/collections.js'
 import { BaseService } from './BaseService.js'
 import { UserService } from './userService.js'
 
@@ -22,7 +23,7 @@ export interface JWTPayload {
 }
 
 export class AuthService extends BaseService<NonceData> {
-  readonly collectionName = 'auth_nonces';
+  readonly collectionName = DatabaseCollection.AuthNonces;
   private readonly userService: UserService;
   private readonly jwtSecret: string;
   private readonly jwtExpiresIn: string;

@@ -1,4 +1,5 @@
 import { ClientSession } from "mongodb"
+import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
 export interface MintTransaction {
@@ -18,7 +19,7 @@ export interface MintTransaction {
 }
 
 export class MintTransactionService extends BaseService<MintTransaction> {
-  collectionName = 'mint_transactions'
+  collectionName = DatabaseCollection.MintTransactions
 
   async createMintTransaction(mintTx: Omit<MintTransaction, 'created'>, session?: ClientSession) {
     const { insertedId } = await this.collection.insertOne({

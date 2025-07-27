@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb"
+import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
 export interface UnsignedMintTransaction {
@@ -20,7 +21,7 @@ export interface UnsignedMintTransaction {
 }
 
 export class UnsignedMintTransactionService extends BaseService<UnsignedMintTransaction> {
-  collectionName = 'unsigned_mint_transactions'
+  collectionName = DatabaseCollection.UnsignedMintTransactions
 
   async createMintTransaction(mintTx: Omit<UnsignedMintTransaction, 'created' | 'totalCost'>) {
     const { insertedId } = await this.collection.insertOne({
