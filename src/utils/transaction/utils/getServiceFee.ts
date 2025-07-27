@@ -1,4 +1,3 @@
-// TODO
 export function getServiceFee(mintCount: number) {
-  return mintCount * 0
+  return Math.max(1000, 250 * mintCount)
 }
