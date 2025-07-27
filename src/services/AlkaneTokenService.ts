@@ -1,4 +1,5 @@
 import { Document } from "mongodb"
+import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
 export interface AlkaneToken {
@@ -9,6 +10,10 @@ export interface AlkaneToken {
   preminedSupply: string
   amountPerMint: string | null
   mintCountCap: string | null
+  // Numeric approximation for indexing/sorting.
+  // Will typically be exact, but for large values we will get numeric rounding,
+  // so calculations should use mintCountCap.
+  approximateMintCountCap: number | null
   currentSupply: string
   currentMintCount: number
   deployTxid: string | null
@@ -19,11 +24,13 @@ export interface AlkaneToken {
   percentageMinted: number | null
   maxSupply: string | null
   mintedOut: boolean
+  preminedSupplyPercentage: number | null
+  hasPremine: boolean
   pendingMints?: number
   mintable?: boolean
 }
 
-type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap'
+type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminedSupplyPercentage'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {
@@ -37,15 +44,19 @@ interface AlkanesSearchQuery {
 }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
-  collectionName = 'alkane_tokens'
+  collectionName = DatabaseCollection.AlkaneTokens
 
   async searchAlkaneTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery
   ): Promise<AlkaneToken[]> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm.trim()
-    let searchQuery: Document = searchTerm.length === 0 ? {} : {
-      $or: [
+    
+    // Build match stage for filtering
+    let matchStage: Document = {}
+    
+    if (searchTerm.length > 0) {
+      matchStage.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
         { symbol: { $regex: searchTerm, $options: 'i' } },
         { alkaneId: { $regex: searchTerm, $options: 'i' } }
@@ -53,11 +64,11 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     }
 
     if (mintable !== null) {
-      searchQuery.mintable = mintable
+      matchStage.mintable = mintable
     }
 
     if (mintedOut !== null) {
-      searchQuery.mintedOut = mintedOut
+      matchStage.mintedOut = mintedOut
     }
 
     if (noPremine !== null) {
@@ -72,33 +83,65 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
           ]
         }
         
-        // If we already have a search query, combine them with $and
-        if (Object.keys(searchQuery).length > 0) {
-          searchQuery = { $and: [searchQuery, noPremineQuery] }
+        // If we already have a match stage, combine them with $and
+        if (Object.keys(matchStage).length > 0) {
+          matchStage = { $and: [matchStage, noPremineQuery] }
         } else {
-          searchQuery = noPremineQuery
+          matchStage = noPremineQuery
         }
       }
     }
 
-    // Build sort object with primary and secondary sorting
-    let sortObject: Document = { [order.field]: order.order }
+    // Build aggregation pipeline
+    const pipeline: Document[] = [
+      { $match: matchStage },
+      {
+        $addFields: {
+          // Calculate preminedSupplyPercentage
+          preminedSupplyPercentage: {
+            $cond: {
+              if: {
+                $and: [
+                  { $ne: ["$preminedSupply", null] },
+                  { $ne: ["$maxSupply", null] },
+                  { $ne: ["$maxSupply", "0"] },
+                  { $ne: ["$maxSupply", ""] }
+                ]
+              },
+              then: {
+                $multiply: [
+                  {
+                    $divide: [
+                      { $toDouble: "$preminedSupply" },
+                      { $toDouble: "$maxSupply" }
+                    ]
+                  },
+                  100
+                ]
+              },
+              else: 0
+            }
+          }
+        }
+      }
+    ]
+
+    // Build sort stage
+    let sortStage: Document = { [order.field]: order.order === 'asc' ? 1 : -1 }
     
-    // Add secondary sort by deployTimestamp (newest first) when sorting by pendingMints
-    if (order.field === 'pendingMints') {
-      sortObject = { 
-        [order.field]: order.order,
-        deployTimestamp: 'desc' // Newest tokens first as secondary sort
+    // Add secondary sort by deployTimestamp (newest first) for certain fields
+    if (['pendingMints', 'currentMintCount', 'preminedSupplyPercentage'].includes(order.field)) {
+      sortStage = { 
+        [order.field]: order.order === 'asc' ? 1 : -1,
+        deployTimestamp: -1 // Newest tokens first as secondary sort
       }
     }
 
-    return await this.collection
-      .find(searchQuery)
-      .collation({ locale: "en" })
-      .sort(sortObject)
-      .skip(skip)
-      .limit(pageSize)
-      .toArray()
+    pipeline.push({ $sort: sortStage })
+    pipeline.push({ $skip: skip })
+    pipeline.push({ $limit: pageSize })
+
+    return await this.collection.aggregate(pipeline).toArray() as AlkaneToken[]
   }
 
   async getTokensByAlkaneIds(alkaneIds: string[]) {

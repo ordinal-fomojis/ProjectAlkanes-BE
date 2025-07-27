@@ -1,8 +1,9 @@
 import { Collection, Document } from "mongodb"
-import { database } from "../config/database.js"
+import { DatabaseCollection } from "../database/collections.js"
+import { database } from "../database/database.js"
 
 export abstract class BaseService<T extends Document> {
-  abstract readonly collectionName: string
+  abstract readonly collectionName: DatabaseCollection
   private _collection?: Collection<T>
 
   protected get collection(): Collection<T> {

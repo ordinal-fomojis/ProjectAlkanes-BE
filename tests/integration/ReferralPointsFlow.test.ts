@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { DB_NAME } from "../../src/config/constants.js"
-import { database } from "../../src/config/database.js"
+import { database } from '../../src/database/database.js'
 import { PointsService } from "../../src/services/PointsService.js"
 import { ReferralService } from "../../src/services/referralService.js"
 import { UnsignedMintTransactionService } from "../../src/services/UnsignedMintTransactionService.js"
