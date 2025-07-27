@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { DB_NAME } from "../../src/config/constants.js"
-import { database } from "../../src/config/database.js"
+import { database } from "../../src/database/database.js"
 import { UnsignedMintTransactionService } from "../../src/services/UnsignedMintTransactionService.js"
 import { randomAddress } from "../test-utils/btc-random.js"
 import Random from "../test-utils/Random.js"

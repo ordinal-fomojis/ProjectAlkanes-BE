@@ -22,10 +22,10 @@ const Indexes: Indexed = {
     { clonedFrom: 1 },
     // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
     // so that newest are always first, regardless of what sort order is chosen
-    ...TokenSortableFields.map(field => [
+    ...TokenSortableFields.flatMap(field => [
       { [field]: 1, deployTimestamp: -1 },
       { [field]: -1, deployTimestamp: -1 }
-    ]).flat()
+    ])
   ],
   auth_nonces: [],
   block_heights: [
