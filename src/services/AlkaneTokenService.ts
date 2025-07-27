@@ -30,7 +30,7 @@ export interface AlkaneToken {
   mintable?: boolean
 }
 
-type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminedSupplyPercentage'
+type SortableField = 'pendingMints' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminePercentage'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {
@@ -52,11 +52,9 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm.trim()
     
-    // Build match stage for filtering
-    let matchStage: Document = {}
-    
+    const query: Document = {}
     if (searchTerm.length > 0) {
-      matchStage.$or = [
+      query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
         { symbol: { $regex: searchTerm, $options: 'i' } },
         { alkaneId: { $regex: searchTerm, $options: 'i' } }
@@ -64,84 +62,29 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     }
 
     if (mintable !== null) {
-      matchStage.mintable = mintable
+      query.mintable = mintable
     }
 
     if (mintedOut !== null) {
-      matchStage.mintedOut = mintedOut
+      query.mintedOut = mintedOut
     }
 
     if (noPremine !== null) {
-      if (noPremine) {
-        // Filter for tokens with no premined supply (null, undefined, or "0")
-        const noPremineQuery = {
-          $or: [
-            { preminedSupply: { $exists: false } },
-            { preminedSupply: null },
-            { preminedSupply: "" },
-            { preminedSupply: "0" }
-          ]
-        }
-        
-        // If we already have a match stage, combine them with $and
-        if (Object.keys(matchStage).length > 0) {
-          matchStage = { $and: [matchStage, noPremineQuery] }
-        } else {
-          matchStage = noPremineQuery
-        }
-      }
+      query.noPremine = noPremine
     }
 
-    // Build aggregation pipeline
-    const pipeline: Document[] = [
-      { $match: matchStage },
-      {
-        $addFields: {
-          // Calculate preminedSupplyPercentage
-          preminedSupplyPercentage: {
-            $cond: {
-              if: {
-                $and: [
-                  { $ne: ["$preminedSupply", null] },
-                  { $ne: ["$maxSupply", null] },
-                  { $ne: ["$maxSupply", "0"] },
-                  { $ne: ["$maxSupply", ""] }
-                ]
-              },
-              then: {
-                $multiply: [
-                  {
-                    $divide: [
-                      { $toDouble: "$preminedSupply" },
-                      { $toDouble: "$maxSupply" }
-                    ]
-                  },
-                  100
-                ]
-              },
-              else: 0
-            }
-          }
-        }
-      }
-    ]
+    const direction = order.order === 'asc' ? 1 : -1 as const
+    const sortObject = order.field === 'deployTimestamp'
+      ? { [order.field]: direction } as const
+      : { [order.field]: direction, deployTimestamp: -1 } as const // Newest tokens first as secondary sort
 
-    // Build sort stage
-    let sortStage: Document = { [order.field]: order.order === 'asc' ? 1 : -1 }
-    
-    // Add secondary sort by deployTimestamp (newest first) for certain fields
-    if (['pendingMints', 'currentMintCount', 'preminedSupplyPercentage'].includes(order.field)) {
-      sortStage = { 
-        [order.field]: order.order === 'asc' ? 1 : -1,
-        deployTimestamp: -1 // Newest tokens first as secondary sort
-      }
-    }
-
-    pipeline.push({ $sort: sortStage })
-    pipeline.push({ $skip: skip })
-    pipeline.push({ $limit: pageSize })
-
-    return await this.collection.aggregate(pipeline).toArray() as AlkaneToken[]
+    return await this.collection
+      .find(query)
+      .collation({ locale: "en" })
+      .sort(sortObject)
+      .skip(skip)
+      .limit(pageSize)
+      .toArray()
   }
 
   async getTokensByAlkaneIds(alkaneIds: string[]) {

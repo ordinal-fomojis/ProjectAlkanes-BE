@@ -6,7 +6,7 @@ type CollectionIndex = FieldIndex[]
 type Indexed = Record<DatabaseCollection, CollectionIndex>
 
 const TokenSortableFields = [
-  'percentageMinted', 'pendingMints', 'currentMintCount', 'approximateMintCountCap', 'preminedSupplyPercentage'
+  'percentageMinted', 'pendingMints', 'currentMintCount', 'approximateMintCountCap', 'preminePercentage'
 ]
 
 const Indexes: Indexed = {
