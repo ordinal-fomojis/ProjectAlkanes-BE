@@ -1,6 +1,7 @@
 import { Transaction } from "bitcoinjs-lib"
 import { ClientSession, ObjectId } from "mongodb"
 import { MOCK_BTC } from "../config/constants.js"
+import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
 export interface TransactionDetails {
@@ -30,7 +31,7 @@ interface CreateTransactionsForMintArgs {
 }
 
 export class UnconfirmedTransactionService extends BaseService<TransactionDetails> {
-  collectionName = 'unconfirmed_transactions'
+  collectionName = DatabaseCollection.UnconfirmedTransactions
   
   async createTransactionsForMint({ txns, wif, mintTx }: CreateTransactionsForMintArgs, session?: ClientSession) {
     await this.collection.insertMany(txns.map(tx => ({

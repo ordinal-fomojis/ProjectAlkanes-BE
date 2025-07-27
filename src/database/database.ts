@@ -1,4 +1,5 @@
 import { ClientSession, Db, MongoClient, WithTransactionCallback } from 'mongodb'
+import { initIndexes } from './indexes.js'
 
 class Database {
   private client: MongoClient | null = null;
@@ -8,8 +9,11 @@ class Database {
     try {
       this.client ??= new MongoClient(uri)
       await this.client.connect();
-      this.db = this.client.db(dbName);
+      const db = this.client.db(dbName);
       console.log('✅ Connected to MongoDB');
+      await initIndexes(db);
+      console.log('✅ Indexes initialized');
+      this.db = db;
       console.log(`📊 Database: ${dbName}`);
       
       // Create indexes for optimal sorting performance
@@ -68,9 +72,9 @@ class Database {
       // Create indexes for other sortable fields
       await collection.createIndex({ percentageMinted: 1 });
       await collection.createIndex({ mintCountCap: 1 });
-      await collection.createIndex({ name: 1 });
-      await collection.createIndex({ symbol: 1 });
-      await collection.createIndex({ deployTimestamp: -1 });
+      // await collection.createIndex({ name: 1 });
+      // await collection.createIndex({ symbol: 1 });
+      // await collection.createIndex({ deployTimestamp: -1 });
       
       // Create indexes for filtering
       await collection.createIndex({ mintable: 1 });

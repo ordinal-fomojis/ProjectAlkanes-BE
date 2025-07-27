@@ -1,4 +1,5 @@
 import { Document } from "mongodb"
+import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
 export interface AlkaneToken {
@@ -9,6 +10,10 @@ export interface AlkaneToken {
   preminedSupply: string
   amountPerMint: string | null
   mintCountCap: string | null
+  // Numeric approximation for indexing/sorting.
+  // Will typically be exact, but for large values we will get numeric rounding,
+  // so calculations should use mintCountCap.
+  approximateMintCountCap: number | null
   currentSupply: string
   currentMintCount: number
   deployTxid: string | null
@@ -19,9 +24,10 @@ export interface AlkaneToken {
   percentageMinted: number | null
   maxSupply: string | null
   mintedOut: boolean
+  preminedSupplyPercentage: number | null
+  hasPremine: boolean
   pendingMints?: number
   mintable?: boolean
-  preminedSupplyPercentage?: number
 }
 
 type SortableField = 'pendingMints' | 'name' | 'symbol' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminedSupplyPercentage'
@@ -38,7 +44,7 @@ interface AlkanesSearchQuery {
 }
 
 export class AlkaneTokenService extends BaseService<AlkaneToken> {
-  collectionName = 'alkane_tokens'
+  collectionName = DatabaseCollection.AlkaneTokens
 
   async searchAlkaneTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery
