@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import { ValidationError } from '../../src/utils/parse.js'
 import { DEFAULT_RETRY_FETCH_TIMES, RequestError, retryBlobFetch, retryBufferFetch, retryFetch, retryJsonFetch, retryResponseFetch, retrySchemaFetch } from "../../src/utils/retryFetch.js"
 
 const Url = 'http://example.com/api/resource'
@@ -207,7 +208,7 @@ describe('retryFetch', () => {
     fetchMock.mockResponseOnce(JSON.stringify(invalidData))
     
     await expect(retrySchemaFetch(schema, Url))
-      .rejects.toThrow("Validation error")
+      .rejects.toThrow(ValidationError)
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
