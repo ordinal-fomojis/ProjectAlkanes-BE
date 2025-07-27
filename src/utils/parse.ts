@@ -1,5 +1,5 @@
 import z, { ZodError } from "zod"
-import { createErrorMap, fromZodError } from "zod-validation-error/v4"
+import { fromZodError } from "zod-validation-error/v4"
 import { UserError } from "./errors.js"
 
 export class ValidationError extends UserError {
@@ -18,10 +18,10 @@ export function parse<Output, Input>(schema: z.ZodType<Output, Input>, obj: unkn
     const issue = result.error.issues[0]
     if (issue != null && result.error.issues.length === 1 && issue.code === 'invalid_union' && issue.errors.length > 0) {
       const error = issue.errors.reduce((a, b) => a.length < b.length ? a : b)
-      throw new ValidationError(fromZodError(new ZodError(error), { error: createErrorMap() }).message)
+      throw new ValidationError(fromZodError(new ZodError(error), { prefix: null }).message)
     }
 
-    throw new ValidationError(fromZodError(result.error, { error: createErrorMap() }).message)
+    throw new ValidationError(fromZodError(result.error, { prefix: null }).message)
   }
   return result.data
 }
