@@ -55,7 +55,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintedOut: token.mintedOut,
     deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
     clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom,
-    preminedSupplyPercentage: token.preminedSupplyPercentage ?? 0
+    preminedPercentage: token.preminedPercentage ?? 0
   }))
 
   res.status(200).json({
