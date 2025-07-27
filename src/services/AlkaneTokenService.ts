@@ -24,13 +24,13 @@ export interface AlkaneToken {
   percentageMinted: number | null
   maxSupply: string | null
   mintedOut: boolean
-  preminedSupplyPercentage: number | null
+  preminedPercentage: number | null
   hasPremine: boolean
   pendingMints?: number
   mintable?: boolean
 }
 
-type SortableField = 'pendingMints' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminePercentage'
+type SortableField = 'pendingMints' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminedPercentage'
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {
