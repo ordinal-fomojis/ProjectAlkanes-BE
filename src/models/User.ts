@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
-import { TierConfig } from '../config/tiers.js';
+import { ObjectId } from 'mongodb'
+import { TierConfig } from '../config/tiers.js'
 
 export interface IUser {
   _id?: ObjectId;
@@ -51,7 +51,7 @@ export class User {
 
   static createUser(walletAddress: string): Omit<IUser, '_id'> {
     return {
-      walletAddress: walletAddress.toLowerCase().trim(),
+      walletAddress: walletAddress.trim(),
       createdAt: new Date(),
       points: 0,
       pointsEarnedFromReferrals: 0

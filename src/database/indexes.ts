@@ -45,7 +45,10 @@ const Indexes: Indexed = {
   unsigned_mint_transactions: [
     [{ created: 1 }, { expireAfterSeconds: 300 }]
   ],
-  users: [],
+  users: [
+    [{ walletAddress: 1 }, { unique: true }],
+    { referralCode: 1 }
+  ],
 }
 
 export async function initIndexes(db: Db): Promise<void> {
