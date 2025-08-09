@@ -1,13 +1,10 @@
 import { BITCOIN_NETWORK } from "../../../config/constants.js"
+import { UserError } from "../../errors.js"
 
-export class UnsupportedAddressType extends Error {
+export class UnsupportedAddressType extends UserError {
   constructor(public address: string) {
     super(`Your payment address is an unsupported address type.\nAddress: ${address}`)
-  }
-
-  truncatedAddress() {
-    if (this.address.length < 14) return this.address
-    return `${this.address.slice(0, 6)}…${this.address.slice(this.address.length - 6)}`
+    this.name = "UnsupportedAddressType"
   }
 }
 
