@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
 import { DatabaseCollection } from '../database/collections.js'
+import { sanitizeAddress } from '../utils/sanitiseAddress.js'
 import { BaseService } from './BaseService.js'
 import { UserService } from './userService.js'
 
@@ -40,10 +41,11 @@ export class AuthService extends BaseService<NonceData> {
   }
 
   async generateNonce(walletAddress: string): Promise<NonceData> {
+    walletAddress = sanitizeAddress(walletAddress);
     // Clean up ALL existing nonces for this wallet (expired and active)
     // This ensures only one active nonce per wallet at a time
     await this.collection.deleteMany({
-      walletAddress: walletAddress.toLowerCase()
+      walletAddress
     });
 
     // Generate cryptographically secure nonce
@@ -53,7 +55,7 @@ export class AuthService extends BaseService<NonceData> {
     const message = `Please sign this message to authenticate with your wallet.\n\nNonce: ${nonce}\nWallet: ${walletAddress}\nTimestamp: ${new Date().toISOString()}`;
 
     const nonceData: NonceData = {
-      walletAddress: walletAddress.toLowerCase(),
+      walletAddress,
       nonce,
       message,
       expiresAt,
@@ -82,7 +84,7 @@ export class AuthService extends BaseService<NonceData> {
   }> {
     // Find the nonce record
     const nonceRecord = await this.collection.findOne({
-      walletAddress: walletAddress.toLowerCase(),
+      walletAddress: sanitizeAddress(walletAddress),
       message,
       used: { $ne: true },
       expiresAt: { $gt: new Date() }

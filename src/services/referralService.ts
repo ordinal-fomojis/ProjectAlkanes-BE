@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { getNextTier, getTierByPoints } from '../config/tiers.js'
 import { IUser, ReferralInfo, User } from '../models/User.js'
+import { sanitizeAddress } from '../utils/sanitiseAddress.js'
 import { BaseService } from './BaseService.js'
 
 export class ReferralService extends BaseService<IUser> {
@@ -9,7 +10,7 @@ export class ReferralService extends BaseService<IUser> {
   async getReferralInfo(walletAddress: string): Promise<ReferralInfo | null> {
     try {
       const user = await this.collection.findOne({ 
-        walletAddress: walletAddress.toLowerCase().trim() 
+        walletAddress: sanitizeAddress(walletAddress)
       });
 
       if (!user) {
@@ -88,7 +89,7 @@ export class ReferralService extends BaseService<IUser> {
 
       // Check if user exists
       const user = await this.collection.findOne({ 
-        walletAddress: walletAddress.toLowerCase().trim() 
+        walletAddress: sanitizeAddress(walletAddress)
       });
 
       if (!user) {
@@ -128,7 +129,7 @@ export class ReferralService extends BaseService<IUser> {
     try {
       // Check if user exists
       const user = await this.collection.findOne({ 
-        walletAddress: walletAddress.toLowerCase().trim() 
+        walletAddress: sanitizeAddress(walletAddress)
       });
 
       if (!user) {
