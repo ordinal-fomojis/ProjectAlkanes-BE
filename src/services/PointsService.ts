@@ -1,7 +1,8 @@
-import { ClientSession, ObjectId } from 'mongodb';
-import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js';
-import { IUser, User } from '../models/User.js';
-import { BaseService } from './BaseService.js';
+import { ClientSession, ObjectId } from 'mongodb'
+import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js'
+import { IUser, User } from '../models/User.js'
+import { sanitizeAddress } from '../utils/sanitiseAddress.js'
+import { BaseService } from './BaseService.js'
 
 export interface PointsTransaction {
   userId: ObjectId;
@@ -32,7 +33,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Simple increment - works for any points (not just referral points)
       const result = await this.collection.updateOne(
-        { walletAddress: walletAddress.toLowerCase().trim() },
+        { walletAddress: sanitizeAddress(walletAddress) },
         { 
           $inc: { points: points }
         },
@@ -58,10 +59,11 @@ export class PointsService extends BaseService<IUser> {
     fromWallet?: string,
     mintTxId?: ObjectId
   ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
+    walletAddress = sanitizeAddress(walletAddress);
     try {
       // First, get the user's current tier to determine bonus
       const user = await this.collection.findOne({ 
-        walletAddress: walletAddress.toLowerCase().trim() 
+        walletAddress
       }, { session });
 
       if (!user) {
@@ -80,7 +82,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Update both points and pointsEarnedFromReferrals atomically
       const result = await this.collection.updateOne(
-        { walletAddress: walletAddress.toLowerCase().trim() },
+        { walletAddress },
         { 
           $inc: { 
             points: bonusPoints,
@@ -114,10 +116,11 @@ export class PointsService extends BaseService<IUser> {
     basePointsPerMint = 10,
     session?: ClientSession
   ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
+    minterWalletAddress = sanitizeAddress(minterWalletAddress);
     try {
       // Get the minter's current tier
       const user = await this.collection.findOne({ 
-        walletAddress: minterWalletAddress.toLowerCase().trim() 
+        walletAddress: minterWalletAddress
       }, { session });
 
       if (!user) {
@@ -126,7 +129,7 @@ export class PointsService extends BaseService<IUser> {
         
         // Still try to update in case user was created concurrently
         const result = await this.collection.updateOne(
-          { walletAddress: minterWalletAddress.toLowerCase().trim() },
+          { walletAddress: minterWalletAddress },
           { $inc: { points: basePoints } },
           { session, upsert: false }
         );
@@ -152,7 +155,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Update user's total points (don't update pointsEarnedFromReferrals for mint points)
       const result = await this.collection.updateOne(
-        { walletAddress: minterWalletAddress.toLowerCase().trim() },
+        { walletAddress: minterWalletAddress },
         { $inc: { points: bonusPoints } },
         { session, upsert: false }
       );
@@ -191,7 +194,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Update both total points and referral points (fixed amount, no bonus)
       const result = await this.collection.updateOne(
-        { walletAddress: referrerWalletAddress.toLowerCase().trim() },
+        { walletAddress: sanitizeAddress(referrerWalletAddress) },
         { 
           $inc: { 
             points: pointsToAward,
@@ -214,7 +217,7 @@ export class PointsService extends BaseService<IUser> {
   async getPointsBalance(walletAddress: string): Promise<number> {
     try {
       const user = await this.collection.findOne({ 
-        walletAddress: walletAddress.toLowerCase().trim() 
+        walletAddress: sanitizeAddress(walletAddress) 
       });
 
       return user?.points || 0;
@@ -229,7 +232,7 @@ export class PointsService extends BaseService<IUser> {
    */
   async getUserByWallet(walletAddress: string): Promise<IUser | null> {
     return await this.collection.findOne({ 
-      walletAddress: walletAddress.toLowerCase().trim() 
+      walletAddress: sanitizeAddress(walletAddress) 
     });
   }
 
@@ -250,7 +253,7 @@ export class PointsService extends BaseService<IUser> {
     try {
       // Find the user who did the minting
       const minter = await this.collection.findOne({ 
-        walletAddress: minterWalletAddress.toLowerCase().trim() 
+        walletAddress: sanitizeAddress(minterWalletAddress) 
       }, { session });
 
       // Check if minter was referred by someone

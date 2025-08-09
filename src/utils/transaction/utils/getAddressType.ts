@@ -22,7 +22,7 @@ export type AddressType = keyof typeof PREFIXES
 
 export default function getAddressType(address: string) {
   for (const [type, prefix] of Object.entries(PREFIXES)) {
-    if (address.startsWith(prefix)) return type as AddressType
+    if (address.toLowerCase().trim().startsWith(prefix)) return type as AddressType
   }
   throw new UnsupportedAddressType(address)
 }

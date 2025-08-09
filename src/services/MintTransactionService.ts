@@ -1,5 +1,6 @@
 import { ClientSession } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
+import { sanitizeAddress } from "../utils/sanitiseAddress.js"
 import { BaseService } from "./BaseService.js"
 
 export interface MintTransaction {
@@ -48,21 +49,21 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * This ensures users see ALL their transactions regardless of when they were created
    */
   async getMintTransactionsByWalletAddress(walletAddress: string) {
-    const normalizedAddress = walletAddress.toLowerCase().trim()
+    walletAddress = sanitizeAddress(walletAddress)
     
     return await this.collection
       .find({
         $or: [
           // NEW: Transactions with authenticated user address (most reliable)
-          { authenticatedUserAddress: normalizedAddress },
+          { authenticatedUserAddress: walletAddress },
           
           // LEGACY: Transactions where user's ordinal address is the receive address
           // This catches old Xverse/Oyl transactions where receiveAddress = user's ordinal
-          { receiveAddress: normalizedAddress },
+          { receiveAddress: walletAddress },
           
           // SAME-ADDRESS: Transactions where payment address = user address (Unisat style)
           // This catches transactions where user paid from their main address
-          { paymentAddress: normalizedAddress }
+          { paymentAddress: walletAddress }
         ]
       })
       .sort({ created: -1 })
@@ -74,14 +75,14 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * Used for debugging and administrative purposes
    */
   async getMintTransactionsByMultipleAddresses(addresses: string[]) {
-    const normalizedAddresses = addresses.map(addr => addr.toLowerCase().trim())
+    addresses = addresses.map(sanitizeAddress)
     
     return await this.collection
       .find({
         $or: [
-          { authenticatedUserAddress: { $in: normalizedAddresses } },
-          { receiveAddress: { $in: normalizedAddresses } },
-          { paymentAddress: { $in: normalizedAddresses } }
+          { authenticatedUserAddress: { $in: addresses } },
+          { receiveAddress: { $in: addresses } },
+          { paymentAddress: { $in: addresses } }
         ]
       })
       .sort({ created: -1 })

@@ -27,7 +27,9 @@ const Indexes: Indexed = {
       { [field]: -1, deployTimestamp: -1 }
     ])
   ],
-  auth_nonces: [],
+  auth_nonces: [
+    { walletAddress: 1 },
+  ],
   block_heights: [
     { height: 1 },
     { synced: 1 },

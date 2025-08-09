@@ -1,18 +1,10 @@
 import { CreateUserRequest, IUser, User } from '../models/User.js'
 import { ServerError } from '../utils/errors.js'
+import { sanitizeAddress } from '../utils/sanitiseAddress.js'
 import { BaseService } from './BaseService.js'
 
 export class UserService extends BaseService<IUser> {
   readonly collectionName = User.COLLECTION_NAME
-  
-  private sanitizeWalletAddress(address: string): string {
-    // Remove any HTML/script tags and normalize
-    return address
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/[^\w\-.]/g, '') // Only allow alphanumeric, hyphens, and dots
-      .toLowerCase()
-      .trim();
-  }
 
   private async generateUniqueReferralCode(): Promise<string> {
     const maxAttempts = 10;
@@ -29,8 +21,8 @@ export class UserService extends BaseService<IUser> {
     throw new ServerError('Failed to generate unique referral code');
   }
 
-  async createUser(userData: CreateUserRequest): Promise<IUser> {
-    const normalizedAddress = this.sanitizeWalletAddress(userData.walletAddress);
+  async createUser(userData: CreateUserRequest) {
+    const normalizedAddress = sanitizeAddress(userData.walletAddress);
     
     const newUser = User.createUser(normalizedAddress);
     const referralCode = await this.generateUniqueReferralCode();
@@ -51,7 +43,7 @@ export class UserService extends BaseService<IUser> {
   }
 
   async getUserByWalletAddress(walletAddress: string): Promise<IUser | null> {
-    const normalizedAddress = this.sanitizeWalletAddress(walletAddress);
+    const normalizedAddress = sanitizeAddress(walletAddress);
     return await this.collection.findOne({ walletAddress: normalizedAddress });
   }
 } 
