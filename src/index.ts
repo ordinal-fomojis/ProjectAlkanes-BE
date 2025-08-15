@@ -12,7 +12,6 @@ import brcTokenRoutes from './routes/brcTokenRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
-import tokenRoutes from './routes/tokenRoutes.js'
 import transactionConfirmationRoutes from './routes/transactionConfirmationRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
@@ -108,7 +107,6 @@ app.get('/api/health', (_: Request, res: Response) => {
 app.use('/api/users', userRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/tokens', tokenRoutes);
 app.use('/api/alkane/token', alkaneTokenRoutes);
 app.use('/api/brc/token', brcTokenRoutes);
 app.use('/api/tx', transactionRoutes);
