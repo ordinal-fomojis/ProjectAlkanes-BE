@@ -5,8 +5,12 @@ type FieldIndex = Parameters<Collection['createIndex']> | Record<string, IndexDi
 type CollectionIndex = FieldIndex[]
 type Indexed = Record<DatabaseCollection, CollectionIndex>
 
-const TokenSortableFields = [
+const AlkaneSortableFields = [
   'percentageMinted', 'pendingMints', 'currentMintCount', 'approximateMintCountCap', 'preminedPercentage'
+]
+
+const BrcSortableFields = [
+  'percentageMinted', 'currentMintCount'
 ]
 
 const Indexes: Indexed = {
@@ -22,7 +26,20 @@ const Indexes: Indexed = {
     { clonedFrom: 1 },
     // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
     // so that newest are always first, regardless of what sort order is chosen
-    ...TokenSortableFields.flatMap(field => [
+    ...AlkaneSortableFields.flatMap(field => [
+      { [field]: 1, deployTimestamp: -1 },
+      { [field]: -1, deployTimestamp: -1 }
+    ])
+  ],
+  brc_tokens: [
+    [{ ticker: 1 }, { unique: true }],
+    { synced: 1 },
+    { deployTimestamp: 1 },
+    { mintable: 1 },
+    { mintedOut: 1 },
+    // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
+    // so that newest are always first, regardless of what sort order is chosen
+    ...BrcSortableFields.flatMap(field => [
       { [field]: 1, deployTimestamp: -1 },
       { [field]: -1, deployTimestamp: -1 }
     ])

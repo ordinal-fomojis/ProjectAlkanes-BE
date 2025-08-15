@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { z } from 'zod'
-import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
+import { AlkaneToken, AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { parse } from '../utils/parse.js'
 
 const router = Router();
@@ -36,8 +36,42 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
     noPremine: typeof noPremine === 'string' ? noPremine === 'true' : null
   });
-  
-  const tokenDetails = tokens.map(token => ({
+
+  res.status(200).json({
+    success: true,
+    message: 'Successfully fetched tokens',
+    data: tokens.map(tokenToResponse)
+  })
+})
+
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params
+  if (id == null) {
+    res.status(400).json({
+      success: false,
+      message: 'Missing token ID'
+    })
+    return
+  }
+
+  const service = new AlkaneTokenService()
+  const token = await service.getAlkaneById(id)
+  if (token == null) {
+    res.status(404).json({
+      success: false,
+      message: 'Token not found'
+    })
+    return
+  }
+  res.status(200).json({
+    success: true,
+    message: 'Successfully fetched token',
+    data: tokenToResponse(token)
+  })
+})
+
+function tokenToResponse(token: AlkaneToken) {
+  return {
     alkaneId: token.alkaneId,
     name: token.name,
     symbol: token.symbol,
@@ -56,13 +90,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
     clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom,
     preminedPercentage: token.preminedPercentage ?? 0
-  }))
-
-  res.status(200).json({
-    success: true,
-    message: 'Successfully fetched tokens',
-    data: tokenDetails
-  })
-})
+  }
+}
 
 export default router; 
