@@ -6,7 +6,7 @@ import { parse } from '../utils/parse.js'
 const router = Router();
 
 const ParamsSchema = z.object({
-  search: z.string(),
+  search: z.string().optional(),
   page: z.coerce.number().optional(),
   pageSize: z.coerce.number().optional(),
   orderBy: z.enum(['pendingMints', 'deployTimestamp', 'percentageMinted', 'mintCountCap', 'currentMintCount', 'preminedPercentage']).optional(),
@@ -31,7 +31,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   } = parse(ParamsSchema, req.query)
   const service = new AlkaneTokenService()
   const tokens = await service.searchAlkaneTokens({
-    searchTerm: search, page, pageSize, order: { field: orderBy, order },
+    searchTerm: search ?? null, page, pageSize, order: { field: orderBy, order },
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
     mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
     noPremine: typeof noPremine === 'string' ? noPremine === 'true' : null
