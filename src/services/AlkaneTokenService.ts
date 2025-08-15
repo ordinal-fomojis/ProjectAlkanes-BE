@@ -34,7 +34,7 @@ type SortableField = 'pendingMints' | 'deployTimestamp' | 'percentageMinted' | '
 interface SortOrder { field: SortableField, order: 'asc' | 'desc' }
 
 interface AlkanesSearchQuery {
-  searchTerm: string
+  searchTerm: string | null
   page: number
   pageSize: number,
   order: SortOrder
@@ -50,10 +50,10 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery
   ): Promise<AlkaneToken[]> {
     const skip = (page - 1) * pageSize
-    searchTerm = searchTerm.trim()
-    
+    searchTerm = searchTerm?.trim() ?? null
+
     const query: Document = {}
-    if (searchTerm.length > 0) {
+    if (searchTerm != null && searchTerm.length > 0) {
       query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
         { symbol: { $regex: searchTerm, $options: 'i' } },
@@ -94,7 +94,7 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
       .toArray()
   }
 
-  async getAlkaneById(alkaneId: string): Promise<AlkaneToken | null> {
+  async getAlkaneById(alkaneId: string) {
     return await this.collection.findOne({ alkaneId })
   }
 }

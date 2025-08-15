@@ -8,6 +8,7 @@ export const DatabaseCollection = {
   UnconfirmedTransactions: 'unconfirmed_transactions',
   UnsignedMintTransactions: 'unsigned_mint_transactions',
   Users: 'users',
+  BrcTokens: 'brc_tokens'
 } as const
 
 export type DatabaseCollection = typeof DatabaseCollection[keyof typeof DatabaseCollection]
