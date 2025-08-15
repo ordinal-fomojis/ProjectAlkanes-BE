@@ -32,7 +32,7 @@ export interface BrcToken {
   currentMintCount: number
 }
 
-type BrcSortableField = 'deployTimestamp' | 'percentageMinted' | 'currentMintCount'
+type BrcSortableField = 'deployTimestamp' | 'percentageMinted' | 'currentMintCount' | 'holdersCount'
 interface BrcSortOrder { field: BrcSortableField, order: 'asc' | 'desc' }
 
 interface BrcSearchQuery {
@@ -47,13 +47,13 @@ interface BrcSearchQuery {
 export class BrcTokenService extends BaseService<BrcToken> {
   collectionName = DatabaseCollection.BrcTokens
 
-  async searchAlkaneTokens(
+  async searchBrcTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut }: BrcSearchQuery
   ): Promise<BrcToken[]> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm?.trim() ?? null
     
-    const query: Document = {}
+    const query: Document = { initialised: true }
     if (searchTerm != null && searchTerm.length > 0) {
       query.ticker = { $regex: searchTerm, $options: 'i' }
     }
@@ -82,11 +82,11 @@ export class BrcTokenService extends BaseService<BrcToken> {
 
   async getBrcsByTicker(tickers: string[]) {
     return await this.collection
-      .find({ ticker: { $in: tickers } })
+      .find({ ticker: { $in: tickers }, initialised: true })
       .toArray()
   }
 
   async getBrcByTicker(ticker: string) {
-    return await this.collection.findOne({ ticker })
+    return await this.collection.findOne({ ticker, initialised: true })
   }
 }

@@ -6,7 +6,9 @@ import { DB_NAME, MONGODB_URI } from './config/constants.js'
 import { database } from './database/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
+import alkaneTokenRoutes from './routes/alkaneTokenRoutes.js'
 import authRoutes from './routes/authRoutes.js'
+import brcTokenRoutes from './routes/brcTokenRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
@@ -107,6 +109,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tokens', tokenRoutes);
+app.use('/api/alkane/token', alkaneTokenRoutes);
+app.use('/api/brc/token', brcTokenRoutes);
 app.use('/api/tx', transactionRoutes);
 app.use('/api/transaction', transactionConfirmationRoutes);
 app.use('/api/fees', feeRoutes);

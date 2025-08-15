@@ -10,7 +10,7 @@ const AlkaneSortableFields = [
 ]
 
 const BrcSortableFields = [
-  'percentageMinted', 'currentMintCount'
+  'percentageMinted', 'currentMintCount', 'holdersCount'
 ]
 
 const Indexes: Indexed = {
