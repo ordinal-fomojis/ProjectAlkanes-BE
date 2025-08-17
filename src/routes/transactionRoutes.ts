@@ -14,10 +14,10 @@ import { UserError } from '../utils/errors.js'
 import { parse } from '../utils/parse.js'
 import { sendTransaction } from '../utils/rpc/sendTransactions.js'
 import { throttledPromiseAll } from '../utils/throttledPromise.js'
+import { createScriptForAlkaneMint } from '../utils/transaction/alkanes/createAlkaneMintScript.js'
+import { createAlkaneUserTransaction } from '../utils/transaction/alkanes/createAlkaneUserTransaction.js'
 import { createAlkaneMintTransactionChain } from '../utils/transaction/createAlkaneMintTransactionChain.js'
-import { createUserTransaction } from '../utils/transaction/createUserTransaction.js'
 import { getUtxos } from '../utils/transaction/getUtxos.js'
-import { createScriptForAlkaneMint } from '../utils/transaction/protostone/createScriptForAlkaneMint.js'
 import { fromWIF } from '../utils/transaction/utils/keys.js'
 import { validatePsbtWithReference } from '../utils/transaction/validatePsbtWithReference.js'
 
@@ -45,7 +45,7 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   const utxos = await getUtxos(paymentAddress)
   const {
     psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, feeOfFinalMint, mintsInEachOutput
-  } = await createUserTransaction({
+  } = await createAlkaneUserTransaction({
     feeRate, paymentAddress, paymentPubkey, receiveAddress, alkaneId, mintCount, utxos
   })
 

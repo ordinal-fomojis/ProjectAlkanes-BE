@@ -1,18 +1,18 @@
 import { crypto, payments, Psbt, Signer } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../config/constants.js"
-import { UserError } from "../errors.js"
-import { createInput } from "./createInput.js"
-import { createPayment } from "./createPayment.js"
-import { getMintTransactionSize } from "./getMintTransactionSize.js"
-import { Utxo } from "./getUtxos.js"
-import { createScriptForAlkaneMint } from "./protostone/createScriptForAlkaneMint.js"
-import { dustLimit } from "./utils/dustLimit.js"
-import getAddressType from "./utils/getAddressType.js"
-import { getServiceFee } from "./utils/getServiceFee.js"
-import { randomKey } from "./utils/keys.js"
-import { BTC_JS_NETWORK } from "./utils/network.js"
-import { randomTransactionId } from "./utils/randomTransactionId.js"
+import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../../config/constants.js"
+import { UserError } from "../../errors.js"
+import { createInput } from "../createInput.js"
+import { createPayment } from "../createPayment.js"
+import { Utxo } from "../getUtxos.js"
+import { dustLimit } from "../utils/dustLimit.js"
+import getAddressType from "../utils/getAddressType.js"
+import { getServiceFee } from "../utils/getServiceFee.js"
+import { randomKey } from "../utils/keys.js"
+import { BTC_JS_NETWORK } from "../utils/network.js"
+import { randomTransactionId } from "../utils/randomTransactionId.js"
+import { createAlkaneMintScript } from "./createAlkaneMintScript.js"
+import { getAlkaneMintTransactionSize } from "./getAlkaneMintTransactionSize.js"
 
 export class NotEnoughFundsError extends UserError {
   constructor(public cost: number) {
@@ -21,7 +21,7 @@ export class NotEnoughFundsError extends UserError {
   }
 }
 
-interface CreateUserTransactionArgs {
+interface CreateAlkaneUserTransactionArgs {
   feeRate: number
   paymentAddress: string
   paymentPubkey: string
@@ -31,9 +31,9 @@ interface CreateUserTransactionArgs {
   utxos: Utxo[]
 }
 
-export async function createUserTransaction({
+export async function createAlkaneUserTransaction({
   feeRate, alkaneId, receiveAddress, mintCount, utxos, paymentAddress, paymentPubkey
-} : CreateUserTransactionArgs) {
+} : CreateAlkaneUserTransactionArgs) {
   feeRate = Math.max(feeRate, MIN_FEE_RATE)
   const internalKey = randomKey()
   const internalPubKey = toXOnly(internalKey.publicKey)
@@ -41,9 +41,9 @@ export async function createUserTransaction({
   
   const addressType = getAddressType(receiveAddress)
 
-  const runescript = createScriptForAlkaneMint(alkaneId)
-  const mintTxSize = getMintTransactionSize({ runescript, outputAddressType: 'p2tr' })
-  const finalMintTxSize = getMintTransactionSize({ runescript, outputAddressType: addressType })
+  const runescript = createAlkaneMintScript(alkaneId)
+  const mintTxSize = getAlkaneMintTransactionSize({ runescript, outputAddressType: 'p2tr' })
+  const finalMintTxSize = getAlkaneMintTransactionSize({ runescript, outputAddressType: addressType })
   const feePerMint = Math.ceil(feeRate * mintTxSize)
   const feeOfFinalMint = Math.ceil(feeRate * finalMintTxSize)
   const txnsPerGroup = MAX_UNCONFIRMED_DESCENDANT_TXNS
