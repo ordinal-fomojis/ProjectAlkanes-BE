@@ -20,6 +20,7 @@
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@dotenvx/dotenvx": "^1.48.4",
     "bitcoinjs-lib": "^6.1.7",
+    "cbor2": "^2.0.1",
     "cors": "^2.8.5",
     "ecpair": "^3.0.0",
     "express": "^5.1.0",

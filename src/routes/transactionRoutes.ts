@@ -14,9 +14,9 @@ import { UserError } from '../utils/errors.js'
 import { parse } from '../utils/parse.js'
 import { sendTransaction } from '../utils/rpc/sendTransactions.js'
 import { throttledPromiseAll } from '../utils/throttledPromise.js'
-import { createScriptForAlkaneMint } from '../utils/transaction/alkanes/createAlkaneMintScript.js'
+import { createAlkaneMintScript } from '../utils/transaction/alkanes/createAlkaneMintScript.js'
+import { createAlkaneMintTransactionChain } from '../utils/transaction/alkanes/createAlkaneMintTransactionChain.js'
 import { createAlkaneUserTransaction } from '../utils/transaction/alkanes/createAlkaneUserTransaction.js'
-import { createAlkaneMintTransactionChain } from '../utils/transaction/createAlkaneMintTransactionChain.js'
 import { getUtxos } from '../utils/transaction/getUtxos.js'
 import { fromWIF } from '../utils/transaction/utils/keys.js'
 import { validatePsbtWithReference } from '../utils/transaction/validatePsbtWithReference.js'
@@ -113,7 +113,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   const paymentTx = { tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: true }
   
   const key = fromWIF(mintTx.wif)
-  const runescript = createScriptForAlkaneMint(mintTx.alkaneId)
+  const runescript = createAlkaneMintScript(mintTx.alkaneId)
   const transactions = (await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
     feePerMint: mintTx.networkFeePerMint,
     feeOfFinalMint: mintTx.networkFeeOfFinalMint,
