@@ -1,7 +1,6 @@
 import { Payment, Psbt, Signer } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import varuint from "varuint-bitcoin"
-import { ServerError } from "../../errors.js"
 import { dustLimit } from "../utils/dustLimit.js"
 import getAddressType from "../utils/getAddressType.js"
 import { BTC_JS_NETWORK } from "../utils/network.js"
@@ -16,13 +15,8 @@ export interface BaseInput {
 export type InscriptionOutput = InscriptionFile & { destination: string }
 
 export function createRevealTransaction(
-  payment: Payment, files: InscriptionOutput[], key: Signer, baseInput: BaseInput, { throwOnEmptyDestination = true } = {}
+  payment: Payment, files: InscriptionOutput[], key: Signer, baseInput: BaseInput
 ) {
-  if (throwOnEmptyDestination) {
-    if (files.some(file => file.destination == null)) {
-      throw new ServerError('Failed to create inscriptions due to a null reveal destination')
-    }
-  }
   const input = {
     hash: baseInput.hash,
     index: baseInput.index,
@@ -49,7 +43,7 @@ export function createRevealTransaction(
   psbt.addOutputs(outputs)
   psbt.signAllInputs(key)
   psbt.finalizeInput(0, (_: number, input: PsbtInput) => customFinalizer(input))
-  return psbt
+  return psbt.extractTransaction()
 }
 
 type PsbtInput = Parameters<NonNullable<Parameters<Psbt['finalizeInput']>[1]>>[1]

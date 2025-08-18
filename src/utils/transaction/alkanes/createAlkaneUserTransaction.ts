@@ -1,25 +1,15 @@
-import { crypto, payments, Psbt, Signer } from "bitcoinjs-lib"
+import { payments, Psbt } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../../config/constants.js"
-import { UserError } from "../../errors.js"
-import { createInput } from "../createInput.js"
-import { createPayment } from "../createPayment.js"
 import { Utxo } from "../getUtxos.js"
+import { calculateTransactionInputsAndFee } from "../utils/calculateTransactionInputsAndFee.js"
 import { dustLimit } from "../utils/dustLimit.js"
 import getAddressType from "../utils/getAddressType.js"
 import { getServiceFee } from "../utils/getServiceFee.js"
 import { randomKey } from "../utils/keys.js"
 import { BTC_JS_NETWORK } from "../utils/network.js"
-import { randomTransactionId } from "../utils/randomTransactionId.js"
 import { createAlkaneMintScript } from "./createAlkaneMintScript.js"
 import { getAlkaneMintTransactionSize } from "./getAlkaneMintTransactionSize.js"
-
-export class NotEnoughFundsError extends UserError {
-  constructor(public cost: number) {
-    super(`Not enough funds to cover cost of ${cost} sats`)
-    this.name = 'NotEnoughFundsError'
-  }
-}
 
 interface CreateAlkaneUserTransactionArgs {
   feeRate: number
@@ -83,7 +73,7 @@ export async function createAlkaneUserTransaction({
     value: 0
   })
 
-  const { networkFee } = await addInputsAndCalculateFee({
+  const { networkFee } = await calculateTransactionInputsAndFee({
     psbt, utxos, feeRate, paymentAddress, paymentPubkey
   })
 
@@ -94,108 +84,4 @@ export async function createAlkaneUserTransaction({
     paddingCost: mintCount === 1 ? outputValue : mintsInEachOutput.length * outputValue,
     mintsInEachOutput
   }
-}
-
-interface AddInputsAndCalculateFeeArgs {
-  psbt: Psbt
-  utxos: Utxo[]
-  feeRate: number
-  paymentAddress: string
-  paymentPubkey: string
-}
-
-async function addInputsAndCalculateFee({
-  psbt, utxos, feeRate, paymentAddress, paymentPubkey
-} : AddInputsAndCalculateFeeArgs) {
-  const addressType = getAddressType(paymentAddress)
-  const publicKey = Buffer.from(paymentPubkey, 'hex')
-  const payment = createPayment({ addressType, publicKey, validateAddress: paymentAddress })
-  
-  let dummyKey = randomKey()
-  const dummyPayment = createPayment({ addressType, publicKey: dummyKey.publicKey })
-
-  if (addressType === 'p2tr') {
-    dummyKey = dummyKey.tweak(
-      crypto.taggedHash('TapTweak', toXOnly(dummyKey.publicKey)),
-    )
-  }
-
-  const totalOutputValue = psbt.txOutputs.reduce((sum, output) => sum + output.value, 0)
-  let inputValue = 0
-  let virtualSize = 0
-  const dummyPsbt = psbt.clone()
-  while (inputValue < (totalOutputValue + Math.ceil(virtualSize * feeRate))) {
-    const utxo = utxos.pop()
-    if (utxo == null) {
-      throw new NotEnoughFundsError(totalOutputValue + Math.ceil(virtualSize * feeRate))
-    }
-
-    inputValue += utxo.value
-    psbt.addInput(await createInput({
-      addressType,
-      txid: utxo.txid,
-      vout: utxo.vout,
-      publicKey,
-      value: utxo.value,
-      payment
-    }))
-
-    dummyPsbt.addInput(await createInput({
-      addressType,
-      txid: utxo.txid,
-      vout: utxo.vout,
-      publicKey: dummyKey.publicKey,
-      value: utxo.value,
-      payment: dummyPayment,
-      dummyInputTx: addressType === 'p2pkh' ? await createDummyTx(dummyPayment.address!, utxo.value) : undefined
-    }))
-    
-    const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
-    if (change >= 0) {
-      virtualSize = getVirtualSize(dummyPsbt, change, paymentAddress, dummyKey)
-    }
-  }
-
-  const change = inputValue - (totalOutputValue + Math.ceil(virtualSize * feeRate))
-  if (change > dustLimit(addressType)) {
-    psbt.addOutput({
-      address: paymentAddress,
-      value: change
-    })
-  }
-
-  return { networkFee: Math.ceil(virtualSize * feeRate) }
-}
-
-function getVirtualSize(psbt: Psbt, change: number, changeAddress: string, key: Signer) {
-  const clone = psbt.clone()
-
-  if (change > dustLimit(getAddressType(changeAddress))) {
-    clone.addOutput({
-      address: changeAddress,
-      value: change
-    })
-  }
-
-  clone.signAllInputs(key)
-  clone.finalizeAllInputs()
-  return clone.extractTransaction().virtualSize()
-}
-
-export async function createDummyTx(address: string, value: number) {
-  const psbt = new Psbt({ network: BTC_JS_NETWORK });
-  const key = randomKey();
-  const payment = payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK });
-  psbt.addInput(await createInput({
-    addressType: 'p2tr',
-    txid: randomTransactionId(),
-    vout: 0,
-    publicKey: key.publicKey,
-    value: value + 10000,
-    payment
-  }));
-  psbt.addOutput({ address, value });
-  psbt.signAllInputs(key);
-  psbt.finalizeAllInputs();
-  return psbt.extractTransaction();
 }

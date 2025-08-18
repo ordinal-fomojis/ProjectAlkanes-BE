@@ -31,10 +31,10 @@ type InscriptionField = (typeof InscriptionField)[keyof typeof InscriptionField]
 
 const BTC_SCRIPT_CHUNK_SIZE = 520
 
-export async function createRevealPayment(key: Signer, files: InscriptionFile[]) {
+export function createRevealPayment(key: Signer, files: InscriptionFile[]) {
   const publicKey = toXOnly(key.publicKey)
 
-  const revealScript = await createRevealScript(publicKey, files)
+  const revealScript = createRevealScript(publicKey, files)
   const scriptTree = {
     output: revealScript
   }
@@ -50,7 +50,7 @@ export async function createRevealPayment(key: Signer, files: InscriptionFile[])
   })
 }
 
-async function createRevealScript(publicKey: Buffer, files: InscriptionFile[]) {
+function createRevealScript(publicKey: Buffer, files: InscriptionFile[]) {
   const commands = [publicKey, opcodes.OP_CHECKSIG!]
   let pointer = 0
   for (const file of files) {
