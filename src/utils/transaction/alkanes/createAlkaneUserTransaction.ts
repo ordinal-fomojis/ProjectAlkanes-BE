@@ -5,9 +5,9 @@ import { Utxo } from "../getUtxos.js"
 import { calculateTransactionInputsAndFee } from "../utils/calculateTransactionInputsAndFee.js"
 import { dustLimit } from "../utils/dustLimit.js"
 import getAddressType from "../utils/getAddressType.js"
-import { getServiceFee } from "../utils/getServiceFee.js"
 import { randomKey } from "../utils/keys.js"
 import { BTC_JS_NETWORK } from "../utils/network.js"
+import { getAlkaneMintServiceFee } from "../utils/service-fee.js"
 import { createAlkaneMintScript } from "./createAlkaneMintScript.js"
 import { getAlkaneMintTransactionSize } from "./getAlkaneMintTransactionSize.js"
 
@@ -40,7 +40,7 @@ export async function createAlkaneUserTransaction({
   const txnsInLastGroup = (mintCount - 1) % txnsPerGroup
 
   const outputValue = dustLimit(addressType)
-  const serviceFee = getServiceFee(mintCount)
+  const serviceFee = getAlkaneMintServiceFee(mintCount)
 
   const psbt = new Psbt({ network: BTC_JS_NETWORK })
   const fullGroupCount = Math.floor((mintCount - 1) / txnsPerGroup)

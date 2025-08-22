@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
 import { BaseService } from "./BaseService.js"
 
-export interface UnsignedMintTransaction {
+export interface UnsignedAlkaneMintTransaction {
   psbt: string
   wif: string
   serviceFee: number
@@ -16,14 +16,14 @@ export interface UnsignedMintTransaction {
   mintCount: number
   paymentAddress: string
   receiveAddress: string
-  authenticatedUserAddress?: string
+  authenticatedUserAddress: string
   created: Date
 }
 
-export class UnsignedMintTransactionService extends BaseService<UnsignedMintTransaction> {
-  collectionName = DatabaseCollection.UnsignedMintTransactions
+export class UnsignedAlkaneMintTransactionService extends BaseService<UnsignedAlkaneMintTransaction> {
+  collectionName = DatabaseCollection.UnsignedAlkaneMintTransactions
 
-  async createMintTransaction(mintTx: Omit<UnsignedMintTransaction, 'created' | 'totalCost'>) {
+  async createMintTransaction(mintTx: Omit<UnsignedAlkaneMintTransaction, 'created' | 'totalCost'>) {
     const { insertedId } = await this.collection.insertOne({
       ...mintTx,
       created: new Date(),

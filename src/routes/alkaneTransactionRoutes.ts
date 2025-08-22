@@ -9,7 +9,7 @@ import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
-import { UnsignedMintTransactionService } from '../services/UnsignedMintTransactionService.js'
+import { UnsignedAlkaneMintTransactionService } from '../services/UnsignedAlkaneMintTransactionService.js'
 import { UserError } from '../utils/errors.js'
 import { parse } from '../utils/parse.js'
 import { sendTransaction } from '../utils/rpc/sendTransactions.js'
@@ -39,9 +39,9 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
     receiveAddress, userAddress, alkaneId, mintCount
   } = parse(CreateTransactionParamsSchema, req.query)
 
-  const service = new UnsignedMintTransactionService()
-  await validateAlkaneToken(alkaneId)
-  
+  const service = new UnsignedAlkaneMintTransactionService()
+  await validateAlkaneToken(alkaneId, mintCount)
+
   const utxos = await getUtxos(paymentAddress)
   const {
     psbt, internalKey, serviceFee, networkFee, paddingCost, feePerMint, feeOfFinalMint, mintsInEachOutput
@@ -64,14 +64,13 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
     paymentAddress,
     receiveAddress,
     authenticatedUserAddress: userAddress || receiveAddress // Use userAddress if provided, otherwise fall back to receiveAddress
-
   })
 
   // Points will be awarded later after successful broadcasting, not here
   
   res.status(200).json({
     success: true,
-    message: 'Successfully fetched tokens',
+    message: 'Successfully created transaction',
     data: { id, psbtHex }
   })
 })
@@ -83,7 +82,7 @@ const PostTransactionBodySchema = z.object({
 
 router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
   const { psbt, id } = parse(PostTransactionBodySchema, req.body)
-  const unsignedMints = new UnsignedMintTransactionService()
+  const unsignedMints = new UnsignedAlkaneMintTransactionService()
   const mintTxns = new MintTransactionService()
   const txnService = new UnconfirmedTransactionService()
   const mintTx = await unsignedMints.getMintTransactionById(id)
@@ -96,7 +95,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
     return
   }
 
-  await validateAlkaneToken(mintTx.alkaneId)
+  await validateAlkaneToken(mintTx.alkaneId, mintTx.mintCount)
 
   const signedPsbt = Psbt.fromHex(psbt)
   const unsignedPsbt = Psbt.fromHex(mintTx.psbt)
@@ -201,7 +200,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   })
 })
 
-async function validateAlkaneToken(alkaneId: string) {
+async function validateAlkaneToken(alkaneId: string, mintCount: number) {
   const alkanesService = new AlkaneTokenService()
   const alkane = await alkanesService.getAlkaneById(alkaneId)
   if (alkane === null) {
@@ -212,6 +211,11 @@ async function validateAlkaneToken(alkaneId: string) {
   }
   if (alkane.mintedOut) {
     throw new UserError('Alkane token has already minted out').withStatus(400)
+  }
+  const mintCap = BigInt(alkane.mintCountCap ?? 0)
+  const mintsLeft = mintCap - BigInt(alkane.currentMintCount)
+  if (mintsLeft < BigInt(mintCount)) {
+    throw new UserError(`Not enough mints left. Only ${mintsLeft} mints available`).withStatus(400)
   }
 }
 

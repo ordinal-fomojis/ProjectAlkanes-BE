@@ -2,7 +2,7 @@ import { extname } from "path"
 import { UserError } from "./errors.js"
 
 // Source: https://github.com/ordinals/ord/blob/master/src/inscriptions/media.rs#L69
-const MimeType = {
+export const MimeType = {
   'cbor': 'application/cbor',
   'json': 'application/json',
   'bin': 'application/octet-stream',

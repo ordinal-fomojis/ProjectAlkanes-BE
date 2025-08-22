@@ -61,7 +61,10 @@ const Indexes: Indexed = {
   unconfirmed_transactions: [
     { broadcastFailedAtHeight: 1 }
   ],
-  unsigned_mint_transactions: [
+  unsigned_alkane_mint_transactions: [
+    [{ created: 1 }, { expireAfterSeconds: 300 }]
+  ],
+  unsigned_brc_mint_transactions: [
     [{ created: 1 }, { expireAfterSeconds: 300 }]
   ],
   users: [
