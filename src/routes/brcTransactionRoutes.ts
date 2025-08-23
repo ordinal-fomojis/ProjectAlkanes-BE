@@ -61,6 +61,7 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   })
 })
 
+export default router;
 
 function validateBrcToken(token: BrcToken | null, mintAmountStr: string, mintCount: number): asserts token is BrcToken {
   if (token === null) {

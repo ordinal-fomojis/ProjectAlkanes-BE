@@ -7,9 +7,10 @@ import { database } from './database/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
 import alkaneTokenRoutes from './routes/alkaneTokenRoutes.js'
-import transactionRoutes from './routes/alkaneTransactionRoutes.js'
+import alkaneTransactionRoutes from './routes/alkaneTransactionRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import brcTokenRoutes from './routes/brcTokenRoutes.js'
+import brcTransactionRoutes from './routes/brcTransactionRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
@@ -109,7 +110,8 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/alkane/token', alkaneTokenRoutes);
 app.use('/api/brc/token', brcTokenRoutes);
-app.use('/api/tx', transactionRoutes);
+app.use('/api/alkane/tx', alkaneTransactionRoutes);
+app.use('/api/brc/tx', brcTransactionRoutes);
 app.use('/api/transaction', transactionConfirmationRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/points', pointsRoutes);

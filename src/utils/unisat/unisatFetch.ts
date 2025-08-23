@@ -11,7 +11,7 @@ export async function unisatFetch<Output, Input>(schema: z.ZodType<Output, Input
     data: schema.nullable()
   })
   const { code, msg, data } = await retrySchemaFetch(unisatSchema, `${baseUrl}${path}`, {
-    headers: { Authorization: `Bearer ${UNISAT_API_KEY}` }
+    headers: { Authorization: `Bearer ${UNISAT_API_KEY()}` }
   })
 
   if (code === -1 || data == null) {

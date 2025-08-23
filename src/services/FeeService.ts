@@ -79,7 +79,7 @@ export class FeeService {
   private async fetchFees(): Promise<void> {
     const response = await retrySchemaFetch(
       FeesResponseSchema, 
-      `${MEMPOOL_API_URL}/api/v1/fees/recommended`,
+      `${MEMPOOL_API_URL()}/api/v1/fees/recommended`,
       {
         method: 'GET',
         headers: {

@@ -35,7 +35,7 @@ export class TransactionConfirmationService {
     try {
       const response = await retrySchemaFetch(
         TransactionResponseSchema,
-        `${MEMPOOL_API_URL}/api/tx/${txid}`,
+        `${MEMPOOL_API_URL()}/api/tx/${txid}`,
         {
           method: 'GET',
           headers: {
