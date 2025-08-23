@@ -1,18 +1,18 @@
 import { crypto, payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { describe, expect, it, vi } from "vitest"
-import { getRawTransactions } from "../../src/utils/rpc/getRawTransactions.js"
-import { createAlkaneUserTransaction } from "../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js"
-import { createPayment } from "../../src/utils/transaction/createPayment.js"
-import { NotEnoughFundsError } from "../../src/utils/transaction/NotEnoughFundsError.js"
-import { createDummyTx } from "../../src/utils/transaction/utils/calculateTransactionInputsAndFee.js"
-import { dustLimit } from "../../src/utils/transaction/utils/dustLimit.js"
-import { randomKey } from "../../src/utils/transaction/utils/keys.js"
-import { BTC_JS_NETWORK } from "../../src/utils/transaction/utils/network.js"
-import { getAlkaneMintServiceFee } from "../../src/utils/transaction/utils/service-fee.js"
-import Random from "../test-utils/Random.js"
+import { getRawTransactions } from "../../../src/utils/rpc/getRawTransactions.js"
+import { createAlkaneUserTransaction } from "../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js"
+import { createPayment } from "../../../src/utils/transaction/createPayment.js"
+import { NotEnoughFundsError } from "../../../src/utils/transaction/NotEnoughFundsError.js"
+import { createDummyTx } from "../../../src/utils/transaction/utils/calculateTransactionInputsAndFee.js"
+import { dustLimit } from "../../../src/utils/transaction/utils/dustLimit.js"
+import { randomKey } from "../../../src/utils/transaction/utils/keys.js"
+import { BTC_JS_NETWORK } from "../../../src/utils/transaction/utils/network.js"
+import { getAlkaneMintServiceFee } from "../../../src/utils/transaction/utils/service-fee.js"
+import Random from "../../test-utils/Random.js"
 
-vi.mock('../../src/utils/rpc/getRawTransactions.js')
+vi.mock("../../../src/utils/rpc/getRawTransactions.js")
 
 describe("createAlkaneUserTransaction", () => {
   it.each([
