@@ -28,7 +28,7 @@ export async function createAlkaneUserTransaction({
   feeRate = Math.max(feeRate, MIN_FEE_RATE)
   const internalKey = randomKey()
   const internalPubKey = toXOnly(internalKey.publicKey)
-  const internalPayment = payments.p2tr({ pubkey: internalPubKey, network: BTC_JS_NETWORK })
+  const internalPayment = payments.p2tr({ pubkey: internalPubKey, network: BTC_JS_NETWORK() })
   
   const addressType = getAddressType(receiveAddress)
 
@@ -43,7 +43,7 @@ export async function createAlkaneUserTransaction({
   const outputValue = dustLimit(addressType)
   const serviceFee = getAlkaneMintServiceFee(mintCount)
 
-  const psbt = new Psbt({ network: BTC_JS_NETWORK })
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() })
   const fullGroupCount = Math.floor((mintCount - 1) / txnsPerGroup)
   const mintsInEachOutput = Array.from({ length: fullGroupCount }, () => txnsPerGroup)
   if (txnsInLastGroup > 0) {

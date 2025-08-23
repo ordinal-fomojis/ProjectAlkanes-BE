@@ -29,7 +29,7 @@ export function sanitizeAddress(address: string) {
 
 function isValidAddress(a: string) {  
   try {
-    address.toOutputScript(a, BTC_JS_NETWORK)
+    address.toOutputScript(a, BTC_JS_NETWORK())
     return true
   } catch {
     return false

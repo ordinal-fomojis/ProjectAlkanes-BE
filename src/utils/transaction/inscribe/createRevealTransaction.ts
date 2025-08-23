@@ -38,7 +38,7 @@ export function createRevealTransaction(
     value: padding ?? dustLimit(getAddressType(destination))
   }))
   
-  const psbt = new Psbt({ network: BTC_JS_NETWORK }).addInput(input)
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() }).addInput(input)
   
   psbt.addOutputs(outputs)
   psbt.signAllInputs(key)

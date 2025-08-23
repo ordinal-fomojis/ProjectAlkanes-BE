@@ -4,6 +4,7 @@ import { encode } from 'cbor2'
 import { brotliCompressSync } from "zlib"
 import { UserError } from "../../errors.js"
 import { MimeType } from "../../mime-type.js"
+import '../utils/init-ecc.js'
 import { BTC_JS_NETWORK } from "../utils/network.js"
 
 export type RevealDetails = Awaited<ReturnType<typeof createRevealPayment>>
@@ -46,7 +47,7 @@ export function createRevealPayment(key: Signer, files: InscriptionFile[]) {
     internalPubkey: publicKey,
     scriptTree,
     redeem,
-    network: BTC_JS_NETWORK
+    network: BTC_JS_NETWORK()
   })
 }
 

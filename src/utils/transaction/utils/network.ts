@@ -7,4 +7,4 @@ export const Networks: Record<BitcoinNetwork, Network> = {
   signet: networks.testnet,
 }
 
-export const BTC_JS_NETWORK = Networks[BITCOIN_NETWORK()]
+export const BTC_JS_NETWORK = () => Networks[BITCOIN_NETWORK()]

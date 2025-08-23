@@ -27,7 +27,7 @@ async function createTestPsbt(addressType: AddressType, key?: ReturnType<typeof 
   }
 
   const paymentAddress = addressType === 'p2tr'
-    ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK }).address!
+    ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK() }).address!
     : createPayment({ addressType, publicKey: key.publicKey }).address!
 
   const receiveAddress = createPayment({

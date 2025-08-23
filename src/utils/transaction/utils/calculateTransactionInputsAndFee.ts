@@ -101,9 +101,9 @@ function getVirtualSize(psbt: Psbt, change: number, changeAddress: string, key: 
 }
 
 export async function createDummyTx(address: string, value: number) {
-  const psbt = new Psbt({ network: BTC_JS_NETWORK });
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() });
   const key = randomKey();
-  const payment = payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK });
+  const payment = payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK() });
   psbt.addInput(await createInput({
     addressType: 'p2tr',
     txid: randomTransactionId(),

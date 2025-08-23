@@ -18,7 +18,7 @@ export async function createAlkaneMintTransactionChain({
   utxo, feePerMint, runescript, mintCount, key, outputAddress, feeOfFinalMint
 } : CreateAlkaneMintTransactionChainArgs) {
   const pubkey = toXOnly(key.publicKey)
-  const payment = payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK })
+  const payment = payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK() })
   
   const txns: Transaction[] = []
   for (let i = 0; i < mintCount; i++) {

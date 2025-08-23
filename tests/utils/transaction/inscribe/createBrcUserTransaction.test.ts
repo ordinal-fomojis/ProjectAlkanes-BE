@@ -1,8 +1,9 @@
 import { crypto, payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { bigDecimal } from "js-big-decimal"
 import { describe, expect, it, vi } from "vitest"
 import { getRawTransactions } from "../../../../src/utils/rpc/getRawTransactions.js"
-import { createAlkaneUserTransaction } from "../../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js"
+import { createBrcUserTransaction } from "../../../../src/utils/transaction/brc/createBrcUserTransaction.js"
 import { createPayment } from "../../../../src/utils/transaction/createPayment.js"
 import { NotEnoughFundsError } from "../../../../src/utils/transaction/NotEnoughFundsError.js"
 import { createDummyTx } from "../../../../src/utils/transaction/utils/calculateTransactionInputsAndFee.js"
@@ -14,7 +15,7 @@ import Random from "../../../test-utils/Random.js"
 
 vi.mock("../../../../src/utils/rpc/getRawTransactions.js")
 
-describe("createAlkaneUserTransaction", () => {
+describe("createBrcUserTransaction", () => {
   it.each([
     ['p2pkh', 'p2pkh'],
     ['p2pkh', 'p2sh-p2wpkh'],
@@ -64,9 +65,9 @@ describe("createAlkaneUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createAlkaneUserTransaction({
-      feeRate: 10, alkaneId: "2:0", receiveAddress, paymentAddress,
-      paymentPubkey: pubkey, mintCount: 10, utxos
+    const { psbt } = await createBrcUserTransaction({
+      feeRate: 10, ticker: "ordi", receiveAddress, paymentAddress,
+      paymentPubkey: pubkey, mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
     })
 
     psbt.signAllInputs(key)
@@ -86,9 +87,9 @@ describe("createAlkaneUserTransaction", () => {
       value: txValue
     }]
 
-    await expect(createAlkaneUserTransaction({
-      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
+    await expect(createBrcUserTransaction({
+      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
     })).rejects.toThrow(NotEnoughFundsError)
   })
   
@@ -103,9 +104,9 @@ describe("createAlkaneUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createAlkaneUserTransaction({
-      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
+    const { psbt } = await createBrcUserTransaction({
+      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
     })
 
     psbt.signAllInputs(key)
@@ -115,13 +116,14 @@ describe("createAlkaneUserTransaction", () => {
   })
 
   it.each([
-    [1, 1],
-    [2, 1],
-    [24, 1],
-    [25, 2],
-    [40, 2],
-    [100, 5]
-  ])('it should create %d outputs for %d mints', async (mintCount, expectedOutputs) => {
+    [1],
+    [2],
+    [24],
+    [25],
+    [40],
+    [100],
+    [1000]
+  ])('it should create $0 outputs for $0 mints', async (mintCount) => {
     const key = randomKey()
     const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
 
@@ -132,9 +134,9 @@ describe("createAlkaneUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createAlkaneUserTransaction({
-      feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos
+    const { psbt } = await createBrcUserTransaction({
+      feeRate: 10, ticker: "ordin", receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: new bigDecimal("500.75")
     })
 
     psbt.signAllInputs(key)
@@ -142,7 +144,7 @@ describe("createAlkaneUserTransaction", () => {
 
     const tx = psbt.extractTransaction()
     const serviceFeeHasOutput = getAlkaneMintServiceFee(mintCount) >= dustLimit('p2wpkh')
-    // subtracting change, service fee, and op return outputs
-    expect(tx.outs.length - (serviceFeeHasOutput ? 3 : 2)).toBe(expectedOutputs)
+    // subtracting change and service fee outputs
+    expect(tx.outs.length - (serviceFeeHasOutput ? 2 : 1)).toBe(mintCount)
   })
 })

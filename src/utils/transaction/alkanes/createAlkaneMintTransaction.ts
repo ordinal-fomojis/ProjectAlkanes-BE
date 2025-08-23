@@ -18,9 +18,9 @@ export function createAlkaneMintTransaction({
   runescript, outputAddress, fee = 0, key, pubkey, payment, utxo
 } : GetMintTransactionSizeArgs) {
   pubkey ??= toXOnly(key.publicKey)
-  payment ??= payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK })
+  payment ??= payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK() })
 
-  const psbt = new Psbt({ network: BTC_JS_NETWORK })
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() })
 
   psbt.addInput({
     hash: utxo.txid,

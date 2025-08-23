@@ -26,7 +26,7 @@ export async function createInscriptionUserTransaction({
   
   const batches = createRevealBatches(files, internalKey)
 
-  const psbt = new Psbt({ network: BTC_JS_NETWORK })
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() })
   for (const batch of batches) {
     const inputValue = Math.ceil(feeRate * batch.virtualSize) + batch.outputValue
     psbt.addOutput({
