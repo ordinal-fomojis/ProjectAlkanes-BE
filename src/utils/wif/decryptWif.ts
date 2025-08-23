@@ -8,5 +8,5 @@ export async function decryptWif(encryptedWif: EncryptedWif) {
   const iv = Buffer.from(encryptedWif.iv, 'hex')
   const data = Buffer.from(encryptedWif.data, 'hex')
   const decrypted = await subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, key, data)
-  return fromWIF(Buffer.from(decrypted).toString('hex'));
+  return fromWIF(Buffer.from(decrypted).toString('utf-8'));
 }
