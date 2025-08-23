@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { createAlkaneMintScript } from "../../../src/utils/transaction/alkanes/createAlkaneMintScript.js"
+import { createAlkaneMintScript } from "../../../../src/utils/transaction/alkanes/createAlkaneMintScript.js"
 
 describe("createAlkaneMintScript", () => {
   it.each([

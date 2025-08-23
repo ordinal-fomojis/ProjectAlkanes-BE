@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { createAlkaneMintScript } from "../../../src/utils/transaction/alkanes/createAlkaneMintScript.js"
-import { createAlkaneMintTransactionChain } from "../../../src/utils/transaction/alkanes/createAlkaneMintTransactionChain.js"
-import { randomKey } from "../../../src/utils/transaction/utils/keys.js"
-import Random from "../../test-utils/Random.js"
-import { randomAddress } from "../../test-utils/btc-random.js"
-import { expectToBeDefined } from "../../test-utils/expect.js"
+import { createAlkaneMintScript } from "../../../../src/utils/transaction/alkanes/createAlkaneMintScript.js"
+import { createAlkaneMintTransactionChain } from "../../../../src/utils/transaction/alkanes/createAlkaneMintTransactionChain.js"
+import { randomKey } from "../../../../src/utils/transaction/utils/keys.js"
+import Random from "../../../test-utils/Random.js"
+import { randomAddress } from "../../../test-utils/btc-random.js"
+import { expectToBeDefined } from "../../../test-utils/expect.js"
 
 describe("createAlkaneMintTransactionChain", () => {
   it("should create a chain of mint transactions", async () => {
