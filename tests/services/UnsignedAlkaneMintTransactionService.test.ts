@@ -1,15 +1,15 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/constants.js"
+import { DB_NAME } from "../../src/config/env.js"
 import { database } from "../../src/database/database.js"
-import { UnsignedMintTransactionService } from "../../src/services/UnsignedMintTransactionService.js"
+import { UnsignedAlkaneMintTransactionService } from "../../src/services/UnsignedAlkaneMintTransactionService.js"
 import { randomAddress } from "../test-utils/btc-random.js"
 import Random from "../test-utils/Random.js"
 
 let mongodb: MongoMemoryServer
 beforeAll(async () => {
   mongodb = await MongoMemoryServer.create()
-  await database.connect(mongodb.getUri(), DB_NAME)
+  await database.connect(mongodb.getUri(), DB_NAME())
 })
 
 afterAll(async () => {
@@ -17,12 +17,15 @@ afterAll(async () => {
   await mongodb.stop()
 })
 
-describe('UnsignedMintTransactionService', () => {
+describe('UnsignedAlkaneMintTransactionService', () => {
   it('should create a mint transaction and retrieve by id', async () => {
-    const service = new UnsignedMintTransactionService()
-    const mintTx = {
+    const service = new UnsignedAlkaneMintTransactionService()
+    const mintTx: Parameters<typeof service.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64),
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -31,6 +34,7 @@ describe('UnsignedMintTransactionService', () => {
       mintsInEachOutput: [1, 2, 3],
       alkaneId: '2:0',
       mintCount: 6,
+      authenticatedUserAddress: randomAddress(),
       paymentAddress: randomAddress(),
       receiveAddress: randomAddress(),
     }
@@ -38,7 +42,7 @@ describe('UnsignedMintTransactionService', () => {
     const createdTx = await service.getMintTransactionById(id)
     expect(createdTx).toBeDefined()
     expect(createdTx?.psbt).toBe(mintTx.psbt)
-    expect(createdTx?.wif).toBe(mintTx.wif)
+    expect(createdTx?.encryptedWif).toEqual(mintTx.encryptedWif)
     expect(createdTx?.serviceFee).toBe(mintTx.serviceFee)
     expect(createdTx?.networkFee).toBe(mintTx.networkFee)
     expect(createdTx?.paddingCost).toBe(mintTx.paddingCost)

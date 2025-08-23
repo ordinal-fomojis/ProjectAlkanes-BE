@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/constants.js"
+import { DB_NAME } from "../../src/config/env.js"
 import { database } from "../../src/database/database.js"
 import { UserService } from "../../src/services/userService.js"
 import { randomAddress } from "../test-utils/btc-random.js"
@@ -8,7 +8,7 @@ import { randomAddress } from "../test-utils/btc-random.js"
 let mongodb: MongoMemoryServer
 beforeAll(async () => {
   mongodb = await MongoMemoryServer.create()
-  await database.connect(mongodb.getUri(), DB_NAME)
+  await database.connect(mongodb.getUri(), DB_NAME())
 })
 
 afterAll(async () => {

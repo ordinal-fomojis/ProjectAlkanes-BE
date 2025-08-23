@@ -1,10 +1,11 @@
 import { ClientSession } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
 import { sanitizeAddress } from "../utils/sanitiseAddress.js"
+import { EncryptedWif } from "../utils/wif/encryptWif.js"
 import { BaseService } from "./BaseService.js"
 
 export interface MintTransaction {
-  wif: string
+  encryptedWif: EncryptedWif
   serviceFee: number
   networkFee: number
   paddingCost: number

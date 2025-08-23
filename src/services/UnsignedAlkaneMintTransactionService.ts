@@ -1,10 +1,11 @@
 import { ObjectId } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
+import { EncryptedWif } from "../utils/wif/encryptWif.js"
 import { BaseService } from "./BaseService.js"
 
 export interface UnsignedAlkaneMintTransaction {
   psbt: string
-  wif: string
+  encryptedWif: EncryptedWif
   serviceFee: number
   networkFee: number
   paddingCost: number

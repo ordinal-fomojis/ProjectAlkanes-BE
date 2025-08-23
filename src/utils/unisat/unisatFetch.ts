@@ -1,9 +1,9 @@
 import { z } from "zod"
-import { BITCOIN_NETWORK, UNISAT_API_KEY } from "../../config/constants.js"
+import { BITCOIN_NETWORK, UNISAT_API_KEY } from "../../config/env.js"
 import { retrySchemaFetch } from "../retryFetch.js"
 
 export async function unisatFetch<Output, Input>(schema: z.ZodType<Output, Input>, path: string) {
-  const baseUrl = `https://open-api${BITCOIN_NETWORK === 'mainnet' ? '' : '-testnet'}.unisat.io/v1/indexer`
+  const baseUrl = `https://open-api${BITCOIN_NETWORK() === 'mainnet' ? '' : '-testnet'}.unisat.io/v1/indexer`
   
   const unisatSchema = z.object({
     code: z.union([z.literal(0), z.literal(-1)]),

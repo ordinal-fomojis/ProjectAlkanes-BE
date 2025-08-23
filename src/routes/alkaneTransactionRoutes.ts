@@ -1,7 +1,7 @@
 import { Psbt } from 'bitcoinjs-lib'
 import { Router } from 'express'
 import { z } from 'zod'
-import { MOCK_BTC } from '../config/constants.js'
+import { MOCK_BTC } from '../config/env.js'
 import { database } from '../database/database.js'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { requireReferral } from '../middleware/referralGate.js'
@@ -18,8 +18,9 @@ import { createAlkaneMintScript } from '../utils/transaction/alkanes/createAlkan
 import { createAlkaneMintTransactionChain } from '../utils/transaction/alkanes/createAlkaneMintTransactionChain.js'
 import { createAlkaneUserTransaction } from '../utils/transaction/alkanes/createAlkaneUserTransaction.js'
 import { getUtxos } from '../utils/transaction/getUtxos.js'
-import { fromWIF } from '../utils/transaction/utils/keys.js'
 import { validatePsbtWithReference } from '../utils/transaction/validatePsbtWithReference.js'
+import { decryptWif } from '../utils/wif/decryptWif.js'
+import { encryptWif } from '../utils/wif/encryptWif.js'
 
 const router = Router();
 
@@ -52,7 +53,7 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   const psbtHex = psbt.toHex()
   const id = await service.createMintTransaction({
     psbt: psbt.toHex(),
-    wif: internalKey.toWIF(),
+    encryptedWif: await encryptWif(internalKey),
     serviceFee,
     networkFee,
     paddingCost,
@@ -111,7 +112,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   const tx = signedPsbt.extractTransaction()
   const paymentTx = { tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: true }
   
-  const key = fromWIF(mintTx.wif)
+  const key = await decryptWif(mintTx.encryptedWif)
   const runescript = createAlkaneMintScript(mintTx.alkaneId)
   const transactions = (await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
     feePerMint: mintTx.networkFeePerMint,
@@ -134,7 +135,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
 
   await database.withTransaction(async (session) => {
     const mintTxId = await mintTxns.createMintTransaction({
-      wif: mintTx.wif,
+      encryptedWif: mintTx.encryptedWif,
       serviceFee: mintTx.serviceFee,
       networkFee: mintTx.networkFee,
       paddingCost: mintTx.paddingCost,
@@ -150,7 +151,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
     
     await txnService.createTransactionsForMint({
       txns: allTransactions,
-      wif: mintTx.wif,
+      encryptedWif: mintTx.encryptedWif,
       mintTx: mintTxId
     }, session)
 

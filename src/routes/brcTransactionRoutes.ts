@@ -9,6 +9,7 @@ import { UserError } from '../utils/errors.js'
 import { parse } from '../utils/parse.js'
 import { createBrcUserTransaction } from '../utils/transaction/brc/createBrcUserTransaction.js'
 import { getUtxos } from '../utils/transaction/getUtxos.js'
+import { encryptWif } from '../utils/wif/encryptWif.js'
 
 const router = Router();
 
@@ -43,7 +44,7 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   const psbtHex = psbt.toHex()
   const id = await service.createMintTransaction({
     psbt: psbt.toHex(),
-    wif: internalKey.toWIF(),
+    encryptedWif: await encryptWif(internalKey),
     serviceFee,
     networkFee,
     paddingCost,

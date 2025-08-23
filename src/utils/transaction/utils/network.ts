@@ -1,5 +1,5 @@
 import { Network, networks } from "bitcoinjs-lib"
-import { BITCOIN_NETWORK, BitcoinNetwork } from "../../../config/constants.js"
+import { BITCOIN_NETWORK, BitcoinNetwork } from "../../../config/env.js"
 
 export const Networks: Record<BitcoinNetwork, Network> = {
   mainnet: networks.bitcoin,
@@ -7,4 +7,4 @@ export const Networks: Record<BitcoinNetwork, Network> = {
   signet: networks.testnet,
 }
 
-export const BTC_JS_NETWORK = Networks[BITCOIN_NETWORK]
+export const BTC_JS_NETWORK = Networks[BITCOIN_NETWORK()]

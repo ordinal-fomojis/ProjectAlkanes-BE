@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MEMPOOL_API_URL } from '../config/constants.js'
+import { MEMPOOL_API_URL } from '../config/env.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool fees API response

@@ -2,12 +2,12 @@ import { Transaction } from "bitcoinjs-lib"
 import { ObjectId } from "mongodb"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/constants.js"
+import { DB_NAME } from "../../src/config/env.js"
 import { database } from '../../src/database/database.js'
 import { MintTransactionService } from "../../src/services/MintTransactionService.js"
 import { PointsService } from "../../src/services/PointsService.js"
 import { UnconfirmedTransactionService } from "../../src/services/UnconfirmedTransactionService.js"
-import { UnsignedMintTransactionService } from "../../src/services/UnsignedMintTransactionService.js"
+import { UnsignedAlkaneMintTransactionService } from "../../src/services/UnsignedAlkaneMintTransactionService.js"
 import { UserService } from "../../src/services/userService.js"
 import { randomAddress } from "../test-utils/btc-random.js"
 import Random from "../test-utils/Random.js"
@@ -15,7 +15,7 @@ import Random from "../test-utils/Random.js"
 let mongodb: MongoMemoryServer
 beforeAll(async () => {
   mongodb = await MongoMemoryServer.create()
-  await database.connect(mongodb.getUri(), DB_NAME)
+  await database.connect(mongodb.getUri(), DB_NAME())
 })
 
 afterAll(async () => {
@@ -39,7 +39,7 @@ function createMockTransaction(txid: string): Transaction {
 describe('Transaction Points Flow Integration (Authentication-Based)', () => {
   const pointsService = new PointsService()
   const userService = new UserService()
-  const unsignedMintService = new UnsignedMintTransactionService()
+  const unsignedMintService = new UnsignedAlkaneMintTransactionService()
   const mintTransactionService = new MintTransactionService()
   const unconfirmedTransactionService = new UnconfirmedTransactionService()
 
@@ -72,9 +72,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     expect(bobInitialPoints).toBe(0)
 
     // === STEP 1: Create unsigned transaction ===
-    const unsignedMintTx = {
+    const unsignedMintTx: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -100,7 +103,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     }]
 
     const mintTxId = await mintTransactionService.createMintTransaction({
-      wif: unsignedMintTx.wif,
+      encryptedWif: unsignedMintTx.encryptedWif,
       serviceFee: unsignedMintTx.serviceFee,
       networkFee: unsignedMintTx.networkFee,
       paddingCost: unsignedMintTx.paddingCost,
@@ -116,7 +119,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
 
     await unconfirmedTransactionService.createTransactionsForMint({
       txns: allTransactions,
-      wif: unsignedMintTx.wif,
+      encryptedWif: unsignedMintTx.encryptedWif,
       mintTx: mintTxId
     })
 
@@ -177,9 +180,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     const charlieWallet = randomAddress()
     await userService.createUser({ walletAddress: charlieWallet })
 
-    const unsignedMintTx = {
+    const unsignedMintTx: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -225,9 +231,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     console.log(`David P2WPKH: ${davidP2WPKHAddress}`)
 
     // === Test 1: Payment from P2SH address ===
-    const mint1 = {
+    const mint1: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -245,9 +254,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     await pointsService.awardMintPoints(davidOrdinalAddress, mint1.mintCount, 10)
 
     // === Test 2: Payment from P2WPKH address ===
-    const mint2 = {
+    const mint2: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -288,9 +300,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     // Create user only for payment address (simulating missing ordinal account)
     await userService.createUser({ walletAddress: existingPayment })
 
-    const unsignedMintTx = {
+    const unsignedMintTx: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -382,9 +397,12 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
 
     // === TRANSACTION CREATION ===
     // Simulate the transaction creation with address mismatch
-    const xverseMintTx = {
+    const xverseMintTx: Parameters<typeof unsignedMintService.createMintTransaction>[0] = {
       psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -410,7 +428,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     }]
 
     await mintTransactionService.createMintTransaction({
-      wif: xverseMintTx.wif,
+      encryptedWif: xverseMintTx.encryptedWif,
       serviceFee: xverseMintTx.serviceFee,
       networkFee: xverseMintTx.networkFee,
       paddingCost: xverseMintTx.paddingCost,
@@ -478,7 +496,10 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     // === LEGACY TRANSACTION: Create transaction WITHOUT authenticatedUserAddress field ===
     // This simulates transactions created before our fix
     const legacyMintTx = await mintTransactionService.createMintTransaction({
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -495,7 +516,10 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     // === NEW TRANSACTION: Create transaction WITH authenticatedUserAddress field ===
     // This simulates transactions created after our fix
     const newMintTx = await mintTransactionService.createMintTransaction({
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64),
+      },
       serviceFee: 200,
       networkFee: 75,
       paddingCost: 15,
@@ -541,7 +565,10 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     // If a transaction has BOTH receiveAddress AND authenticatedUserAddress matching,
     // it should only appear once in results
     const sameAddressTx = await mintTransactionService.createMintTransaction({
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 300,
       networkFee: 100,
       paddingCost: 20,
@@ -574,7 +601,10 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     
     // 1. NEW transaction (with authenticatedUserAddress)
     const newTx = await mintTransactionService.createMintTransaction({
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
@@ -590,7 +620,10 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
 
     // 2. LEGACY transaction (without authenticatedUserAddress)
     const legacyTx = await mintTransactionService.createMintTransaction({
-      wif: Random.randomHex(64),
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 200,
       networkFee: 75,
       paddingCost: 15,

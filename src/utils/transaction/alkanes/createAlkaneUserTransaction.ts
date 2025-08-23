@@ -1,6 +1,7 @@
 import { payments, Psbt } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE, RECEIVE_ADDRESS } from "../../../config/constants.js"
+import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE } from "../../../config/constants.js"
+import { RECEIVE_ADDRESS } from "../../../config/env.js"
 import { Utxo } from "../getUtxos.js"
 import { calculateTransactionInputsAndFee } from "../utils/calculateTransactionInputsAndFee.js"
 import { dustLimit } from "../utils/dustLimit.js"
@@ -63,7 +64,7 @@ export async function createAlkaneUserTransaction({
 
   if (serviceFee > dustLimit('p2tr')) {
     psbt.addOutput({
-      address: RECEIVE_ADDRESS,
+      address: RECEIVE_ADDRESS(),
       value: serviceFee
     })
   }

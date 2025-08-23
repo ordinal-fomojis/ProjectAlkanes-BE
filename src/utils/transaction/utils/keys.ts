@@ -23,3 +23,4 @@ function toSigner(key: ECPairInterface) {
   } satisfies Signer
   return { ...signer, toWIF: () => key.toWIF(), tweak: (t: Uint8Array) => toSigner(key.tweak(t)) }
 }
+export type WifSigner = ReturnType<typeof toSigner>

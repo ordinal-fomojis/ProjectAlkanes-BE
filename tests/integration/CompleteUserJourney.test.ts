@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { DB_NAME } from '../../src/config/constants.js'
+import { DB_NAME } from '../../src/config/env.js'
 import { database } from '../../src/database/database.js'
 import { PointsService } from '../../src/services/PointsService.js'
 import { ReferralService } from '../../src/services/referralService.js'
@@ -17,7 +17,7 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
 
   beforeAll(async () => {
     mongodb = await MongoMemoryServer.create()
-    await database.connect(mongodb.getUri(), DB_NAME)
+    await database.connect(mongodb.getUri(), DB_NAME())
   })
 
   afterAll(async () => {
