@@ -1,6 +1,5 @@
 import { crypto, payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { bigDecimal } from "js-big-decimal"
 import { describe, expect, it, vi } from "vitest"
 import { getRawTransactions } from "../../../../src/utils/rpc/getRawTransactions.js"
 import { createBrcUserTransaction } from "../../../../src/utils/transaction/brc/createBrcUserTransaction.js"
@@ -67,7 +66,7 @@ describe("createBrcUserTransaction", () => {
 
     const { psbt } = await createBrcUserTransaction({
       feeRate: 10, ticker: "ordi", receiveAddress, paymentAddress,
-      paymentPubkey: pubkey, mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
+      paymentPubkey: pubkey, mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
     })
 
     psbt.signAllInputs(key)
@@ -89,7 +88,7 @@ describe("createBrcUserTransaction", () => {
 
     await expect(createBrcUserTransaction({
       feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
     })).rejects.toThrow(NotEnoughFundsError)
   })
   
@@ -106,7 +105,7 @@ describe("createBrcUserTransaction", () => {
 
     const { psbt } = await createBrcUserTransaction({
       feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: new bigDecimal("500.75")
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
     })
 
     psbt.signAllInputs(key)
@@ -136,7 +135,7 @@ describe("createBrcUserTransaction", () => {
 
     const { psbt } = await createBrcUserTransaction({
       feeRate: 10, ticker: "ordin", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: new bigDecimal("500.75")
+      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: "500.75", decimal: 2
     })
 
     psbt.signAllInputs(key)

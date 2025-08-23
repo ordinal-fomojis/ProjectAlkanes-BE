@@ -27,18 +27,17 @@ const CreateTransactionParamsSchema = z.object({
 router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
   const {
     feeRate, paymentAddress, paymentPubkey,
-    receiveAddress, userAddress, ticker, mintAmount: mintAmountStr, mintCount
+    receiveAddress, userAddress, ticker, mintAmount, mintCount
   } = parse(CreateTransactionParamsSchema, req.query)
   const tokenService = new BrcTokenService()
   const token = await tokenService.getBrcByTicker(ticker)
 
   const service = new UnsignedBrcMintTransactionService()
-  validateBrcToken(token, mintAmountStr, mintCount)
-  const mintAmount = convertAmount(mintAmountStr, token)
+  validateBrcToken(token, mintAmount, mintCount)
 
   const utxos = await getUtxos(paymentAddress)
   const { psbt, internalKey, serviceFee, networkFee, paddingCost } = await createBrcUserTransaction({
-    feeRate, paymentAddress, paymentPubkey, receiveAddress, ticker, mintAmount, mintCount, utxos
+    feeRate, paymentAddress, paymentPubkey, receiveAddress, ticker, mintAmount, mintCount, utxos, decimal: token.decimal
   })
 
   const psbtHex = psbt.toHex()

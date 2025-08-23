@@ -1,8 +1,6 @@
 import { Psbt } from "bitcoinjs-lib"
-import { bigDecimal } from "js-big-decimal"
 import { MIN_FEE_RATE } from "../../../config/constants.js"
 import { RECEIVE_ADDRESS } from "../../../config/env.js"
-import { MimeType } from "../../mime-type.js"
 import { Utxo } from "../getUtxos.js"
 import { createRevealPayment } from "../inscribe/createRevealPayment.js"
 import { createRevealTransaction, InscriptionOutput } from "../inscribe/createRevealTransaction.js"
@@ -20,17 +18,18 @@ interface CreateBrcUserTransactionArgs {
   paymentAddress: string
   paymentPubkey: string
   receiveAddress: string
-  mintAmount: bigDecimal
+  mintAmount: string
   mintCount: number
   ticker: string
+  decimal: number
   utxos: Utxo[]
 }
 
 export async function createBrcUserTransaction({
-  feeRate, paymentAddress, paymentPubkey, receiveAddress, mintAmount, mintCount, ticker, utxos
+  feeRate, paymentAddress, paymentPubkey, receiveAddress, mintAmount, mintCount, ticker, decimal, utxos
 }: CreateBrcUserTransactionArgs) {
   feeRate = Math.max(feeRate, MIN_FEE_RATE)
-  const inscriptionContent = getBrcMintInscriptionContent(ticker, mintAmount)
+  const inscriptionContent = getBrcMintInscriptionContent(ticker, decimal, mintAmount)
 
   const serviceFee = getBrcMintServiceFee(mintCount)
   const padding = dustLimit(getAddressType(receiveAddress))
@@ -38,7 +37,7 @@ export async function createBrcUserTransaction({
   const internalKey = randomKey()
 
   const file: InscriptionOutput = {
-    destination: receiveAddress, padding, contents: { data: inscriptionContent, type: MimeType.json }
+    destination: receiveAddress, padding, contents: inscriptionContent
   }
   const payment = createRevealPayment(internalKey, [file])
 
