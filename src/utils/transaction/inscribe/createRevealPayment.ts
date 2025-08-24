@@ -9,7 +9,7 @@ import { BTC_JS_NETWORK } from "../utils/network.js"
 
 export type RevealDetails = Awaited<ReturnType<typeof createRevealPayment>>
 export interface InscriptionFile {
-  contents?: {
+  content?: {
     data: Buffer
     type: MimeType
   }
@@ -76,9 +76,9 @@ function createRevealScript(publicKey: Buffer, files: InscriptionFile[]) {
       envelope.push(...inscriptionField(InscriptionField.DELEGATE, encodeId(file.delegate)))
     }
 
-    if (file.contents != null) {
-      envelope.push(...inscriptionField(InscriptionField.FILE_TYPE, file.contents.type))
-      const data = file.compress === true ? brotliCompressSync(file.contents.data) : file.contents.data
+    if (file.content != null) {
+      envelope.push(...inscriptionField(InscriptionField.FILE_TYPE, file.content.type))
+      const data = file.compress === true ? brotliCompressSync(file.content.data) : file.content.data
       envelope.push(opcodes.OP_0!, ...dataToPushes(data))
     }
 

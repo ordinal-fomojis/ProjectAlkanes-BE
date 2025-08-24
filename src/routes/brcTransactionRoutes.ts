@@ -32,13 +32,13 @@ const CreateTransactionParamsSchema = z.object({
   userAddress: z.string().optional(), // Optional user address for points awarding
   ticker: z.string(),
   mintCount: z.coerce.number().min(1).max(1000),
-  mintAmount: z.string()
+  mintAmount: z.string().optional()
 })
 
 router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
   const {
     feeRate, paymentAddress, paymentPubkey,
-    receiveAddress, userAddress, ticker, mintAmount, mintCount
+    receiveAddress, userAddress, ticker, mintAmount = null, mintCount
   } = parse(CreateTransactionParamsSchema, req.query)
   const tokenService = new BrcTokenService()
   const token = await tokenService.getBrcByTicker(ticker)
@@ -47,8 +47,8 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   validateBrcToken(token, mintAmount, mintCount)
 
   const utxos = await getUtxos(paymentAddress)
-  const { psbt, internalKey, serviceFee, networkFee, paddingCost } = await createBrcUserTransaction({
-    feeRate, paymentAddress, paymentPubkey, receiveAddress, ticker, mintAmount, mintCount, utxos, decimal: token.decimal
+  const { psbt, internalKey, serviceFee, networkFee, paddingCost, amountMinted } = await createBrcUserTransaction({
+    feeRate, paymentAddress, paymentPubkey, receiveAddress, token, mintAmount, mintCount, utxos
   })
 
   const psbtHex = psbt.toHex()
@@ -60,7 +60,7 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
     networkFee,
     paddingCost,
     mintCount,
-    mintAmount: new bigDecimal(mintAmount).round(token.decimal).getValue(),
+    mintAmount: amountMinted.getValue(),
     paymentAddress,
     receiveAddress,
     authenticatedUserAddress: userAddress || receiveAddress
@@ -118,9 +118,8 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   const reveals = createBrcRevealTransactions({
     paymentTx: tx,
     receiveAddress: mintTx.receiveAddress,
-    ticker: mintTx.ticker,
     mintCount: mintTx.mintCount,
-    decimal: token.decimal,
+    token,
     key,
     mintAmount: mintTx.mintAmount
   }).map(tx => ({ tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: false }))
@@ -206,7 +205,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
 
 export default router;
 
-function validateBrcToken(token: BrcToken | null, mintAmountStr: string, mintCount: number): asserts token is BrcToken {
+function validateBrcToken(token: BrcToken | null, mintAmountStr: string | null, mintCount: number): asserts token is BrcToken {
   if (token === null) {
     throw new UserError('BRC token not found').withStatus(404)
   }
@@ -216,7 +215,7 @@ function validateBrcToken(token: BrcToken | null, mintAmountStr: string, mintCou
   if (token.mintedOut) {
     throw new UserError('BRC token has already minted out').withStatus(400)
   }
-  const mintAmount = new bigDecimal(mintAmountStr).round(token.decimal)
+  const mintAmount = new bigDecimal(mintAmountStr ?? token.limit).round(token.decimal)
   
   const limit = new bigDecimal(token.limit)
   if (mintAmount.compareTo(limit) > 0) {

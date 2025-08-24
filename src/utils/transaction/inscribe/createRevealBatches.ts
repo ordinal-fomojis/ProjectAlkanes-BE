@@ -15,7 +15,7 @@ interface RevealDetails {
 
 export function createRevealBatches(files: InscriptionOutput[], key: Signer) {
   const batches: RevealDetails[] = []
-  const totalSize = files.reduce((acc, file) => acc + (file.contents?.data.length ?? 0), 0) / 4
+  const totalSize = files.reduce((acc, file) => acc + (file.content?.data.length ?? 0), 0) / 4
   const averageSize = Math.ceil(totalSize / (4 * files.length))
   const initialGuess = Math.floor(MAX_TX_SIZE / averageSize)
   
