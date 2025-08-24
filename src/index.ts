@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
@@ -23,6 +24,29 @@ const PORT = process.env.PORT || 8080;
 // Security middleware
 app.use(helmet());
 app.use(securityHeaders);
+
+// CORS configuration
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:8080', 'https://shovel.space'];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+if (process.env.CORS_ENABLED !== 'false') {
+  app.use(cors(corsOptions));
+}
 
 // Rate limiting
 const limiter = rateLimit({
