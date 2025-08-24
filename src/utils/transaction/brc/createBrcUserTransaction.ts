@@ -49,10 +49,8 @@ export async function createBrcUserTransaction({
   
   const inputValue = Math.ceil(feeRate * virtualSize) + outputValue
   const psbt = new Psbt({ network: BTC_JS_NETWORK() })
-  psbt.addOutputs(Array.from({ length: mintCount }, () => ({
-    address: payment.address!,
-    value: inputValue
-  })))
+  const mintOutput = { address: payment.address!, value: inputValue }
+  psbt.addOutputs(Array(mintCount).fill(mintOutput))
 
   if (serviceFee > dustLimit('p2tr')) {
     psbt.addOutput({
