@@ -8,6 +8,7 @@ import { requireReferral } from '../middleware/referralGate.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
+import { ArchivedTransactionService } from '../services/TransactionArchiveService.js'
 import { UnconfirmedTransactionService } from '../services/UnconfirmedTransactionService.js'
 import { UnsignedAlkaneMintTransactionService } from '../services/UnsignedAlkaneMintTransactionService.js'
 import { UserError } from '../utils/errors.js'
@@ -86,6 +87,8 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   const unsignedMints = new UnsignedAlkaneMintTransactionService()
   const mintTxns = new MintTransactionService()
   const txnService = new UnconfirmedTransactionService()
+  const archiveService = new ArchivedTransactionService()
+  const pointsService = new PointsService()
   const mintTx = await unsignedMints.getMintTransactionById(id)
 
   if (mintTx === null) {
@@ -122,16 +125,15 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
     utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? 0 }
   })))).map(chain => chain.map(tx => ({ tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: false })))
 
-  if (!MOCK_BTC) {
-    try {
-      await sendTransaction(paymentTx.txHex)
-    } catch (error: unknown) {
-      console.warn('Failed to broadcast payment transaction:', error)
-      throw new UserError('Failed to broadcast payment transaction').withStatus(500)
-    }
-  }
-
   const allTransactions = [paymentTx].concat(transactions.flat())
+
+  const requestId = crypto.randomUUID()
+
+  await archiveService.createArchivedTransactions({
+    txns: allTransactions,
+    encryptedWif: mintTx.encryptedWif,
+    requestId
+  })
 
   await database.withTransaction(async (session) => {
     const mintTxId = await mintTxns.createMintTransaction({
@@ -147,50 +149,50 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
       receiveAddress: mintTx.receiveAddress,
       authenticatedUserAddress: mintTx.authenticatedUserAddress,
       txids: allTransactions.map(tx => tx.txid),
+      requestId
     }, session)
     
     await txnService.createTransactionsForMint({
       txns: allTransactions,
       encryptedWif: mintTx.encryptedWif,
-      mintTx: mintTxId
+      mintTx: mintTxId,
+      requestId
     }, session)
 
-    // Award points after successful broadcasting and transaction storage
-    try {
-      const pointsService = new PointsService()
-      
-      // Use authenticated user's wallet address for points (ordinal address), not payment address
+    const userWalletAddress = mintTx.authenticatedUserAddress || mintTx.receiveAddress
+    console.log(`Awarding points to user: ${userWalletAddress} (payment from: ${mintTx.paymentAddress})`)
+    
+    // 1. Award mint points to the user
+    const mintPointsResult = await pointsService.awardMintPoints(
+      userWalletAddress, // Use user's ordinal address
+      mintTx.mintCount,      // Number of tokens minted
+      10,                    // Base points per mint
+      session                // Use the same session for consistency
+    )
+    console.log(`Awarded ${mintPointsResult.pointsAwarded} mint points (${mintTx.mintCount * 10} base × ${mintPointsResult.bonus} ${mintPointsResult.tier} bonus) to user ${userWalletAddress}`)
+    
+    // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
+    const referralPointsResult = await pointsService.awardReferralPoints(
+      userWalletAddress, // Use user's ordinal address
+      mintTx.mintCount,      // Number of tokens minted = points to award to referrer
+      mintTxId,              // The mint transaction ID for tracking
+      session                // Use the same session for consistency
+    )
+    
+    if (referralPointsResult.awarded) {
+      console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by user ${userWalletAddress}`)
+    }
 
-      // Priority: authenticatedUserAddress > receiveAddress > paymentAddress (fallback)
-      const userWalletAddress = mintTx.authenticatedUserAddress || mintTx.receiveAddress
-      
-      console.log(`Awarding points to user: ${userWalletAddress} (payment from: ${mintTx.paymentAddress})`)
-      
-      // 1. Award mint points to the user
-      const mintPointsResult = await pointsService.awardMintPoints(
-        userWalletAddress, // Use user's ordinal address
-
-        mintTx.mintCount,      // Number of tokens minted
-        10,                    // Base points per mint
-        session                // Use the same session for consistency
-      )
-      console.log(`Awarded ${mintPointsResult.pointsAwarded} mint points (${mintTx.mintCount * 10} base × ${mintPointsResult.bonus} ${mintPointsResult.tier} bonus) to user ${userWalletAddress}`)
-      
-      // 2. Award fixed referral points to the referrer (1 point per mint, no bonus)
-      const referralPointsResult = await pointsService.awardReferralPoints(
-        userWalletAddress, // Use user's ordinal address
-        mintTx.mintCount,      // Number of tokens minted = points to award to referrer
-        mintTxId,              // The mint transaction ID for tracking
-        session                // Use the same session for consistency
-      )
-      
-      if (referralPointsResult.awarded) {
-        console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by user ${userWalletAddress}`)
+    // Broadcast inside the transaction, so if it fails, we can rollback
+    // It is done last, so if anything above fails, the transaction isn't broadcasted and everything is rolled back
+    // (note: the archive transactions are not in this transaction, so they are not rolled back, in case we need them in emergency)
+    if (!MOCK_BTC()) {
+      try {
+        await sendTransaction(paymentTx.txHex)
+      } catch (error: unknown) {
+        console.warn('Failed to broadcast payment transaction:', error)
+        throw new UserError('Failed to broadcast payment transaction').withStatus(500)
       }
-    } catch (pointsError) {
-      console.error('Error awarding points after broadcast:', pointsError)
-      // Re-throw to rollback the entire transaction if points awarding fails
-      throw new UserError('Failed to award points after successful mint').withStatus(500)
     }
   })
 

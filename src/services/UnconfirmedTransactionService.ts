@@ -17,6 +17,8 @@ export interface TransactionDetails {
   mined: boolean
   mock: boolean
   mintTx?: ObjectId
+  // random id that is identical for all transactions in a single request
+  requestId: string
   created: Date
 }
 
@@ -29,12 +31,13 @@ interface CreateTransactionsForMintArgs {
   }[]
   encryptedWif: EncryptedWif
   mintTx: ObjectId
+  requestId: string
 }
 
 export class UnconfirmedTransactionService extends BaseService<TransactionDetails> {
   collectionName = DatabaseCollection.UnconfirmedTransactions
   
-  async createTransactionsForMint({ txns, encryptedWif, mintTx }: CreateTransactionsForMintArgs, session?: ClientSession) {
+  async createTransactionsForMint({ txns, encryptedWif, mintTx, requestId }: CreateTransactionsForMintArgs, session?: ClientSession) {
     await this.collection.insertMany(txns.map(tx => ({
       txid: tx.txid,
       txHex: tx.txHex,
@@ -46,6 +49,7 @@ export class UnconfirmedTransactionService extends BaseService<TransactionDetail
       encryptedWif,
       mock: MOCK_BTC(),
       created: new Date(),
+      requestId
     })), { session })
   }
 }

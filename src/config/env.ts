@@ -22,9 +22,6 @@ const _BITCOIN_NETWORK = parse(z.enum(['mainnet', 'signet', 'testnet'])
   .default('mainnet'), process.env.BITCOIN_NETWORK)
 export const BITCOIN_NETWORK = () => _BITCOIN_NETWORK
 
-const _ORDISCAN_API_KEY = env('ORDISCAN_API_KEY')
-export const ORDISCAN_API_KEY = () => _ORDISCAN_API_KEY
-
 const _UNISAT_API_KEY = env('UNISAT_API_KEY')
 export const UNISAT_API_KEY = () => _UNISAT_API_KEY
 

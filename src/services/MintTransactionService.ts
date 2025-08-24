@@ -17,6 +17,8 @@ export interface MintTransaction {
   receiveAddress: string
   authenticatedUserAddress?: string
   txids: string[]
+  // random id that is identical for all transactions in a single request
+  requestId: string
   created: Date
 }
 

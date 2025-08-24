@@ -31,6 +31,10 @@ const Indexes: Indexed = {
       { [field]: -1, deployTimestamp: -1 }
     ])
   ],
+  archived_transactions: [{ created: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 /* 30 days */ }],
+  auth_nonces: [
+    { walletAddress: 1 },
+  ],
   brc_tokens: [
     [{ ticker: 1 }, { unique: true }],
     { synced: 1 },
@@ -43,9 +47,6 @@ const Indexes: Indexed = {
       { [field]: 1, deployTimestamp: -1 },
       { [field]: -1, deployTimestamp: -1 }
     ])
-  ],
-  auth_nonces: [
-    { walletAddress: 1 },
   ],
   block_heights: [
     { height: 1 },
