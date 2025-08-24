@@ -31,7 +31,7 @@ const CreateTransactionParamsSchema = z.object({
   receiveAddress: z.string(),
   userAddress: z.string().optional(), // Optional user address for points awarding
   ticker: z.string(),
-  mintCount: z.coerce.number().min(1),
+  mintCount: z.coerce.number().min(1).max(1000),
   mintAmount: z.string()
 })
 
@@ -216,16 +216,22 @@ function validateBrcToken(token: BrcToken | null, mintAmountStr: string, mintCou
   if (token.mintedOut) {
     throw new UserError('BRC token has already minted out').withStatus(400)
   }
-  const mintCap = new bigDecimal(token.max)
-  const currentSupply = new bigDecimal(token.minted)
-  const amountLeft = mintCap.subtract(currentSupply)
   const mintAmount = new bigDecimal(mintAmountStr).round(token.decimal)
-  const totalMintAmount = mintAmount.multiply(new bigDecimal(mintCount))
+  
   const limit = new bigDecimal(token.limit)
-  if (amountLeft.compareTo(totalMintAmount) < 0) {
-    throw new UserError(`Not enough mints left. Only ${amountLeft.getValue()} mints available`).withStatus(400)
-  }
   if (mintAmount.compareTo(limit) > 0) {
     throw new UserError(`Mint amount exceeds limit of ${limit.getValue()}`).withStatus(400)
+  }
+
+  // We only need to validate this if minting more than once, because if a mint exceeds the cap,
+  // the user will just get whatever is remaining
+  if (mintCount > 1) {
+    const mintCap = new bigDecimal(token.max)
+    const currentSupply = new bigDecimal(token.minted)
+    const amountLeft = mintCap.subtract(currentSupply)
+    const totalMintAmount = mintAmount.multiply(new bigDecimal(mintCount))
+    if (amountLeft.compareTo(totalMintAmount) < 0) {
+      throw new UserError(`Not enough mints left. Only ${amountLeft.getValue()} mints available`).withStatus(400)
+    }
   }
 }

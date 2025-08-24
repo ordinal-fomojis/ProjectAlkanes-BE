@@ -32,7 +32,7 @@ const CreateTransactionParamsSchema = z.object({
   receiveAddress: z.string(),
   userAddress: z.string().optional(), // Optional user address for points awarding
   alkaneId: z.string(),
-  mintCount: z.coerce.number().min(1)
+  mintCount: z.coerce.number().min(1).max(1000)
 })
 
 router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequest, res) => {
