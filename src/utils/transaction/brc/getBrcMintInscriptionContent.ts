@@ -1,4 +1,5 @@
 import { bigDecimal } from "js-big-decimal"
+import { BrcToken } from "../../../services/BrcTokenService.js"
 import { MimeType } from "../../mime-type.js"
 
 interface BrcMintJson {
@@ -8,13 +9,16 @@ interface BrcMintJson {
   amt: string
 }
 
-export function getBrcMintInscriptionContent(ticker: string, decimal: number, amountStr: string) {
-  const amount = new bigDecimal(amountStr).round(decimal).stripTrailingZero()
+export function getBrcMintInscriptionContent(token: Pick<BrcToken, 'ticker' | 'decimal' | 'limit'>, amountStr: string | null) {
+  const mintAmount = new bigDecimal(amountStr ?? token.limit).round(token.decimal).stripTrailingZero()
   const mint: BrcMintJson = {
     p: "brc-20",
     op: "mint",
-    tick: ticker,
-    amt: amount.getValue()
+    tick: token.ticker,
+    amt: mintAmount.getValue()
   }
-  return { data: Buffer.from(JSON.stringify(mint)), type: MimeType.json }
+  return {
+    mintAmount,
+    content: { data: Buffer.from(JSON.stringify(mint)), type: MimeType.json }
+  }
 }

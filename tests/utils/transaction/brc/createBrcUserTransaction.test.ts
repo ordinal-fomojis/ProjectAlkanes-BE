@@ -65,8 +65,8 @@ describe("createBrcUserTransaction", () => {
     }]
 
     const { psbt } = await createBrcUserTransaction({
-      feeRate: 10, ticker: "ordi", receiveAddress, paymentAddress,
-      paymentPubkey: pubkey, mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
+      feeRate: 10, token: { ticker: "ordi", decimal: 2, limit: "1000" }, receiveAddress, paymentAddress,
+      paymentPubkey: pubkey, mintCount: 10, utxos, mintAmount: "500.75"
     })
 
     psbt.signAllInputs(key)
@@ -87,8 +87,8 @@ describe("createBrcUserTransaction", () => {
     }]
 
     await expect(createBrcUserTransaction({
-      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
+      feeRate: 10, token: { ticker: "ordi", decimal: 2, limit: "1000" }, receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75"
     })).rejects.toThrow(NotEnoughFundsError)
   })
   
@@ -104,8 +104,8 @@ describe("createBrcUserTransaction", () => {
     }]
 
     const { psbt } = await createBrcUserTransaction({
-      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75", decimal: 2
+      feeRate: 10, token: { ticker: "ordi", decimal: 2, limit: "1000" }, receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos, mintAmount: "500.75"
     })
 
     psbt.signAllInputs(key)
@@ -134,8 +134,8 @@ describe("createBrcUserTransaction", () => {
     }]
 
     const { psbt } = await createBrcUserTransaction({
-      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
-      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: "500.75", decimal: 2
+      feeRate: 10, token: { ticker: "ordi", decimal: 2, limit: "1000" }, receiveAddress: address, paymentAddress: address,
+      paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: "500.75"
     })
 
     psbt.signAllInputs(key)

@@ -1,6 +1,7 @@
 import { Psbt } from "bitcoinjs-lib"
 import { MIN_FEE_RATE } from "../../../config/constants.js"
 import { RECEIVE_ADDRESS } from "../../../config/env.js"
+import { BrcToken } from "../../../services/BrcTokenService.js"
 import { Utxo } from "../getUtxos.js"
 import { createRevealPayment } from "../inscribe/createRevealPayment.js"
 import { createRevealTransaction, InscriptionOutput } from "../inscribe/createRevealTransaction.js"
@@ -18,18 +19,17 @@ interface CreateBrcUserTransactionArgs {
   paymentAddress: string
   paymentPubkey: string
   receiveAddress: string
-  mintAmount: string
+  mintAmount: string | null
   mintCount: number
-  ticker: string
-  decimal: number
+  token: Pick<BrcToken, 'ticker' | 'decimal' | 'limit'>
   utxos: Utxo[]
 }
 
 export async function createBrcUserTransaction({
-  feeRate, paymentAddress, paymentPubkey, receiveAddress, mintAmount, mintCount, ticker, decimal, utxos
+  feeRate, paymentAddress, paymentPubkey, receiveAddress, mintAmount: mintAmountStr, mintCount, token, utxos
 }: CreateBrcUserTransactionArgs) {
   feeRate = Math.max(feeRate, MIN_FEE_RATE)
-  const inscriptionContent = getBrcMintInscriptionContent(ticker, decimal, mintAmount)
+  const { mintAmount, content } = getBrcMintInscriptionContent(token, mintAmountStr)
 
   const serviceFee = getBrcMintServiceFee(mintCount)
   const padding = dustLimit(getAddressType(receiveAddress))
@@ -37,7 +37,7 @@ export async function createBrcUserTransaction({
   const internalKey = randomKey()
 
   const file: InscriptionOutput = {
-    destination: receiveAddress, padding, contents: inscriptionContent
+    destination: receiveAddress, padding, content
   }
   const payment = createRevealPayment(internalKey, [file])
 
@@ -64,7 +64,7 @@ export async function createBrcUserTransaction({
   })
 
   return {
-    psbt, internalKey, serviceFee,
+    psbt, internalKey, serviceFee, amountMinted: mintAmount,
     networkFee: networkFee + inputValue * mintCount,
     paddingCost: padding * mintCount
   }

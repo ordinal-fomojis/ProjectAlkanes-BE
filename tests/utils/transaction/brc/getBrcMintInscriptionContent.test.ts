@@ -15,7 +15,7 @@ describe('getBrcMintInscriptionContent', () => {
     ['ordi', '123.123123123123123123', 10, '{"p":"brc-20","op":"mint","tick":"ordi","amt":"123.1231231231"}'],
     ['ordi', '123.123123123123123123', 0, '{"p":"brc-20","op":"mint","tick":"ordi","amt":"123"}'],
   ])('should return correct inscription content for BRC-20 mint, case %$', (ticker, amount, decimal, expected) => {
-    const { data, type } = getBrcMintInscriptionContent(ticker, decimal, amount)
+    const { content: { data, type } } = getBrcMintInscriptionContent({ ticker, decimal, limit: "1000" }, amount)
     expect(data.toString('utf-8')).toBe(expected)
     expect(type).toBe(MimeType.json)
   })
