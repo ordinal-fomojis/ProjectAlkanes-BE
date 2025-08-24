@@ -58,7 +58,12 @@ const Indexes: Indexed = {
     [{ txid: 1 }, { unique: true }],
     { mintId: 1 }
   ],
-  mint_transactions: [],
+  mint_transactions: [
+    { type: 1 },
+    { authenticatedUserAddress: 1 },
+    { paymentAddress: 1 },
+    { receiveAddress: 1 }
+  ],
   unconfirmed_transactions: [
     { broadcastFailedAtHeight: 1 }
   ],

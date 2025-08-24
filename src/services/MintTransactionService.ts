@@ -52,7 +52,7 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * 
    * This ensures users see ALL their transactions regardless of when they were created
    */
-  async getMintTransactionsByWalletAddress(walletAddress: string) {
+  async getMintTransactionsByWalletAddress(walletAddress: string, type: MintTransaction['type']) {
     walletAddress = sanitizeAddress(walletAddress)
     
     return await this.collection
@@ -68,7 +68,8 @@ export class MintTransactionService extends BaseService<MintTransaction> {
           // SAME-ADDRESS: Transactions where payment address = user address (Unisat style)
           // This catches transactions where user paid from their main address
           { paymentAddress: walletAddress }
-        ]
+        ],
+        type
       })
       .sort({ created: -1 })
       .toArray()
