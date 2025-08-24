@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
@@ -23,6 +24,16 @@ const PORT = process.env.PORT || 8080;
 // Security middleware
 app.use(helmet());
 app.use(securityHeaders);
+
+// CORS configuration
+const corsOptions = {
+  origin: new RegExp(process.env.CORS_ORIGIN ?? /^http:\/\/localhost:3000$/),
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+if (process.env.CORS_ENABLED !== 'false') {
+  app.use(cors(corsOptions));
+}
 
 // Rate limiting
 const limiter = rateLimit({

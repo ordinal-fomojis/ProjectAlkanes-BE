@@ -49,6 +49,7 @@ PORT=8080
 NODE_ENV=development
 
 # Security Configuration
+CORS_ORIGIN=http://localhost:3000
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
