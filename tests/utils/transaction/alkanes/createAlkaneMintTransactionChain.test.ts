@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { createAlkaneMintTransactionChain } from "../../src/utils/transaction/createAlkaneMintTransactionChain.js"
-import { createScriptForAlkaneMint } from "../../src/utils/transaction/protostone/createScriptForAlkaneMint.js"
-import { randomKey } from "../../src/utils/transaction/utils/keys.js"
-import { randomAddress } from "../test-utils/btc-random.js"
-import { expectToBeDefined } from "../test-utils/expect.js"
-import Random from "../test-utils/Random.js"
+import { createAlkaneMintScript } from "../../../../src/utils/transaction/alkanes/createAlkaneMintScript.js"
+import { createAlkaneMintTransactionChain } from "../../../../src/utils/transaction/alkanes/createAlkaneMintTransactionChain.js"
+import { randomKey } from "../../../../src/utils/transaction/utils/keys.js"
+import Random from "../../../test-utils/Random.js"
+import { randomAddress } from "../../../test-utils/btc-random.js"
+import { expectToBeDefined } from "../../../test-utils/expect.js"
 
 describe("createAlkaneMintTransactionChain", () => {
   it("should create a chain of mint transactions", async () => {
@@ -15,7 +15,7 @@ describe("createAlkaneMintTransactionChain", () => {
     }
     
     const address = randomAddress()
-    const runescript = createScriptForAlkaneMint('2:0')
+    const runescript = createAlkaneMintScript('2:0')
     const txns = await createAlkaneMintTransactionChain({
       utxo,
       feePerMint: 1000,

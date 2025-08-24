@@ -11,7 +11,7 @@ interface CreatePaymentArgs {
 
 export function createPayment({ addressType, publicKey, validateAddress } : CreatePaymentArgs) {
   function getPayment() {
-    const network = BTC_JS_NETWORK
+    const network = BTC_JS_NETWORK()
 
     if (addressType === 'p2wpkh') {
       return payments.p2wpkh({ pubkey: publicKey, network })

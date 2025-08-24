@@ -2,18 +2,19 @@ import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
-import { DB_NAME, MONGODB_URI } from './config/constants.js'
+import { DB_NAME, ENV, INITIALISE_INDEXES, MONGODB_URI } from './config/env.js'
 import { database } from './database/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
 import alkaneTokenRoutes from './routes/alkaneTokenRoutes.js'
+import alkaneTransactionRoutes from './routes/alkaneTransactionRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import brcTokenRoutes from './routes/brcTokenRoutes.js'
+import brcTransactionRoutes from './routes/brcTransactionRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import transactionConfirmationRoutes from './routes/transactionConfirmationRoutes.js'
-import transactionRoutes from './routes/transactionRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { FeeService } from './services/FeeService.js'
 import { UserError } from './utils/errors.js'
@@ -96,7 +97,8 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/alkane/token', alkaneTokenRoutes);
 app.use('/api/brc/token', brcTokenRoutes);
-app.use('/api/tx', transactionRoutes);
+app.use('/api/alkane/tx', alkaneTransactionRoutes);
+app.use('/api/brc/tx', brcTransactionRoutes);
 app.use('/api/transaction', transactionConfirmationRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/points', pointsRoutes);
@@ -127,7 +129,7 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    error: ENV === 'production' ? 'Something went wrong' : error.message
   })
 })
 
@@ -135,8 +137,8 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
 async function startServer() {
   try {
     // Connect to database
-    await database.connect(MONGODB_URI, DB_NAME);
-    
+    await database.connect(MONGODB_URI(), DB_NAME(), INITIALISE_INDEXES());
+
     // Initialize fee service
     const feeService = FeeService.getInstance();
     await feeService.initialize();

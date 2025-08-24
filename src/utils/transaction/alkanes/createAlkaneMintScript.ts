@@ -15,7 +15,7 @@ const AlkaneOpCode = {
   Mint: 77
 }
 
-export function createScriptForAlkaneMint(alkaneId: string) {
+export function createAlkaneMintScript(alkaneId: string) {
   const runestone = createRunestoneForAlkaneMint(alkaneId)
   return payments.embed({
     output: script.compile([opcodes.OP_RETURN!, opcodes.OP_13!, runestone])

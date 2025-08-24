@@ -1,8 +1,8 @@
 import { Payment, payments, Psbt, Signer } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
-import { Utxo } from "./getUtxos.js"
-import './utils/init-ecc.js'
-import { BTC_JS_NETWORK } from "./utils/network.js"
+import { Utxo } from "../getUtxos.js"
+import '../utils/init-ecc.js'
+import { BTC_JS_NETWORK } from "../utils/network.js"
 
 interface GetMintTransactionSizeArgs {
   outputAddress: string
@@ -18,9 +18,9 @@ export function createAlkaneMintTransaction({
   runescript, outputAddress, fee = 0, key, pubkey, payment, utxo
 } : GetMintTransactionSizeArgs) {
   pubkey ??= toXOnly(key.publicKey)
-  payment ??= payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK })
+  payment ??= payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK() })
 
-  const psbt = new Psbt({ network: BTC_JS_NETWORK })
+  const psbt = new Psbt({ network: BTC_JS_NETWORK() })
 
   psbt.addInput({
     hash: utxo.txid,

@@ -3,7 +3,6 @@ import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { getRawTransactions } from "../rpc/getRawTransactions.js"
 import { AddressType } from "./utils/getAddressType.js"
 
-
 interface CreateInputArgs {
   addressType: AddressType
   txid: string

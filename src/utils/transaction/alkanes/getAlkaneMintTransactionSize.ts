@@ -1,18 +1,18 @@
 import { Payment } from "bitcoinjs-lib"
+import { createPayment } from "../createPayment.js"
+import { dustLimit } from "../utils/dustLimit.js"
+import { AddressType } from "../utils/getAddressType.js"
+import '../utils/init-ecc.js'
+import { randomKey } from "../utils/keys.js"
+import { randomTransactionId } from "../utils/randomTransactionId.js"
 import { createAlkaneMintTransaction } from "./createAlkaneMintTransaction.js"
-import { createPayment } from "./createPayment.js"
-import { dustLimit } from "./utils/dustLimit.js"
-import { AddressType } from "./utils/getAddressType.js"
-import './utils/init-ecc.js'
-import { randomKey } from "./utils/keys.js"
-import { randomTransactionId } from "./utils/randomTransactionId.js"
 
-interface GetMintTransactionSizeArgs {
+interface GetAlkaneMintTransactionSizeArgs {
   runescript: Payment
   outputAddressType: AddressType
 }
 
-export function getMintTransactionSize({ runescript, outputAddressType } : GetMintTransactionSizeArgs) {
+export function getAlkaneMintTransactionSize({ runescript, outputAddressType } : GetAlkaneMintTransactionSizeArgs) {
   const outputAddress = createPayment({
     addressType: outputAddressType,
     publicKey: randomKey().publicKey

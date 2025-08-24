@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { leb128encode } from "../../../src/utils/transaction/utils/leb128encode.js"
+import { leb128encode } from "../../../../src/utils/transaction/utils/leb128encode.js"
 
 describe("leb128encode", () => {
   it.each([

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MEMPOOL_API_URL } from '../config/constants.js'
+import { MEMPOOL_API_URL } from '../config/env.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool fees API response
@@ -79,7 +79,7 @@ export class FeeService {
   private async fetchFees(): Promise<void> {
     const response = await retrySchemaFetch(
       FeesResponseSchema, 
-      `${MEMPOOL_API_URL}/api/v1/fees/recommended`,
+      `${MEMPOOL_API_URL()}/api/v1/fees/recommended`,
       {
         method: 'GET',
         headers: {

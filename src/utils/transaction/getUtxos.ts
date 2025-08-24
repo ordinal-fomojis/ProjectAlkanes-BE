@@ -1,5 +1,5 @@
 import z from "zod"
-import { MOCK_BTC } from "../../config/constants.js"
+import { MOCK_BTC } from "../../config/env.js"
 import { unisatFetch } from "../unisat/unisatFetch.js"
 import { randomTransactionId } from "./utils/randomTransactionId.js"
 
@@ -14,7 +14,7 @@ const UnisatUtxoSchema = z.object({
 })
 
 export async function getUtxos(address: string) {  
-  if (MOCK_BTC) {
+  if (MOCK_BTC()) {
     return [{
       value: 10 * 100000000,
       txid: randomTransactionId(),

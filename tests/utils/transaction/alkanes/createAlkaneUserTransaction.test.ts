@@ -1,18 +1,20 @@
 import { crypto, payments } from "bitcoinjs-lib"
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
 import { describe, expect, it, vi } from "vitest"
-import { getRawTransactions } from "../../src/utils/rpc/getRawTransactions.js"
-import { createPayment } from "../../src/utils/transaction/createPayment.js"
-import { createDummyTx, createUserTransaction, NotEnoughFundsError } from "../../src/utils/transaction/createUserTransaction.js"
-import { dustLimit } from "../../src/utils/transaction/utils/dustLimit.js"
-import { getServiceFee } from "../../src/utils/transaction/utils/getServiceFee.js"
-import { randomKey } from "../../src/utils/transaction/utils/keys.js"
-import { BTC_JS_NETWORK } from "../../src/utils/transaction/utils/network.js"
-import Random from "../test-utils/Random.js"
+import { getRawTransactions } from "../../../../src/utils/rpc/getRawTransactions.js"
+import { createAlkaneUserTransaction } from "../../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js"
+import { createPayment } from "../../../../src/utils/transaction/createPayment.js"
+import { NotEnoughFundsError } from "../../../../src/utils/transaction/NotEnoughFundsError.js"
+import { createDummyTx } from "../../../../src/utils/transaction/utils/calculateTransactionInputsAndFee.js"
+import { dustLimit } from "../../../../src/utils/transaction/utils/dustLimit.js"
+import { randomKey } from "../../../../src/utils/transaction/utils/keys.js"
+import { BTC_JS_NETWORK } from "../../../../src/utils/transaction/utils/network.js"
+import { getAlkaneMintServiceFee } from "../../../../src/utils/transaction/utils/service-fee.js"
+import Random from "../../../test-utils/Random.js"
 
-vi.mock('../../src/utils/rpc/getRawTransactions.js')
+vi.mock("../../../../src/utils/rpc/getRawTransactions.js")
 
-describe("createUserTransaction", () => {
+describe("createAlkaneUserTransaction", () => {
   it.each([
     ['p2pkh', 'p2pkh'],
     ['p2pkh', 'p2sh-p2wpkh'],
@@ -30,7 +32,7 @@ describe("createUserTransaction", () => {
     ['p2tr', 'p2sh-p2wpkh'],
     ['p2tr', 'p2wpkh'],
     ['p2tr', 'p2tr'],
-  ] as const)('should succeed for when paying with %s and receiving to %s', async (paymentAddressType, receiveAddressType) => {
+  ] as const)('should succeed when paying with %s and receiving to %s', async (paymentAddressType, receiveAddressType) => {
     let key = randomKey()
     const pubkey = key.publicKey.toString('hex')
 
@@ -41,7 +43,7 @@ describe("createUserTransaction", () => {
     }
 
     const paymentAddress = paymentAddressType === 'p2tr'
-      ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK }).address!
+      ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK() }).address!
       : createPayment({ addressType: paymentAddressType, publicKey: key.publicKey }).address!
 
     const receiveAddress = createPayment({
@@ -62,7 +64,7 @@ describe("createUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createUserTransaction({
+    const { psbt } = await createAlkaneUserTransaction({
       feeRate: 10, alkaneId: "2:0", receiveAddress, paymentAddress,
       paymentPubkey: pubkey, mintCount: 10, utxos
     })
@@ -84,7 +86,7 @@ describe("createUserTransaction", () => {
       value: txValue
     }]
 
-    await expect(createUserTransaction({
+    await expect(createAlkaneUserTransaction({
       feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
       paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
     })).rejects.toThrow(NotEnoughFundsError)
@@ -101,7 +103,7 @@ describe("createUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createUserTransaction({
+    const { psbt } = await createAlkaneUserTransaction({
       feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
       paymentPubkey: key.publicKey.toString('hex'), mintCount: 10, utxos
     })
@@ -130,7 +132,7 @@ describe("createUserTransaction", () => {
       value: txValue
     }]
 
-    const { psbt } = await createUserTransaction({
+    const { psbt } = await createAlkaneUserTransaction({
       feeRate: 10, alkaneId: "2:0", receiveAddress: address, paymentAddress: address,
       paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos
     })
@@ -139,7 +141,7 @@ describe("createUserTransaction", () => {
     psbt.finalizeAllInputs()
 
     const tx = psbt.extractTransaction()
-    const serviceFeeHasOutput = getServiceFee(mintCount) >= dustLimit('p2wpkh')
+    const serviceFeeHasOutput = getAlkaneMintServiceFee(mintCount) >= dustLimit('p2wpkh')
     // subtracting change, service fee, and op return outputs
     expect(tx.outs.length - (serviceFeeHasOutput ? 3 : 2)).toBe(expectedOutputs)
   })

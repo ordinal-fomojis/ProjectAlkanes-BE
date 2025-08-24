@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/constants.js"
+import { DB_NAME } from "../../src/config/env.js"
 import { database } from '../../src/database/database.js'
+import { MintTransactionService } from "../../src/services/MintTransactionService.js"
 import { PointsService } from "../../src/services/PointsService.js"
 import { ReferralService } from "../../src/services/referralService.js"
-import { UnsignedMintTransactionService } from "../../src/services/UnsignedMintTransactionService.js"
 import { UserService } from "../../src/services/userService.js"
 import { randomAddress } from "../test-utils/btc-random.js"
 import Random from "../test-utils/Random.js"
@@ -13,7 +13,7 @@ import Random from "../test-utils/Random.js"
 let mongodb: MongoMemoryServer
 beforeAll(async () => {
   mongodb = await MongoMemoryServer.create()
-  await database.connect(mongodb.getUri(), DB_NAME)
+  await database.connect(mongodb.getUri(), DB_NAME())
 })
 
 afterAll(async () => {
@@ -25,7 +25,7 @@ describe('Referral Points Integration Flow', () => {
   const userService = new UserService()
   const referralService = new ReferralService()
   const pointsService = new PointsService()
-  const mintService = new UnsignedMintTransactionService()
+  const mintService = new MintTransactionService()
 
   it('should award points through complete referral and mint flow', async () => {
     // 1. Create Referrer User
@@ -49,19 +49,23 @@ describe('Referral Points Integration Flow', () => {
     console.log('✓ Referral relationship verified')
 
     // 5. Simulate trader creating a mint transaction (5 tokens)
-    const mintTx = {
-      psbt: Random.randomHex(100),
-      wif: Random.randomHex(64),
+    const mintTx: Parameters<typeof mintService.createMintTransaction>[0] = {
+      encryptedWif: {
+        iv: Random.randomHex(16),
+        data: Random.randomHex(64)
+      },
       serviceFee: 100,
       networkFee: 50,
       paddingCost: 10,
-      networkFeePerMint: 5,
-      networkFeeOfFinalMint: 10,
-      mintsInEachOutput: [5],
-      alkaneId: '2:0',
+      totalCost: 160,
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 5,
       paymentAddress: traderWallet,
       receiveAddress: randomAddress(),
+      paymentTxid: Random.randomTransactionId(),
+      txids: Array.from({ length: 5 }, () => Random.randomTransactionId()),
+      requestId: crypto.randomUUID()
     }
     const mintId = await mintService.createMintTransaction(mintTx)
     console.log('✓ Created mint transaction for 5 tokens')

@@ -31,6 +31,10 @@ const Indexes: Indexed = {
       { [field]: -1, deployTimestamp: -1 }
     ])
   ],
+  archived_transactions: [{ created: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 /* 30 days */ }],
+  auth_nonces: [
+    { walletAddress: 1 },
+  ],
   brc_tokens: [
     [{ ticker: 1 }, { unique: true }],
     { synced: 1 },
@@ -44,9 +48,6 @@ const Indexes: Indexed = {
       { [field]: -1, deployTimestamp: -1 }
     ])
   ],
-  auth_nonces: [
-    { walletAddress: 1 },
-  ],
   block_heights: [
     { height: 1 },
     { synced: 1 },
@@ -57,11 +58,19 @@ const Indexes: Indexed = {
     [{ txid: 1 }, { unique: true }],
     { mintId: 1 }
   ],
-  mint_transactions: [],
+  mint_transactions: [
+    { type: 1 },
+    { authenticatedUserAddress: 1 },
+    { paymentAddress: 1 },
+    { receiveAddress: 1 }
+  ],
   unconfirmed_transactions: [
     { broadcastFailedAtHeight: 1 }
   ],
-  unsigned_mint_transactions: [
+  unsigned_alkane_mint_transactions: [
+    [{ created: 1 }, { expireAfterSeconds: 300 }]
+  ],
+  unsigned_brc_mint_transactions: [
     [{ created: 1 }, { expireAfterSeconds: 300 }]
   ],
   users: [

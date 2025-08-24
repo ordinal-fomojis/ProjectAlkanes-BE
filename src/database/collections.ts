@@ -1,12 +1,14 @@
 export const DatabaseCollection = {
   AlkaneTokens: 'alkane_tokens',
+  ArchivedTransactions: 'archived_transactions',
   AuthNonces: 'auth_nonces',
   BlockHeights: 'block_heights',
   ConfirmedTransactions: 'confirmed_transactions',
   MempoolTransactions: 'mempool_transactions',
   MintTransactions: 'mint_transactions',
   UnconfirmedTransactions: 'unconfirmed_transactions',
-  UnsignedMintTransactions: 'unsigned_mint_transactions',
+  UnsignedAlkaneMintTransactions: 'unsigned_alkane_mint_transactions',
+  UnsignedBrcMintTransactions: 'unsigned_brc_mint_transactions',
   Users: 'users',
   BrcTokens: 'brc_tokens'
 } as const

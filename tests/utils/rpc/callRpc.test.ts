@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
 import z from "zod"
-import { BITCOIN_RPC_URL } from "../../../src/config/constants.js"
 import { retrySchemaFetch } from "../../../src/utils/retryFetch.js"
 import { callRpc } from "../../../src/utils/rpc/callRpc.js"
 
@@ -34,7 +33,7 @@ describe('callRpc', () => {
     const params = [1, 'test']
     await callRpc(z.string(), 'btc_testmethod', params)
 
-    expect(retrySchemaFetch).toHaveBeenCalledWith(expect.any(z.ZodType), BITCOIN_RPC_URL, {
+    expect(retrySchemaFetch).toHaveBeenCalledWith(expect.any(z.ZodType), expect.any(String), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

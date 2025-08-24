@@ -2,9 +2,10 @@ import { Psbt, crypto, payments } from 'bitcoinjs-lib'
 import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371.js'
 import { describe, expect, it, vi } from 'vitest'
 import { getRawTransactions } from '../../../src/utils/rpc/getRawTransactions.js'
+import { createAlkaneUserTransaction } from '../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js'
 import { createInput } from '../../../src/utils/transaction/createInput.js'
 import { createPayment } from '../../../src/utils/transaction/createPayment.js'
-import { createDummyTx, createUserTransaction } from '../../../src/utils/transaction/createUserTransaction.js'
+import { createDummyTx } from '../../../src/utils/transaction/utils/calculateTransactionInputsAndFee.js'
 import { AddressType } from '../../../src/utils/transaction/utils/getAddressType.js'
 import '../../../src/utils/transaction/utils/init-ecc.js'
 import { randomKey } from '../../../src/utils/transaction/utils/keys.js'
@@ -26,7 +27,7 @@ async function createTestPsbt(addressType: AddressType, key?: ReturnType<typeof 
   }
 
   const paymentAddress = addressType === 'p2tr'
-    ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK }).address!
+    ? payments.p2tr({ pubkey: toXOnly(key.publicKey), network: BTC_JS_NETWORK() }).address!
     : createPayment({ addressType, publicKey: key.publicKey }).address!
 
   const receiveAddress = createPayment({
@@ -47,7 +48,7 @@ async function createTestPsbt(addressType: AddressType, key?: ReturnType<typeof 
     value: txValue
   }]
 
-  const { psbt } = await createUserTransaction({
+  const { psbt } = await createAlkaneUserTransaction({
     feeRate: 10, alkaneId: "2:0", receiveAddress, paymentAddress,
     paymentPubkey: pubkey, mintCount: 10, utxos
   })

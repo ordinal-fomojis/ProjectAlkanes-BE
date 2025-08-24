@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MEMPOOL_API_URL } from '../config/constants.js'
+import { MEMPOOL_API_URL } from '../config/env.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool transaction API response
@@ -35,7 +35,7 @@ export class TransactionConfirmationService {
     try {
       const response = await retrySchemaFetch(
         TransactionResponseSchema,
-        `${MEMPOOL_API_URL}/api/tx/${txid}`,
+        `${MEMPOOL_API_URL()}/api/tx/${txid}`,
         {
           method: 'GET',
           headers: {

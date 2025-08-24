@@ -1,21 +1,25 @@
 import { ClientSession } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
 import { sanitizeAddress } from "../utils/sanitiseAddress.js"
+import { EncryptedWif } from "../utils/wif/encryptWif.js"
 import { BaseService } from "./BaseService.js"
 
 export interface MintTransaction {
-  wif: string
+  encryptedWif: EncryptedWif
   serviceFee: number
   networkFee: number
   paddingCost: number
   totalCost: number
   paymentTxid: string
-  alkaneId: string
+  tokenId: string // Ticker for Brc, Id for Alkanes
+  type: 'brc' | 'alkane'
   mintCount: number
   paymentAddress: string
   receiveAddress: string
   authenticatedUserAddress?: string
   txids: string[]
+  // random id that is identical for all transactions in a single request
+  requestId: string
   created: Date
 }
 
@@ -48,7 +52,7 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * 
    * This ensures users see ALL their transactions regardless of when they were created
    */
-  async getMintTransactionsByWalletAddress(walletAddress: string) {
+  async getMintTransactionsByWalletAddress(walletAddress: string, type: MintTransaction['type']) {
     walletAddress = sanitizeAddress(walletAddress)
     
     return await this.collection
@@ -64,7 +68,8 @@ export class MintTransactionService extends BaseService<MintTransaction> {
           // SAME-ADDRESS: Transactions where payment address = user address (Unisat style)
           // This catches transactions where user paid from their main address
           { paymentAddress: walletAddress }
-        ]
+        ],
+        type
       })
       .sort({ created: -1 })
       .toArray()
