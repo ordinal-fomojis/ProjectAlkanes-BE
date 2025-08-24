@@ -9,7 +9,7 @@ import { createDummyTx } from "../../../../src/utils/transaction/utils/calculate
 import { dustLimit } from "../../../../src/utils/transaction/utils/dustLimit.js"
 import { randomKey } from "../../../../src/utils/transaction/utils/keys.js"
 import { BTC_JS_NETWORK } from "../../../../src/utils/transaction/utils/network.js"
-import { getAlkaneMintServiceFee } from "../../../../src/utils/transaction/utils/service-fee.js"
+import { getBrcMintServiceFee } from "../../../../src/utils/transaction/utils/service-fee.js"
 import Random from "../../../test-utils/Random.js"
 
 vi.mock("../../../../src/utils/rpc/getRawTransactions.js")
@@ -134,7 +134,7 @@ describe("createBrcUserTransaction", () => {
     }]
 
     const { psbt } = await createBrcUserTransaction({
-      feeRate: 10, ticker: "ordin", receiveAddress: address, paymentAddress: address,
+      feeRate: 10, ticker: "ordi", receiveAddress: address, paymentAddress: address,
       paymentPubkey: key.publicKey.toString('hex'), mintCount, utxos, mintAmount: "500.75", decimal: 2
     })
 
@@ -142,7 +142,7 @@ describe("createBrcUserTransaction", () => {
     psbt.finalizeAllInputs()
 
     const tx = psbt.extractTransaction()
-    const serviceFeeHasOutput = getAlkaneMintServiceFee(mintCount) >= dustLimit('p2wpkh')
+    const serviceFeeHasOutput = getBrcMintServiceFee(mintCount) >= dustLimit('p2wpkh')
     // subtracting change and service fee outputs
     expect(tx.outs.length - (serviceFeeHasOutput ? 2 : 1)).toBe(mintCount)
   })

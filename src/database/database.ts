@@ -5,14 +5,16 @@ class Database {
   private client: MongoClient | null = null;
   private db: Db | null = null;
 
-  async connect(uri: string, dbName: string) {
+  async connect(uri: string, dbName: string, initialiseIndexes = true) {
     try {
       this.client ??= new MongoClient(uri)
       await this.client.connect();
       const db = this.client.db(dbName);
       console.log('✅ Connected to MongoDB');
-      await initIndexes(db);
-      console.log('✅ Indexes initialized');
+      if (initialiseIndexes) {
+        await initIndexes(db);
+        console.log('✅ Indexes initialized');
+      }
       this.db = db;
       console.log(`📊 Database: ${dbName}`);
     } catch (error) {

@@ -2,10 +2,12 @@ import { config } from '@dotenvx/dotenvx'
 import { z } from 'zod'
 import { parse } from '../utils/parse.js'
 
+export const ENV = parse(z.enum(['production', 'development', 'test']).default('development'), process.env.NODE_ENV)
+
 config({
-  path: process.env.NODE_ENV === 'test'
+  path: ENV === 'test'
     ? '.env.sample'
-    : process.env.NODE_ENV === 'production'
+    : ENV === 'production'
       ? '.env.production'
       : undefined,
   quiet: true
@@ -46,3 +48,6 @@ export const MOCK_BTC = () => _MOCK_BTC
 
 const _ENCRYPTION_KEY = env('ENCRYPTION_KEY')
 export const ENCRYPTION_KEY = () => _ENCRYPTION_KEY
+
+const _INITIALISE_INDEXES = parse(z.enum(['true', 'false']).default('false'), process.env.INITIALISE_INDEXES) === 'true'
+export const INITIALISE_INDEXES = () => _INITIALISE_INDEXES || ENV !== 'development'

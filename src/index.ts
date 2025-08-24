@@ -2,7 +2,7 @@ import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
-import { DB_NAME, MONGODB_URI } from './config/env.js'
+import { DB_NAME, ENV, INITIALISE_INDEXES, MONGODB_URI } from './config/env.js'
 import { database } from './database/database.js'
 import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
@@ -142,7 +142,7 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    error: ENV === 'production' ? 'Something went wrong' : error.message
   })
 })
 
@@ -150,7 +150,7 @@ app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
 async function startServer() {
   try {
     // Connect to database
-    await database.connect(MONGODB_URI(), DB_NAME());
+    await database.connect(MONGODB_URI(), DB_NAME(), INITIALISE_INDEXES());
 
     // Initialize fee service
     const feeService = FeeService.getInstance();
