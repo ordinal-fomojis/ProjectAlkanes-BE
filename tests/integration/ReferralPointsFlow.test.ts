@@ -58,12 +58,14 @@ describe('Referral Points Integration Flow', () => {
       networkFee: 50,
       paddingCost: 10,
       totalCost: 160,
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 5,
       paymentAddress: traderWallet,
       receiveAddress: randomAddress(),
       paymentTxid: Random.randomTransactionId(),
-      txids: Array.from({ length: 5 }, () => Random.randomTransactionId())
+      txids: Array.from({ length: 5 }, () => Random.randomTransactionId()),
+      requestId: crypto.randomUUID()
     }
     const mintId = await mintService.createMintTransaction(mintTx)
     console.log('✓ Created mint transaction for 5 tokens')

@@ -109,18 +109,21 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: unsignedMintTx.paddingCost,
       totalCost: unsignedMintTx.serviceFee + unsignedMintTx.networkFee + unsignedMintTx.paddingCost,
       paymentTxid: allTransactions[0]!.txid,
-      alkaneId: unsignedMintTx.alkaneId,
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: unsignedMintTx.mintCount,
       paymentAddress: unsignedMintTx.paymentAddress,
       receiveAddress: unsignedMintTx.receiveAddress,
       authenticatedUserAddress: unsignedMintTx.authenticatedUserAddress,
       txids: allTransactions.map(tx => tx.txid),
+      requestId: crypto.randomUUID()
     })
 
     await unconfirmedTransactionService.createTransactionsForMint({
       txns: allTransactions,
       encryptedWif: unsignedMintTx.encryptedWif,
-      mintTx: mintTxId
+      mintTx: mintTxId,
+      requestId: crypto.randomUUID()
     })
 
     // === STEP 3: Award points to authenticated user (ordinal address) ===
@@ -166,7 +169,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     console.log(`   Bob Referrer (${bobOrdinalAddress.slice(0, 10)}...): ${bobPoints} points`)
 
     // === STEP 5: Verify activity search works with ordinal address ===
-    const mintTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(aliceOrdinalAddress)
+    const mintTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(aliceOrdinalAddress, 'alkane')
     expect(mintTransactions).toHaveLength(1)
     expect(mintTransactions[0]!.authenticatedUserAddress).toBe(aliceOrdinalAddress)
     expect(mintTransactions[0]!.paymentAddress).toBe(alicePaymentAddress)
@@ -434,12 +437,14 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: xverseMintTx.paddingCost,
       totalCost: xverseMintTx.serviceFee + xverseMintTx.networkFee + xverseMintTx.paddingCost,
       paymentTxid: allTransactions[0]!.txid,
-      alkaneId: xverseMintTx.alkaneId,
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: xverseMintTx.mintCount,
       paymentAddress: xverseMintTx.paymentAddress,
       receiveAddress: xverseMintTx.receiveAddress,
       authenticatedUserAddress: xverseMintTx.authenticatedUserAddress,
       txids: allTransactions.map(tx => tx.txid),
+      requestId: crypto.randomUUID()
     })
 
     // === POINTS AWARDING (NEW SYSTEM) ===
@@ -469,7 +474,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
 
     // === ACTIVITY SEARCH ===
     // User should be able to find their transactions
-    const userTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(xverseOrdinalAddress)
+    const userTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(xverseOrdinalAddress, 'alkane')
     expect(userTransactions).toHaveLength(1)
     expect(userTransactions[0]!.authenticatedUserAddress).toBe(xverseOrdinalAddress)
     expect(userTransactions[0]!.paymentAddress).toBe(xversePaymentAddress)
@@ -505,12 +510,14 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: 10,
       totalCost: 160,
       paymentTxid: Random.randomTransactionId(),
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 2,
       paymentAddress: userPaymentAddress,     // Payment from different address
       receiveAddress: userOrdinalAddress,     // Ordinals go to user's address
       // authenticatedUserAddress: undefined  // LEGACY: No authenticated user field
       txids: [Random.randomTransactionId()],
+      requestId: crypto.randomUUID()
     })
 
     // === NEW TRANSACTION: Create transaction WITH authenticatedUserAddress field ===
@@ -525,12 +532,14 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: 15,
       totalCost: 290,
       paymentTxid: Random.randomTransactionId(),
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 3,
       paymentAddress: randomAddress(),        // Payment from any address
       receiveAddress: randomAddress(),        // Ordinals go to any address
       authenticatedUserAddress: userOrdinalAddress, // NEW: Has authenticated user field
       txids: [Random.randomTransactionId()],
+      requestId: crypto.randomUUID()
     })
 
     console.log(`Created legacy transaction: ${legacyMintTx}`)
@@ -538,7 +547,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
 
     // === ACTIVITY SEARCH TEST ===
     // Enhanced search should find BOTH legacy and new transactions
-    const userTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress)
+    const userTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress, 'alkane')
 
     // Should find both transactions
     expect(userTransactions).toHaveLength(2)
@@ -574,15 +583,17 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: 20,
       totalCost: 420,
       paymentTxid: Random.randomTransactionId(),
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 1,
       paymentAddress: randomAddress(),
       receiveAddress: userOrdinalAddress,              // Matches user
       authenticatedUserAddress: userOrdinalAddress,    // Also matches user
       txids: [Random.randomTransactionId()],
+      requestId: crypto.randomUUID()
     })
 
-    const allTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress)
+    const allTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress, 'alkane')
     expect(allTransactions).toHaveLength(3) // Should be 3, not 4 (no duplicates)
 
     const sameAddressFound = allTransactions.find(tx => tx._id.equals(sameAddressTx))
@@ -610,12 +621,14 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: 10,
       totalCost: 160,
       paymentTxid: Random.randomTransactionId(),
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 5,
       paymentAddress: randomAddress(),               // Different payment address
       receiveAddress: userOrdinalAddress,           // User's ordinal address
       authenticatedUserAddress: userOrdinalAddress, // NEW: Authenticated field
       txids: [Random.randomTransactionId()],
+      requestId: crypto.randomUUID()
     })
 
     // 2. LEGACY transaction (without authenticatedUserAddress)
@@ -629,12 +642,14 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
       paddingCost: 15,
       totalCost: 290,
       paymentTxid: Random.randomTransactionId(),
-      alkaneId: '2:0',
+      tokenId: '2:0',
+      type: 'alkane',
       mintCount: 3,
       paymentAddress: randomAddress(),     // Different payment address
       receiveAddress: userOrdinalAddress, // User's ordinal address
       // authenticatedUserAddress: undefined (legacy)
       txids: [Random.randomTransactionId()],
+      requestId: crypto.randomUUID()
     })
 
     console.log('=== API Activity Route Test ===')
@@ -643,7 +658,7 @@ describe('Transaction Points Flow Integration (Authentication-Based)', () => {
     console.log(`Created LEGACY transaction: ${legacyTx}`)
 
     // === TEST ENHANCED SEARCH DIRECTLY ===
-    const foundTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress)
+    const foundTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(userOrdinalAddress, 'alkane')
     
     // Should find both transactions
     expect(foundTransactions).toHaveLength(2)
