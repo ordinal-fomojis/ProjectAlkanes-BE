@@ -6,12 +6,14 @@ import { BaseService } from "./BaseService.js"
 export interface UnsignedBrcMintTransaction {
   psbt: string
   encryptedWif: EncryptedWif
+  ticker: string
   serviceFee: number
   networkFee: number
   paddingCost: number
   totalCost: number
   paymentAddress: string
   receiveAddress: string
+  mintAmount: string
   mintCount: number
   authenticatedUserAddress: string
   created: Date

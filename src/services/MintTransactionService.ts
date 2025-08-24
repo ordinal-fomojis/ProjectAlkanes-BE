@@ -11,7 +11,8 @@ export interface MintTransaction {
   paddingCost: number
   totalCost: number
   paymentTxid: string
-  alkaneId: string
+  tokenId: string // Ticker for Brc, Id for Alkanes
+  type: 'brc' | 'alkane'
   mintCount: number
   paymentAddress: string
   receiveAddress: string

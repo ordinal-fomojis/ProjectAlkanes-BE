@@ -143,7 +143,8 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
       paddingCost: mintTx.paddingCost,
       totalCost: mintTx.totalCost,
       paymentTxid: paymentTx.txid,
-      alkaneId: mintTx.alkaneId,
+      tokenId: mintTx.alkaneId,
+      type: 'alkane',
       mintCount: mintTx.mintCount,
       paymentAddress: mintTx.paymentAddress,
       receiveAddress: mintTx.receiveAddress,
@@ -180,7 +181,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
     )
     
     if (referralPointsResult.awarded) {
-      console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for mint by user ${userWalletAddress}`)
+      console.log(`Awarded ${referralPointsResult.pointsAwarded} fixed referral points to referrer ${referralPointsResult.referrerWallet} for alkane mint by user ${userWalletAddress}`)
     }
 
     // Broadcast inside the transaction, so if it fails, we can rollback
