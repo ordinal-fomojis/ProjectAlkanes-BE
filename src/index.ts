@@ -27,7 +27,7 @@ app.use(securityHeaders);
 
 // CORS configuration
 const corsOptions = {
-  origin: new RegExp(process.env.CORS_ORIGIN ?? 'http://localhost:3000'),
+  origin: new RegExp(process.env.CORS_ORIGIN ?? /^http:\/\/localhost:3000$/),
   credentials: true,
   optionsSuccessStatus: 200
 };
