@@ -69,7 +69,7 @@ router.get('/:address', validateParams(walletAddressSchema), async (req: Request
         return
       }
       
-      if (error.message.includes('Failed to fetch alkane balances')) {
+      if (error.message.includes('Failed to fetch alkane balances') || error.message.includes('Failed to fetch BRC-20 balances')) {
         res.status(500).json({
           success: false,
           message: 'Failed to fetch portfolio data from external service'
@@ -112,6 +112,74 @@ router.get('/:address/has-alkanes', validateParams(walletAddressSchema), async (
     })
   } catch (error) {
     console.error(`Error checking alkanes for address ${req.params.address}:`, error)
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+})
+
+// Check if an address has any BRC-20 tokens (quick check endpoint)
+router.get('/:address/has-brc20', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const address = req.params.address
+    
+    if (!address) {
+      res.status(400).json({
+        success: false,
+        message: 'Wallet address is required'
+      })
+      return
+    }
+
+    const portfolioService = new PortfolioService()
+    const hasBrc20 = await portfolioService.hasBrc20(address)
+    
+    res.json({
+      success: true,
+      message: 'BRC-20 check completed',
+      data: {
+        address,
+        hasBrc20
+      }
+    })
+  } catch (error) {
+    console.error(`Error checking BRC-20 for address ${req.params.address}:`, error)
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+})
+
+// Check if an address has any tokens (alkanes or BRC-20)
+router.get('/:address/has-tokens', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const address = req.params.address
+    
+    if (!address) {
+      res.status(400).json({
+        success: false,
+        message: 'Wallet address is required'
+      })
+      return
+    }
+
+    const portfolioService = new PortfolioService()
+    const hasTokens = await portfolioService.hasAnyTokens(address)
+    
+    res.json({
+      success: true,
+      message: 'Token check completed',
+      data: {
+        address,
+        hasTokens
+      }
+    })
+  } catch (error) {
+    console.error(`Error checking tokens for address ${req.params.address}:`, error)
     res.status(500).json({
       success: false,
       message: 'Internal server error',
