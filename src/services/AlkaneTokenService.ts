@@ -70,7 +70,13 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
     }
 
     if (noPremine !== null) {
-      query.noPremine = noPremine
+      // When noPremine=true, we want tokens with preminedSupply = "0" (no premine)
+      // When noPremine=false, we want tokens with preminedSupply > "0" (has premine)
+      if (noPremine) {
+        query.preminedSupply = "0";
+      } else {
+        query.preminedSupply = { $ne: "0" };
+      }
     }
 
     const direction = order.order === 'asc' ? 1 : -1 as const
