@@ -62,10 +62,12 @@ const Indexes: Indexed = {
     { type: 1 },
     { authenticatedUserAddress: 1 },
     { paymentAddress: 1 },
-    { receiveAddress: 1 }
+    { receiveAddress: 1 },
+    { requestId: 1 }
   ],
   unconfirmed_transactions: [
-    { broadcastFailedAtHeight: 1 }
+    { broadcastFailedAtHeight: 1 },
+    { requestId: 1 }
   ],
   unsigned_alkane_mint_transactions: [
     [{ created: 1 }, { expireAfterSeconds: 300 }]
