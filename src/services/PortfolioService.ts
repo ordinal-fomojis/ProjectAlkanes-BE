@@ -42,22 +42,31 @@ export interface PortfolioData {
 }
 
 export class PortfolioService {
-  private apiKey: string
+  private apiKey: string | undefined
   private baseUrl: string
+  private isAvailable: boolean
 
   constructor() {
     this.apiKey = ORDISCAN_API_KEY()
     this.baseUrl = ORDISCAN_API_URL()
-    
-    if (!this.apiKey) {
-      throw new Error('ORDISCAN_API_KEY is required for portfolio functionality')
-    }
+    this.isAvailable = !!this.apiKey
+  }
+
+  /**
+   * Check if the portfolio service is available (has API key)
+   */
+  isServiceAvailable(): boolean {
+    return this.isAvailable
   }
 
   /**
    * Get alkane balances for a specific Bitcoin address
    */
   async getAlkaneBalances(address: string): Promise<AlkaneBalance[]> {
+    if (!this.isAvailable) {
+      throw new Error('Portfolio service is not available - ORDISCAN_API_KEY is missing')
+    }
+
     try {
       const url = `${this.baseUrl}/v1/address/${address}/alkanes`
       
@@ -95,6 +104,10 @@ export class PortfolioService {
    * Get BRC-20 token balances for a specific Bitcoin address
    */
   async getBrc20Balances(address: string): Promise<Brc20Balance[]> {
+    if (!this.isAvailable) {
+      throw new Error('Portfolio service is not available - ORDISCAN_API_KEY is missing')
+    }
+
     try {
       const url = `${this.baseUrl}/v1/address/${address}/brc-20`
       
