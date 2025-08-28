@@ -81,12 +81,32 @@ export class BrcTokenService extends BaseService<BrcToken> {
   }
 
   async getBrcsByTicker(tickers: string[]) {
+    // Normalize tickers by trimming whitespace
+    const normalizedTickers = tickers.map(ticker => ticker.trim())
     return await this.collection
-      .find({ ticker: { $in: tickers }, initialised: true })
+      .find({ ticker: { $in: normalizedTickers }, initialised: true })
       .toArray()
   }
 
   async getBrcByTicker(ticker: string) {
-    return await this.collection.findOne({ ticker, initialised: true })
+    // First try exact match for performance
+    let token = await this.collection.findOne({ ticker, initialised: true })
+    if (token) return token
+
+    // If exact match fails, try normalized search (trimmed)
+    const normalizedTicker = ticker.trim()
+    if (normalizedTicker !== ticker) {
+      token = await this.collection.findOne({ ticker: normalizedTicker, initialised: true })
+      if (token) return token
+    }
+
+    // If still no match, try case-insensitive regex search for partial matches
+    // This handles cases where there might be whitespace differences or special characters
+    token = await this.collection.findOne({ 
+      ticker: { $regex: `^${normalizedTicker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' }, 
+      initialised: true 
+    })
+    
+    return token
   }
 }

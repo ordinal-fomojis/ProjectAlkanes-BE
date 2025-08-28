@@ -95,12 +95,31 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
   }
 
   async getTokensByAlkaneIds(alkaneIds: string[]) {
+    // Normalize alkaneIds by trimming whitespace
+    const normalizedIds = alkaneIds.map(id => id.trim())
     return await this.collection
-      .find({ alkaneId: { $in: alkaneIds } })
+      .find({ alkaneId: { $in: normalizedIds } })
       .toArray()
   }
 
   async getAlkaneById(alkaneId: string) {
-    return await this.collection.findOne({ alkaneId })
+    // First try exact match for performance
+    let token = await this.collection.findOne({ alkaneId })
+    if (token) return token
+
+    // If exact match fails, try normalized search (trimmed)
+    const normalizedId = alkaneId.trim()
+    if (normalizedId !== alkaneId) {
+      token = await this.collection.findOne({ alkaneId: normalizedId })
+      if (token) return token
+    }
+
+    // If still no match, try case-insensitive regex search for partial matches
+    // This handles cases where there might be whitespace differences or special characters
+    token = await this.collection.findOne({ 
+      alkaneId: { $regex: `^${normalizedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' }
+    })
+    
+    return token
   }
 }
