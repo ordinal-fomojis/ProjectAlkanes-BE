@@ -29,7 +29,7 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
         // Remove HTML tags and dangerous characters but preserve auth-related characters
         req.body[key] = req.body[key]
           .replace(/<[^>]*>/g, '')
-                      .replace(/[^\w\-.\s:/\n\r\t]/g, '')  // Allow colons, slashes, newlines for auth messages
+          .replace(/[^\w\-.\s:/\n\r\t]/g, '')  // Allow colons, slashes, newlines for auth messages
           .trim();
       }
     });
@@ -45,6 +45,24 @@ export const sanitizeRequest = (req: Request, _: Response, next: NextFunction): 
           .trim();
       }
     });
+  }
+
+  // Special handling for ticker parameters - preserve trailing spaces for token lookup
+  if (req.params && req.params.ticker) {
+    // Don't trim ticker parameters as they may contain meaningful trailing spaces
+    // Only remove HTML tags and dangerous characters
+    req.params.ticker = req.params.ticker
+      .replace(/<[^>]*>/g, '')
+      .replace(/[^\w\-.\s]/g, ''); // Allow alphanumeric, hyphens, dots, and spaces (including trailing)
+  }
+
+  // Special handling for alkane ID parameters - preserve trailing spaces for token lookup
+  if (req.params && req.params.id) {
+    // Don't trim ID parameters as they may contain meaningful trailing spaces
+    // Only remove HTML tags and dangerous characters
+    req.params.id = req.params.id
+      .replace(/<[^>]*>/g, '')
+      .replace(/[^\w\-.\s]/g, ''); // Allow alphanumeric, hyphens, dots, and spaces (including trailing)
   }
   
   next();
