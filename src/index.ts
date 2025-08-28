@@ -13,6 +13,7 @@ import brcTokenRoutes from './routes/brcTokenRoutes.js'
 import brcTransactionRoutes from './routes/brcTransactionRoutes.js'
 import feeRoutes from './routes/feeRoutes.js'
 import pointsRoutes from './routes/pointsRoutes.js'
+import portfolioRoutes from './routes/portfolioRoutes.js'
 import referralRoutes from './routes/referralRoutes.js'
 import transactionConfirmationRoutes from './routes/transactionConfirmationRoutes.js'
 import userRoutes from './routes/userRoutes.js'
@@ -103,6 +104,7 @@ app.use('/api/transaction', transactionConfirmationRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/points', pointsRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -151,6 +153,7 @@ async function startServer() {
       console.log(`👥 User API: http://localhost:${PORT}/api/users`);
       console.log(`🎯 Referral API: http://localhost:${PORT}/api/referral`);
       console.log(`💰 Fee API: http://localhost:${PORT}/api/fees/recommended`);
+      console.log(`📊 Portfolio API: http://localhost:${PORT}/api/portfolio`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
