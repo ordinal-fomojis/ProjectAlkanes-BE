@@ -48,3 +48,10 @@ export const ENCRYPTION_KEY = () => _ENCRYPTION_KEY
 
 const _INITIALISE_INDEXES = parse(z.enum(['true', 'false']).default('false'), process.env.INITIALISE_INDEXES) === 'true'
 export const INITIALISE_INDEXES = () => _INITIALISE_INDEXES || ENV !== 'development'
+
+// Ordiscan API Configuration
+const _ORDISCAN_API_KEY = process.env.ORDISCAN_API_KEY || undefined
+export const ORDISCAN_API_KEY = () => _ORDISCAN_API_KEY
+
+const _ORDISCAN_API_URL = parse(z.string().default('https://api.ordiscan.com'), process.env.ORDISCAN_API_URL)
+export const ORDISCAN_API_URL = () => _ORDISCAN_API_URL
