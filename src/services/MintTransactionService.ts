@@ -21,15 +21,17 @@ export interface MintTransaction {
   // random id that is identical for all transactions in a single request
   requestId: string
   created: Date
+  confirmed: boolean
 }
 
 export class MintTransactionService extends BaseService<MintTransaction> {
   collectionName = DatabaseCollection.MintTransactions
 
-  async createMintTransaction(mintTx: Omit<MintTransaction, 'created'>, session?: ClientSession) {
+  async createMintTransaction(mintTx: Omit<MintTransaction, 'created' | 'confirmed'>, session?: ClientSession) {
     const { insertedId } = await this.collection.insertOne({
       ...mintTx,
       created: new Date(),
+      confirmed: false
     }, { session })
 
     return insertedId

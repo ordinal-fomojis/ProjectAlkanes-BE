@@ -2,7 +2,6 @@ import { Response, Router } from 'express'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
-import { TransactionConfirmationService } from '../services/TransactionConfirmationService.js'
 
 const router = Router();
 
@@ -23,7 +22,6 @@ router.get('/alkane/recent-mints', authenticateJWT, async (req: AuthenticatedReq
 
     const mintTransactionService = new MintTransactionService();
     const alkaneTokenService = new AlkaneTokenService();
-    const transactionConfirmationService = new TransactionConfirmationService();
 
     // Get all mint transactions for the authenticated user
     // Enhanced search handles:
@@ -43,20 +41,8 @@ router.get('/alkane/recent-mints', authenticateJWT, async (req: AuthenticatedReq
     const tokenMap = new Map(tokens.map(token => [token.alkaneId, token]));
 
     // Format the response and check confirmation status for each transaction
-    const formattedMints = await Promise.all(mintTransactions.map(async (mint) => {
+    const formattedMints = mintTransactions.map(mint => {
       const token = tokenMap.get(mint.tokenId);
-      
-      // Check confirmation status for the payment transaction
-      let confirmed = false;
-      try {
-        const confirmationResult = await transactionConfirmationService.checkTransactionConfirmation(mint.paymentTxid);
-        confirmed = confirmationResult.confirmed;
-      } catch (error) {
-        // If we can't check confirmation, assume it's not confirmed
-        console.warn(`Failed to check confirmation for txid ${mint.paymentTxid}:`, error);
-        confirmed = false;
-      }
-
       return {
         date: mint.created,
         mintCount: mint.mintCount,
@@ -64,9 +50,9 @@ router.get('/alkane/recent-mints', authenticateJWT, async (req: AuthenticatedReq
         alkaneId: mint.tokenId,
         tokenName: token?.name ?? 'Unknown Token',
         tokenSymbol: token?.symbol ?? 'UNKNOWN',
-        confirmed: confirmed
+        confirmed: mint.confirmed
       };
-    }));
+    });
 
     res.status(200).json({
       success: true,
@@ -95,7 +81,6 @@ router.get('/brc/recent-mints', authenticateJWT, async (req: AuthenticatedReques
     }
 
     const mintTransactionService = new MintTransactionService();
-    const transactionConfirmationService = new TransactionConfirmationService();
 
     // Get all mint transactions for the authenticated user
     // Enhanced search handles:
@@ -106,26 +91,13 @@ router.get('/brc/recent-mints', authenticateJWT, async (req: AuthenticatedReques
     const mintTransactions = await mintTransactionService.getMintTransactionsByWalletAddress(req.user.walletAddress, 'brc');
 
     // Format the response and check confirmation status for each transaction
-    const formattedMints = await Promise.all(mintTransactions.map(async (mint) => {      
-      // Check confirmation status for the payment transaction
-      let confirmed = false;
-      try {
-        const confirmationResult = await transactionConfirmationService.checkTransactionConfirmation(mint.paymentTxid);
-        confirmed = confirmationResult.confirmed;
-      } catch (error) {
-        // If we can't check confirmation, assume it's not confirmed
-        console.warn(`Failed to check confirmation for txid ${mint.paymentTxid}:`, error);
-        confirmed = false;
-      }
-
-      return {
-        date: mint.created,
-        mintCount: mint.mintCount,
-        txid: mint.paymentTxid,
-        ticker: mint.tokenId,
-        confirmed: confirmed
-      };
-    }));
+    const formattedMints = mintTransactions.map(mint => ({
+      date: mint.created,
+      mintCount: mint.mintCount,
+      txid: mint.paymentTxid,
+      ticker: mint.tokenId,
+      confirmed: mint.confirmed
+    }))
 
     res.status(200).json({
       success: true,
