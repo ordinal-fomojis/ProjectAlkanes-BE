@@ -12,7 +12,8 @@ const ParamsSchema = z.object({
   orderBy: z.enum(['deployTimestamp', 'percentageMinted', 'currentMintCount', 'holdersCount']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
   mintable: z.enum(['true', 'false']).optional(),
-  mintedOut: z.enum(['true', 'false']).optional()
+  mintedOut: z.enum(['true', 'false']).optional(),
+  tickerLength: z.coerce.number().optional()
 })
 
 router.get('/', async (req: Request, res: Response): Promise<void> => {
@@ -23,13 +24,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     orderBy = 'deployTimestamp',
     order = 'asc',
     mintable = null,
-    mintedOut = null
+    mintedOut = null,
+    tickerLength = null
   } = parse(ParamsSchema, req.query)
   const service = new BrcTokenService()
   const tokens = await service.searchBrcTokens({
     searchTerm: search ?? null, page, pageSize, order: { field: orderBy, order },
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
-    mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null
+    mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
+    tickerLength
   });
 
   res.status(200).json({

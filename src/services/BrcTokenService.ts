@@ -30,6 +30,7 @@ export interface BrcToken {
   deployTimestamp: Date
   percentageMinted: number
   currentMintCount: number
+  tickerLength: number
 }
 
 type BrcSortableField = 'deployTimestamp' | 'percentageMinted' | 'currentMintCount' | 'holdersCount'
@@ -42,13 +43,14 @@ interface BrcSearchQuery {
   order: BrcSortOrder
   mintable: boolean | null
   mintedOut: boolean | null
+  tickerLength: number | null
 }
 
 export class BrcTokenService extends BaseService<BrcToken> {
   collectionName = DatabaseCollection.BrcTokens
 
   async searchBrcTokens(
-    { searchTerm, page, pageSize, order, mintable, mintedOut }: BrcSearchQuery
+    { searchTerm, page, pageSize, order, mintable, mintedOut, tickerLength }: BrcSearchQuery
   ): Promise<BrcToken[]> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm?.trim() ?? null
@@ -66,6 +68,10 @@ export class BrcTokenService extends BaseService<BrcToken> {
       query.mintedOut = mintedOut
     }
 
+    if (tickerLength != null) {
+      query.tickerLength = tickerLength
+    }
+
     const direction = order.order === 'asc' ? 1 : -1 as const
     const sortObject = order.field === 'deployTimestamp'
       ? { [order.field]: direction } as const
@@ -81,32 +87,12 @@ export class BrcTokenService extends BaseService<BrcToken> {
   }
 
   async getBrcsByTicker(tickers: string[]) {
-    // Normalize tickers by trimming whitespace
-    const normalizedTickers = tickers.map(ticker => ticker.trim())
     return await this.collection
-      .find({ ticker: { $in: normalizedTickers }, initialised: true })
+      .find({ ticker: { $in: tickers }, initialised: true })
       .toArray()
   }
 
   async getBrcByTicker(ticker: string) {
-    // First try exact match for performance
-    let token = await this.collection.findOne({ ticker, initialised: true })
-    if (token) return token
-
-    // If exact match fails, try normalized search (trimmed)
-    const normalizedTicker = ticker.trim()
-    if (normalizedTicker !== ticker) {
-      token = await this.collection.findOne({ ticker: normalizedTicker, initialised: true })
-      if (token) return token
-    }
-
-    // If still no match, try case-insensitive regex search for partial matches
-    // This handles cases where there might be whitespace differences or special characters
-    token = await this.collection.findOne({ 
-      ticker: { $regex: `^${normalizedTicker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' }, 
-      initialised: true 
-    })
-    
-    return token
+    return await this.collection.findOne({ ticker, initialised: true })
   }
 }
