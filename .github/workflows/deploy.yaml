@@ -62,9 +62,7 @@ jobs:
       id: tf-outputs
       run: |
         terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
-        webapp_name=$(terraform output -json webapp_name)
-        echo "main_name=$(echo $webapp_name | jq -r '."main"')" >> $GITHUB_OUTPUT
-        echo "mock_name=$(echo $webapp_name | jq -r '."mock"')" >> $GITHUB_OUTPUT
+        echo "webapp_name=$(terraform output -raw webapp_name)" >> $GITHUB_OUTPUT
       working-directory: terraform
 
     - name: Clean Up Terraform
@@ -74,23 +72,23 @@ jobs:
     - name: Deploy Testnet
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
         slot-name: 'testnet'
     
     - name: Deploy Mock
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
         slot-name: 'mock'
 
     - name: Deploy Dev
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
         slot-name: 'dev'
 
     - name: Deploy Stage
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
         slot-name: 'stage'
