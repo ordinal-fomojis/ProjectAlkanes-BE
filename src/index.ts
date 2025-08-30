@@ -28,12 +28,12 @@ app.use(helmet());
 app.use(securityHeaders);
 
 // CORS configuration
-const corsOptions = {
-  origin: new RegExp(process.env.CORS_ORIGIN ?? /^http:\/\/localhost:3000$/),
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-if (process.env.CORS_ENABLED !== 'false') {
+if (process.env.CORS_ENABLED !== 'false' && typeof process.env.CORS_ORIGIN === 'string') {
+  const corsOptions = {
+    origin: new RegExp(process.env.CORS_ORIGIN),
+    credentials: true,
+    optionsSuccessStatus: 200
+  };
   app.use(cors(corsOptions));
 }
 

@@ -7,9 +7,7 @@ export const ENV = parse(z.enum(['production', 'development', 'test']).default('
 config({
   path: ENV === 'test'
     ? '.env.sample'
-    : ENV === 'production'
-      ? '.env.production'
-      : undefined,
+    : process.env.DOTENV_PATH,
   quiet: true
 })
 
