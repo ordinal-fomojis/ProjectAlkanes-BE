@@ -1,12 +1,22 @@
 name: Deploy Api
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       id:
         description: 'Id of the IaC deployment. Leave blank for the default prod deployment'
         default: ''
         type: string
+      env:
+        description: 'Deployment environment'
+        default: 'nonprod'
+        type: choice
+        options:
+          - nonprod
+          - all
 
 permissions:
   id-token: write
@@ -69,6 +79,12 @@ jobs:
       run: |
         rm -rf terraform
     
+    - name: Deploy Dev
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
+        slot-name: 'dev'
+
     - name: Deploy Testnet
       uses: azure/webapps-deploy@v3
       with:
@@ -81,13 +97,8 @@ jobs:
         app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
         slot-name: 'mock'
 
-    - name: Deploy Dev
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
-        slot-name: 'dev'
-
     - name: Deploy Stage
+      if: github.ref_name == 'main' && inputs.env == 'all'
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
