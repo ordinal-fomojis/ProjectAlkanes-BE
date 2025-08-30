@@ -74,14 +74,27 @@ jobs:
     - name: Clean Up Terraform
       run: |
         rm -rf terraform
-
-    - name: Deploy Mock Web App
+    
+    - name: Deploy Testnet
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.tf-outputs.outputs.mock_name }}
-
-    - name: Deploy Web App
+        slot-name: 'testnet'
+    
+    - name: Deploy Mock
       uses: azure/webapps-deploy@v3
-      if: ${{ github.ref_name == 'main' }}
       with:
-        app-name: ${{ steps.tf-outputs.outputs.main_name }}
+        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        slot-name: 'mock'
+
+    - name: Deploy Dev
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        slot-name: 'dev'
+
+    - name: Deploy Stage
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ steps.tf-outputs.outputs.mock_name }}
+        slot-name: 'stage'
