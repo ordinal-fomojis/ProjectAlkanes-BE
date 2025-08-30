@@ -38,7 +38,7 @@ export const DB_NAME = () => _MONGODB_DB_NAME
 const _RECEIVE_ADDRESS = env('RECEIVE_ADDRESS')
 export const RECEIVE_ADDRESS = () => _RECEIVE_ADDRESS
 
-const _MOCK_BTC = parse(z.enum(['true', 'false']).default('true'), process.env.MOCK_BTC) === 'true'
+const _MOCK_BTC = parse(z.enum(['true', 'false']).default('false'), process.env.MOCK_BTC) === 'true'
 export const MOCK_BTC = () => _MOCK_BTC
 
 const _ENCRYPTION_KEY = env('ENCRYPTION_KEY')
