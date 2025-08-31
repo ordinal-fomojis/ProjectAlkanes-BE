@@ -64,11 +64,11 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     console.log('\n📍 Phase 2: Alice Mints and Progresses')
     
     // Alice mints tokens (gets mint points)
-    await pointsService.awardMintPoints(aliceWallet, 100, 10) // 100 mints * 10 = 1000 points
+    await pointsService.awardMintPoints(aliceWallet, 1000, 10) // 1000 mints * 10 = 10000 points
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
-    expect(aliceInfo?.points).toBe(1000)
-    expect(aliceInfo?.tier.level).toBe('Uncommon') // 1000 points = Uncommon
-    console.log(`✓ Alice minted 100 tokens, reached ${aliceInfo?.tier.level} tier (${aliceInfo?.points} points)`)
+    expect(aliceInfo?.points).toBe(10000)
+    expect(aliceInfo?.tier.level).toBe('Uncommon') // 10000 points = Uncommon
+    console.log(`✓ Alice minted 1000 tokens, reached ${aliceInfo?.tier.level} tier (${aliceInfo?.points} points)`)
 
     // === PHASE 3: ALICE REFERS BOB ===
     console.log('\n📍 Phase 3: Alice Refers Bob')
@@ -119,7 +119,7 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     expect(bobInfo?.tier.level).toBe('Common') // Still Common tier
     
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
-    expect(aliceInfo?.points).toBe(1050) // 1000 mint + 50 referral
+    expect(aliceInfo?.points).toBe(10050) // 10000 mint + 50 referral
     expect(aliceInfo?.pointsEarnedFromReferrals).toBe(50)
     expect(aliceInfo?.tier.level).toBe('Uncommon') // Still Uncommon
     console.log(`✓ Alice: ${aliceInfo?.points} total points (${aliceInfo?.pointsEarnedFromReferrals} from referrals)`)
@@ -145,23 +145,23 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
     expect(aliceInfo?.totalReferrals).toBe(41) // Bob + 40 others
-    expect(aliceInfo?.points).toBe(2050) // 1000 mint + 1050 referral (50 + 1000)
+    expect(aliceInfo?.points).toBe(11050) // 10000 mint + 1050 referral (50 + 1000)
     expect(aliceInfo?.pointsEarnedFromReferrals).toBe(1050)
-    expect(aliceInfo?.tier.level).toBe('Uncommon') // Still Uncommon (need 5000 for Rare)
+    expect(aliceInfo?.tier.level).toBe('Uncommon') // Still Uncommon (need 50000 for Rare)
     console.log(`✓ Alice has ${aliceInfo?.totalReferrals} referrals, ${aliceInfo?.points} total points`)
 
     // === PHASE 6: ALICE REACHES RARE TIER ===
     console.log('\n📍 Phase 6: Alice Reaches Rare Tier')
     
     // Alice mints more tokens to reach Rare tier
-    await pointsService.awardMintPoints(aliceWallet, 295, 10) // 295 * 10 = 2950 more points
+    await pointsService.awardMintPoints(aliceWallet, 3620, 10) // 3620 * 10 = 36200 more points
     
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
-         expect(aliceInfo?.points).toBe(5590) // 2050 + 3540 (2950 × 1.2 Uncommon bonus)
+         expect(aliceInfo?.points).toBe(54490) // 11050 + 43440 (36200 × 1.2 Uncommon bonus)
     expect(aliceInfo?.tier.level).toBe('Rare')
     expect(aliceInfo?.tier.bonus).toBe(1.5)
     expect(aliceInfo?.nextTier?.level).toBe('Epic')
-         expect(aliceInfo?.pointsToNextTier).toBe(14410) // 20000 - 5590
+         expect(aliceInfo?.pointsToNextTier).toBe(145510) // 200000 - 54490
     console.log(`✓ Alice reached ${aliceInfo?.tier.level} tier! Next: ${aliceInfo?.nextTier?.level} (need ${aliceInfo?.pointsToNextTier} more points)`)
 
     // === PHASE 7: ALICE GETS TIER BONUS ===
@@ -175,7 +175,7 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     console.log(`✓ Alice minted 10 tokens with Rare bonus: ${aliceBonusMint.pointsAwarded} points`)
     
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
-         expect(aliceInfo?.points).toBe(5740) // 5590 + 150
+         expect(aliceInfo?.points).toBe(54640) // 54490 + 150
     console.log(`✓ Alice final stats: ${aliceInfo?.points} points, ${aliceInfo?.tier.level} tier, ${aliceInfo?.totalReferrals} referrals`)
 
     // === PHASE 8: BOB CREATES CUSTOM REFERRAL LINK ===
@@ -214,7 +214,7 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     aliceInfo = await referralService.getReferralInfo(aliceWallet)
     expect(aliceInfo?.tier.level).toBe('Rare')
     expect(aliceInfo?.totalReferrals).toBe(41)
-    expect(aliceInfo?.points).toBeGreaterThan(5000)
+    expect(aliceInfo?.points).toBeGreaterThan(50000)
     
     // Bob: Mid-tier user who refers others
     bobInfo = await referralService.getReferralInfo(bobWallet)

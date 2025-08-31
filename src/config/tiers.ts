@@ -15,25 +15,25 @@ export const TIER_SYSTEM: TierConfig[] = [
   {
     level: 'Uncommon',
     bonus: 1.2,      // 20% bonus
-    threshold: 1000, 
+    threshold: 10000, 
     rank: 2
   },
   {
     level: 'Rare',
     bonus: 1.5,      // 50% bonus
-    threshold: 5000,
+    threshold: 50000,
     rank: 3
   },
   {
     level: 'Epic',
     bonus: 2.0,      // 100% bonus
-    threshold: 20000,
+    threshold: 200000,
     rank: 4
   },
   {
     level: 'Legendary',
     bonus: 2.5,      // 150% bonus
-    threshold: 50000,
+    threshold: 500000,
     rank: 5
   }
 ];

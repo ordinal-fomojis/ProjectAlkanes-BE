@@ -215,29 +215,29 @@ describe('Referral Gate Integration Flow', () => {
       const referrer = await userService.createUser({ walletAddress: referrerWallet })
       await referralService.enterReferralCode(referrerWallet, 'BOOTSTRAP')
 
-      // Award initial mint points to referrer (900 points - still Common tier)
-      await pointsService.addPoints(referrerWallet, 900)
+      // Award initial mint points to referrer (9000 points - still Common tier)
+      await pointsService.addPoints(referrerWallet, 9000)
 
       // Setup multiple referred users who will mint
       const referredUsers = []
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 100; i++) {
         const referredWallet = randomAddress()
         await userService.createUser({ walletAddress: referredWallet })
         await referralService.enterReferralCode(referredWallet, referrer.referralCode!)
         referredUsers.push(referredWallet)
       }
 
-      // Each referred user mints 10 tokens (gives referrer 10 points each = 100 total)
+      // Each referred user mints 10 tokens (gives referrer 10 points each = 1000 total)
       for (const wallet of referredUsers) {
         await pointsService.awardReferralPoints(wallet, 10, new ObjectId())
       }
 
-      // Referrer should now have 900 + 100 = 1000 points = Uncommon tier
+      // Referrer should now have 9000 + 1000 = 10000 points = Uncommon tier
       const referrerInfo = await referralService.getReferralInfo(referrerWallet)
-      expect(referrerInfo?.points).toBe(1000)
+      expect(referrerInfo?.points).toBe(10000)
       expect(referrerInfo?.tier.level).toBe('Uncommon')
       expect(referrerInfo?.tier.bonus).toBe(1.2)
-      expect(referrerInfo?.pointsEarnedFromReferrals).toBe(100)
+      expect(referrerInfo?.pointsEarnedFromReferrals).toBe(1000)
     })
   })
 }) 

@@ -112,12 +112,12 @@ describe('Complete Mint Points Flow Integration', () => {
     )
 
     // === Give Charlie enough referral points to reach Uncommon tier ===
-    // Manually set Charlie to have 1500 referral points (above 1000 threshold)
+    // Manually set Charlie to have 15000 referral points (above 10000 threshold)
     await database.getDb().collection('users').updateOne(
       { _id: charlie._id },
       { $set: { 
-        pointsEarnedFromReferrals: 1500,
-        points: 1500 
+        pointsEarnedFromReferrals: 15000,
+        points: 15000 
       } }
     )
 
@@ -136,9 +136,9 @@ describe('Complete Mint Points Flow Integration', () => {
     expect(referralResult.awarded).toBe(true)
     expect(referralResult.pointsAwarded).toBe(15)
 
-    // Check Charlie now has 1515 referral points (still Uncommon tier)
+    // Check Charlie now has 15015 referral points (still Uncommon tier)
     const charlieAfterReferrals = await pointsService.getUserByWallet(charlieWallet)
-    expect(charlieAfterReferrals?.pointsEarnedFromReferrals).toBe(1515)
+    expect(charlieAfterReferrals?.pointsEarnedFromReferrals).toBe(15015)
 
     // === CHARLIE MINTS 1 TOKEN (should get Uncommon tier bonus) ===
     console.log('=== Charlie mints 1 token with Uncommon tier bonus ===')
@@ -152,7 +152,7 @@ describe('Complete Mint Points Flow Integration', () => {
     const finalCharliePoints = await pointsService.getPointsBalance(charlieWallet)
     const finalDavidPoints = await pointsService.getPointsBalance(davidWallet)
 
-    expect(finalCharliePoints).toBe(1527) // 1500 (initial) + 15 (referrals) + 12 (own mint with bonus)
+    expect(finalCharliePoints).toBe(15027) // 15000 (initial) + 15 (referrals) + 12 (own mint with bonus)
     expect(finalDavidPoints).toBe(150) // 15 × 10 (own mints, Common tier)
 
     console.log(`Final: Charlie has ${finalCharliePoints} points (with Uncommon tier bonus), David has ${finalDavidPoints} points`)
@@ -180,12 +180,12 @@ describe('Complete Mint Points Flow Integration', () => {
     }
 
     // === GIVE EVE HIGH TIER THROUGH MANUAL SETUP ===
-    // Manually set Eve to Epic tier (20000+ referral points)
+    // Manually set Eve to Epic tier (200000+ referral points)
     await database.getDb().collection('users').updateOne(
       { _id: eve._id },
       { $set: { 
-        pointsEarnedFromReferrals: 25000, // Epic tier (20000+ points)
-        points: 25000 
+        pointsEarnedFromReferrals: 250000, // Epic tier (200000+ points)
+        points: 250000 
       } }
     )
 
@@ -217,10 +217,10 @@ describe('Complete Mint Points Flow Integration', () => {
 
     // === FINAL CHECKS ===
     const finalEvePoints = await pointsService.getPointsBalance(eveWallet)
-    expect(finalEvePoints).toBe(25026) // 25000 (initial) + 6 (referrals: 3×2) + 20 (own mint with Epic bonus)
+    expect(finalEvePoints).toBe(250026) // 250000 (initial) + 6 (referrals: 3×2) + 20 (own mint with Epic bonus)
 
     const finalEve = await pointsService.getUserByWallet(eveWallet)
-    expect(finalEve?.pointsEarnedFromReferrals).toBe(25006) // 25000 (initial) + 6 (from referrals)
+    expect(finalEve?.pointsEarnedFromReferrals).toBe(250006) // 250000 (initial) + 6 (from referrals)
 
     console.log(`Final: Eve has ${finalEvePoints} total points (${finalEve?.pointsEarnedFromReferrals} from referrals) with Epic tier`)
   })
