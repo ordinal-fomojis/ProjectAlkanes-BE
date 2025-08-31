@@ -8,7 +8,7 @@ const environments = readdirSync('env').map(file => file.replace('.env.', '')).f
 
 export default function (plop: NodePlopAPI) {
   plop.setGenerator('set-env-variable', {
-    description: 'Set a new, or updates and existing environment variable',
+    description: 'Set a new, or update an existing environment variable',
     prompts: [
       {
         type: 'confirm',
