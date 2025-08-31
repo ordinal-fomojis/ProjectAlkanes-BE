@@ -34,15 +34,15 @@ describe('Tier Calculation with Total Points System', () => {
     it('should correctly calculate tiers based on total points', () => {
       // Test all tier thresholds
       expect(getTierByPoints(0)).toMatchObject({ level: 'Common', bonus: 1.0 })
-      expect(getTierByPoints(999)).toMatchObject({ level: 'Common', bonus: 1.0 })
-      expect(getTierByPoints(1000)).toMatchObject({ level: 'Uncommon', bonus: 1.2 })
-      expect(getTierByPoints(4999)).toMatchObject({ level: 'Uncommon', bonus: 1.2 })
-      expect(getTierByPoints(5000)).toMatchObject({ level: 'Rare', bonus: 1.5 })
-      expect(getTierByPoints(19999)).toMatchObject({ level: 'Rare', bonus: 1.5 })
-      expect(getTierByPoints(20000)).toMatchObject({ level: 'Epic', bonus: 2.0 })
-      expect(getTierByPoints(49999)).toMatchObject({ level: 'Epic', bonus: 2.0 })
-      expect(getTierByPoints(50000)).toMatchObject({ level: 'Legendary', bonus: 2.5 })
-      expect(getTierByPoints(100000)).toMatchObject({ level: 'Legendary', bonus: 2.5 })
+      expect(getTierByPoints(9999)).toMatchObject({ level: 'Common', bonus: 1.0 })
+      expect(getTierByPoints(10000)).toMatchObject({ level: 'Uncommon', bonus: 1.2 })
+      expect(getTierByPoints(49999)).toMatchObject({ level: 'Uncommon', bonus: 1.2 })
+      expect(getTierByPoints(50000)).toMatchObject({ level: 'Rare', bonus: 1.5 })
+      expect(getTierByPoints(199999)).toMatchObject({ level: 'Rare', bonus: 1.5 })
+      expect(getTierByPoints(200000)).toMatchObject({ level: 'Epic', bonus: 2.0 })
+      expect(getTierByPoints(499999)).toMatchObject({ level: 'Epic', bonus: 2.0 })
+      expect(getTierByPoints(500000)).toMatchObject({ level: 'Legendary', bonus: 2.5 })
+      expect(getTierByPoints(1000000)).toMatchObject({ level: 'Legendary', bonus: 2.5 })
     })
 
     it('should calculate bonus points correctly for each tier', () => {
@@ -50,20 +50,20 @@ describe('Tier Calculation with Total Points System', () => {
       expect(calculateBonusPoints(10, getTierByPoints(0))).toBe(10)
       
       // Uncommon tier (1.2x)
-      expect(calculateBonusPoints(10, getTierByPoints(1000))).toBe(12)
+      expect(calculateBonusPoints(10, getTierByPoints(10000))).toBe(12)
       
       // Rare tier (1.5x)
-      expect(calculateBonusPoints(10, getTierByPoints(5000))).toBe(15)
+      expect(calculateBonusPoints(10, getTierByPoints(50000))).toBe(15)
       
       // Epic tier (2.0x)
-      expect(calculateBonusPoints(10, getTierByPoints(20000))).toBe(20)
+      expect(calculateBonusPoints(10, getTierByPoints(200000))).toBe(20)
       
       // Legendary tier (2.5x)
-      expect(calculateBonusPoints(10, getTierByPoints(50000))).toBe(25)
+      expect(calculateBonusPoints(10, getTierByPoints(500000))).toBe(25)
       
       // Test fractional results (should floor)
-      expect(calculateBonusPoints(3, getTierByPoints(1000))).toBe(3) // 3 * 1.2 = 3.6 -> 3
-      expect(calculateBonusPoints(7, getTierByPoints(1000))).toBe(8) // 7 * 1.2 = 8.4 -> 8
+      expect(calculateBonusPoints(3, getTierByPoints(10000))).toBe(3) // 3 * 1.2 = 3.6 -> 3
+      expect(calculateBonusPoints(7, getTierByPoints(10000))).toBe(8) // 7 * 1.2 = 8.4 -> 8
     })
   })
 
@@ -78,18 +78,18 @@ describe('Tier Calculation with Total Points System', () => {
       expect(userInfo?.tier.level).toBe('Common')
       expect(userInfo?.points).toBe(0)
 
-      // Award 1000 mint points → Uncommon tier
-      await pointsService.addPoints(userWallet, 1000)
+      // Award 10000 mint points → Uncommon tier
+      await pointsService.addPoints(userWallet, 10000)
       userInfo = await referralService.getReferralInfo(userWallet)
       expect(userInfo?.tier.level).toBe('Uncommon')
-      expect(userInfo?.points).toBe(1000)
+      expect(userInfo?.points).toBe(10000)
       expect(userInfo?.pointsEarnedFromReferrals).toBe(0) // Still 0 referral points
 
-      // Award 4000 more points → Rare tier
-      await pointsService.addPoints(userWallet, 4000)
+      // Award 40000 more points → Rare tier
+      await pointsService.addPoints(userWallet, 40000)
       userInfo = await referralService.getReferralInfo(userWallet)
       expect(userInfo?.tier.level).toBe('Rare')
-      expect(userInfo?.points).toBe(5000)
+      expect(userInfo?.points).toBe(50000)
     })
 
     it('should progress user through tiers via referral points only', async () => {
@@ -99,7 +99,7 @@ describe('Tier Calculation with Total Points System', () => {
 
       // Create many referred users who will mint
       const referredUsers = []
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 500; i++) {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const referrer = await userService.getUserByWalletAddress(referrerWallet)
@@ -108,14 +108,14 @@ describe('Tier Calculation with Total Points System', () => {
         referredUsers.push(wallet)
       }
 
-      // Each user mints 20 tokens (50 * 20 = 1000 referral points for referrer)
+      // Each user mints 20 tokens (500 * 20 = 10000 referral points for referrer)
       for (const wallet of referredUsers) {
         await pointsService.awardReferralPoints(wallet, 20, new ObjectId())
       }
 
       const referrerInfo = await referralService.getReferralInfo(referrerWallet)
-      expect(referrerInfo?.points).toBe(1000)
-      expect(referrerInfo?.pointsEarnedFromReferrals).toBe(1000)
+      expect(referrerInfo?.points).toBe(10000)
+      expect(referrerInfo?.pointsEarnedFromReferrals).toBe(10000)
       expect(referrerInfo?.tier.level).toBe('Uncommon')
     })
 
@@ -124,11 +124,11 @@ describe('Tier Calculation with Total Points System', () => {
       await userService.createUser({ walletAddress: userWallet })
       await referralService.enterReferralCode(userWallet, 'BOOTSTRAP')
 
-      // Award 700 mint points
-      await pointsService.addPoints(userWallet, 700)
+      // Award 7000 mint points
+      await pointsService.addPoints(userWallet, 7000)
       
-      // Create referred users who mint (300 referral points)
-      for (let i = 0; i < 30; i++) {
+      // Create referred users who mint (3000 referral points)
+      for (let i = 0; i < 300; i++) {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const user = await userService.getUserByWalletAddress(userWallet)
@@ -138,8 +138,8 @@ describe('Tier Calculation with Total Points System', () => {
       }
 
       const userInfo = await referralService.getReferralInfo(userWallet)
-      expect(userInfo?.points).toBe(1000) // 700 mint + 300 referral
-      expect(userInfo?.pointsEarnedFromReferrals).toBe(300)
+      expect(userInfo?.points).toBe(10000) // 7000 mint + 3000 referral
+      expect(userInfo?.pointsEarnedFromReferrals).toBe(3000)
       expect(userInfo?.tier.level).toBe('Uncommon')
     })
   })
@@ -150,8 +150,8 @@ describe('Tier Calculation with Total Points System', () => {
       await userService.createUser({ walletAddress: userWallet })
       await referralService.enterReferralCode(userWallet, 'BOOTSTRAP')
 
-      // Give user 1500 points (Uncommon tier)
-      await pointsService.addPoints(userWallet, 1500)
+      // Give user 15000 points (Uncommon tier)
+      await pointsService.addPoints(userWallet, 15000)
 
       // Award mint points with tier bonus
       const mintResult = await pointsService.awardMintPoints(userWallet, 1, 10) // 1 mint * 10 base
@@ -159,17 +159,17 @@ describe('Tier Calculation with Total Points System', () => {
       expect(mintResult.tier).toBe('Uncommon')
       expect(mintResult.bonus).toBe(1.2)
 
-      // Total should be 1500 + 12 = 1512
+      // Total should be 15000 + 12 = 15012
       const finalPoints = await pointsService.getPointsBalance(userWallet)
-      expect(finalPoints).toBe(1512)
+      expect(finalPoints).toBe(15012)
     })
 
     it('should apply tier bonuses to referral points based on referrer total', async () => {
-      // Setup high-tier referrer (5000 points = Rare tier)
+      // Setup high-tier referrer (50000 points = Rare tier)
       const referrerWallet = randomAddress()
       await userService.createUser({ walletAddress: referrerWallet })
       await referralService.enterReferralCode(referrerWallet, 'BOOTSTRAP')
-      await pointsService.addPoints(referrerWallet, 5000)
+      await pointsService.addPoints(referrerWallet, 50000)
 
       // Create referred user
       const referredWallet = randomAddress()
@@ -195,8 +195,8 @@ describe('Tier Calculation with Total Points System', () => {
       await userService.createUser({ walletAddress: userWallet })
       await referralService.enterReferralCode(userWallet, 'BOOTSTRAP')
 
-      // User at 999 points (Common tier)
-      await pointsService.addPoints(userWallet, 999)
+      // User at 9999 points (Common tier)
+      await pointsService.addPoints(userWallet, 9999)
       let userInfo = await referralService.getReferralInfo(userWallet)
       expect(userInfo?.tier.level).toBe('Common')
 
@@ -204,7 +204,7 @@ describe('Tier Calculation with Total Points System', () => {
       await pointsService.addPoints(userWallet, 1)
       userInfo = await referralService.getReferralInfo(userWallet)
       expect(userInfo?.tier.level).toBe('Uncommon')
-      expect(userInfo?.points).toBe(1000)
+      expect(userInfo?.points).toBe(10000)
     })
 
     it('should show correct next tier and points needed', async () => {
@@ -212,13 +212,13 @@ describe('Tier Calculation with Total Points System', () => {
       await userService.createUser({ walletAddress: userWallet })
       await referralService.enterReferralCode(userWallet, 'BOOTSTRAP')
 
-      // User with 1200 points (Uncommon tier)
-      await pointsService.addPoints(userWallet, 1200)
+      // User with 12000 points (Uncommon tier)
+      await pointsService.addPoints(userWallet, 12000)
       const userInfo = await referralService.getReferralInfo(userWallet)
       
       expect(userInfo?.tier.level).toBe('Uncommon')
       expect(userInfo?.nextTier?.level).toBe('Rare')
-      expect(userInfo?.pointsToNextTier).toBe(3800) // 5000 - 1200
+      expect(userInfo?.pointsToNextTier).toBe(38000) // 50000 - 12000
     })
 
     it('should handle max tier users (Legendary)', async () => {
@@ -226,8 +226,8 @@ describe('Tier Calculation with Total Points System', () => {
       await userService.createUser({ walletAddress: userWallet })
       await referralService.enterReferralCode(userWallet, 'BOOTSTRAP')
 
-      // User with 100k points (Legendary tier)
-      await pointsService.addPoints(userWallet, 100000)
+      // User with 1M points (Legendary tier)
+      await pointsService.addPoints(userWallet, 1000000)
       const userInfo = await referralService.getReferralInfo(userWallet)
       
       expect(userInfo?.tier.level).toBe('Legendary')

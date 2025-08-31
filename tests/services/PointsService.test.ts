@@ -47,13 +47,13 @@ describe('PointsService', () => {
       const minterWallet = randomAddress()
       const user = await userService.createUser({ walletAddress: minterWallet })
 
-      // Manually set referral points to put user in Uncommon tier (threshold: 1000)
+      // Manually set referral points to put user in Uncommon tier (threshold: 10000)
       // Need to set both points and pointsEarnedFromReferrals
       await database.getDb().collection('users').updateOne(
         { _id: user._id },
         { $set: { 
-          pointsEarnedFromReferrals: 1500,
-          points: 1500 
+          pointsEarnedFromReferrals: 15000,
+          points: 15000 
         } }
       )
 
@@ -64,13 +64,13 @@ describe('PointsService', () => {
       expect(result.tier).toBe('Uncommon')
       expect(result.bonus).toBe(1.2)
 
-      // Check user's total points (should be 1500 + 24 = 1524)
+      // Check user's total points (should be 15000 + 24 = 15024)
       const points = await pointsService.getPointsBalance(minterWallet)
-      expect(points).toBe(1524)
+      expect(points).toBe(15024)
 
       // Referral points should remain unchanged
       const updatedUser = await pointsService.getUserByWallet(minterWallet)
-      expect(updatedUser?.pointsEarnedFromReferrals).toBe(1500)
+      expect(updatedUser?.pointsEarnedFromReferrals).toBe(15000)
     })
 
     it('should handle non-existent user gracefully', async () => {
@@ -253,8 +253,8 @@ describe('PointsService', () => {
       await database.getDb().collection('users').updateOne(
         { _id: minter._id },
         { $set: { 
-          pointsEarnedFromReferrals: 1200, // Uncommon tier (1000+ points)
-          points: 1200 
+          pointsEarnedFromReferrals: 12000, // Uncommon tier (10000+ points)
+          points: 12000 
         } }
       )
 
@@ -276,14 +276,14 @@ describe('PointsService', () => {
 
       // Check final balances
       const minterPoints = await pointsService.getPointsBalance(minterWallet)
-      expect(minterPoints).toBe(1224) // 1200 (initial) + 24 (mint bonus) = 1224
+      expect(minterPoints).toBe(12024) // 12000 (initial) + 24 (mint bonus) = 12024
 
       const referrerPoints = await pointsService.getPointsBalance(referrerWallet)
       expect(referrerPoints).toBe(2) // 2 fixed referral points
 
       // Check referral points tracking
       const minterUser = await pointsService.getUserByWallet(minterWallet)
-      expect(minterUser?.pointsEarnedFromReferrals).toBe(1200) // Unchanged from mint
+      expect(minterUser?.pointsEarnedFromReferrals).toBe(12000) // Unchanged from mint
 
       const referrerUser = await pointsService.getUserByWallet(referrerWallet)
       expect(referrerUser?.pointsEarnedFromReferrals).toBe(2) // From referral

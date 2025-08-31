@@ -16,14 +16,14 @@ describe('Tier System', () => {
     expect(TIER_SYSTEM[1]!).toEqual({
       level: 'Uncommon',
       bonus: 1.2,
-      threshold: 1000,
+      threshold: 10000,
       rank: 2
     })
     
     expect(TIER_SYSTEM[4]!).toEqual({
       level: 'Legendary',
       bonus: 2.5,
-      threshold: 50000,
+      threshold: 500000,
       rank: 5
     })
   })
@@ -31,25 +31,25 @@ describe('Tier System', () => {
   it('should correctly determine tier by points', () => {
     // Common tier (0 points)
     expect(getTierByPoints(0)).toEqual(TIER_SYSTEM[0]!)
-    expect(getTierByPoints(500)).toEqual(TIER_SYSTEM[0]!)
-    expect(getTierByPoints(999)).toEqual(TIER_SYSTEM[0]!)
+    expect(getTierByPoints(5000)).toEqual(TIER_SYSTEM[0]!)
+    expect(getTierByPoints(9999)).toEqual(TIER_SYSTEM[0]!)
     
-    // Uncommon tier (1000+ points)
-    expect(getTierByPoints(1000)).toEqual(TIER_SYSTEM[1]!)
-    expect(getTierByPoints(2500)).toEqual(TIER_SYSTEM[1]!)
-    expect(getTierByPoints(4999)).toEqual(TIER_SYSTEM[1]!)
+    // Uncommon tier (10000+ points)
+    expect(getTierByPoints(10000)).toEqual(TIER_SYSTEM[1]!)
+    expect(getTierByPoints(25000)).toEqual(TIER_SYSTEM[1]!)
+    expect(getTierByPoints(49999)).toEqual(TIER_SYSTEM[1]!)
     
-    // Rare tier (5000+ points)
-    expect(getTierByPoints(5000)).toEqual(TIER_SYSTEM[2]!)
-    expect(getTierByPoints(15000)).toEqual(TIER_SYSTEM[2]!)
+    // Rare tier (50000+ points)
+    expect(getTierByPoints(50000)).toEqual(TIER_SYSTEM[2]!)
+    expect(getTierByPoints(150000)).toEqual(TIER_SYSTEM[2]!)
     
-    // Epic tier (20000+ points)
-    expect(getTierByPoints(20000)).toEqual(TIER_SYSTEM[3]!)
-    expect(getTierByPoints(40000)).toEqual(TIER_SYSTEM[3]!)
+    // Epic tier (200000+ points)
+    expect(getTierByPoints(200000)).toEqual(TIER_SYSTEM[3]!)
+    expect(getTierByPoints(400000)).toEqual(TIER_SYSTEM[3]!)
     
-    // Legendary tier (50000+ points)
-    expect(getTierByPoints(50000)).toEqual(TIER_SYSTEM[4]!)
-    expect(getTierByPoints(100000)).toEqual(TIER_SYSTEM[4]!)
+    // Legendary tier (500000+ points)
+    expect(getTierByPoints(500000)).toEqual(TIER_SYSTEM[4]!)
+    expect(getTierByPoints(1000000)).toEqual(TIER_SYSTEM[4]!)
   })
 
   it('should correctly determine next tier', () => {
