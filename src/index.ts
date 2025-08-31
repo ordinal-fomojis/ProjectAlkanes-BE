@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import { DB_NAME, ENV, INITIALISE_INDEXES, MONGODB_URI } from './config/env.js'
 import { database } from './database/database.js'
-import { sanitizeRequest, securityHeaders, validateContentType } from './middleware/security.js'
+import { securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
 import alkaneTokenRoutes from './routes/alkaneTokenRoutes.js'
 import alkaneTransactionRoutes from './routes/alkaneTransactionRoutes.js'
@@ -51,9 +51,6 @@ app.use(limiter);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Request sanitization
-app.use(sanitizeRequest);
 
 // Content type validation
 app.use(validateContentType);

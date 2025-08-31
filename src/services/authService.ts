@@ -2,7 +2,9 @@ import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { ObjectId } from 'mongodb'
 import { DatabaseCollection } from '../database/collections.js'
+import { UserError } from '../utils/errors.js'
 import { sanitizeAddress } from '../utils/sanitiseAddress.js'
+import { verifySignature } from '../utils/verifySignature.js'
 import { BaseService } from './BaseService.js'
 import { UserService } from './userService.js'
 
@@ -100,11 +102,8 @@ export class AuthService extends BaseService<NonceData> {
       { $set: { used: true } }
     );
 
-    // In a real implementation, you would verify the signature here
-    // This would involve checking the signature against the message using the wallet's public key
-    // For now, we'll assume the signature is valid if it exists and has proper format
-    if (!signature || signature.length < 10) {
-      throw new Error('Invalid signature format');
+    if (!verifySignature(signature, message, walletAddress)) {
+      throw new UserError('Invalid signature');
     }
 
     // Get or create user
