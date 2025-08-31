@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage && open coverage/index.html",
-    "lint": "eslint"
+    "lint": "eslint",
+    "plop": "cross-env NODE_OPTIONS='--import tsx' plop --plopfile=plopfile.ts"
   },
   "keywords": [],
   "author": "",
@@ -42,9 +43,11 @@
     "@types/node": "^24.3.0",
     "@types/seedrandom": "^3.0.8",
     "@vitest/coverage-istanbul": "3.2.4",
+    "cross-env": "^10.0.0",
     "eslint": "^9.34.0",
     "mongodb-memory-server": "^10.2.0",
     "nodemon": "^3.1.10",
+    "plop": "^4.0.1",
     "seedrandom": "^3.0.5",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
