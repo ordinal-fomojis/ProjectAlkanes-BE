@@ -1,5 +1,6 @@
-import { bigDecimal } from "js-big-decimal"
+
 import { BrcToken } from "../../../services/BrcTokenService.js"
+import { bigDecimal } from "../../big-decimal.js"
 import { MimeType } from "../../mime-type.js"
 
 interface BrcMintJson {
