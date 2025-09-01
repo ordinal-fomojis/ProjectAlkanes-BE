@@ -116,7 +116,7 @@ jobs:
         package: .
 
     - name: Deploy Production
-      if: inputs.env == 'prod'
+      if: github.ref_name == 'main'
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.tf-outputs.outputs.webapp_prod_name }}
