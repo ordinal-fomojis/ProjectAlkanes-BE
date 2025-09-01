@@ -16,7 +16,7 @@ on:
         type: choice
         options:
           - nonprod
-          - all
+          - prod
 
 permissions:
   id-token: write
@@ -72,7 +72,8 @@ jobs:
       id: tf-outputs
       run: |
         terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
-        echo "webapp_name=$(terraform output -raw webapp_name)" >> $GITHUB_OUTPUT
+        echo "webapp_prod_name=$(terraform output -raw webapp_prod_name)" >> $GITHUB_OUTPUT
+        echo "webapp_nonprod_name=$(terraform output -raw webapp_nonprod_name)" >> $GITHUB_OUTPUT
       working-directory: terraform
 
     - name: Clean Up Terraform
@@ -80,26 +81,28 @@ jobs:
         rm -rf terraform
     
     - name: Deploy Dev
+      if: inputs.env != 'prod'
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
-        slot-name: 'dev'
+        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
 
     - name: Deploy Testnet
+      if: inputs.env != 'prod'
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
         slot-name: 'testnet'
     
     - name: Deploy Mock
+      if: inputs.env != 'prod'
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
         slot-name: 'mock'
 
     - name: Deploy Stage
-      if: github.ref_name == 'main' && inputs.env == 'all'
+      if: github.ref_name == 'main' && inputs.env == 'prod'
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_name }}
+        app-name: ${{ steps.tf-outputs.outputs.webapp_prod_name }}
         slot-name: 'stage'
