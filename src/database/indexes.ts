@@ -38,15 +38,20 @@ const Indexes: Indexed = {
   brc_tokens: [
     [{ ticker: 1 }, { unique: true }],
     { synced: 1 },
+    { initialised: 1 },
     { deployTimestamp: 1 },
     { mintable: 1 },
     { mintedOut: 1 },
     { tickerLength: 1 },
-    // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
-    // so that newest are always first, regardless of what sort order is chosen
+    // Compound indexes for common query patterns with initialised filter
+    { initialised: 1, mintable: 1 },
+    { initialised: 1, mintedOut: 1 },
+    { initialised: 1, tickerLength: 1 },
+    // Compound indexes optimized for 6-byte ticker priority sorting
+    // Each sortable field with tickerLength priority and deployTimestamp fallback
     ...BrcSortableFields.flatMap(field => [
-      { [field]: 1, deployTimestamp: -1 },
-      { [field]: -1, deployTimestamp: -1 }
+      { initialised: 1, tickerLength: -1, [field]: 1, deployTimestamp: -1 },
+      { initialised: 1, tickerLength: -1, [field]: -1, deployTimestamp: -1 }
     ])
   ],
   block_heights: [
