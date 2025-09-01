@@ -73,17 +73,35 @@ export class BrcTokenService extends BaseService<BrcToken> {
     }
 
     const direction = order.order === 'asc' ? 1 : -1 as const
-    const sortObject = order.field === 'deployTimestamp'
-      ? { [order.field]: direction } as const
-      : { [order.field]: direction, deployTimestamp: -1 } as const // Newest tokens first as secondary sort
+    
+    // Use MongoDB aggregation to prioritize 6-byte tickers first
+    const pipeline = [
+      { $match: query },
+      {
+        $addFields: {
+          // Create a priority field: 0 for 6-byte tickers, 1 for others
+          tickerPriority: { $cond: { if: { $eq: ["$tickerLength", 6] }, then: 0, else: 1 } }
+        }
+      },
+      {
+        $sort: {
+          // First sort by priority (6-byte tickers first)
+          tickerPriority: 1,
+          // Then by the requested field
+          [order.field]: direction,
+          // Finally by deployTimestamp as fallback (newest first)
+          ...(order.field !== 'deployTimestamp' && { deployTimestamp: -1 })
+        }
+      },
+      { $skip: skip },
+      { $limit: pageSize },
+      // Remove the temporary priority field from results
+      { $unset: "tickerPriority" }
+    ]
 
     return await this.collection
-      .find(query)
-      .collation({ locale: "en" })
-      .sort(sortObject)
-      .skip(skip)
-      .limit(pageSize)
-      .toArray()
+      .aggregate(pipeline, { collation: { locale: "en" } })
+      .toArray() as BrcToken[]
   }
 
   async getBrcsByTicker(tickers: string[]) {
