@@ -20,6 +20,8 @@
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@dotenvx/dotenvx": "^1.49.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.62.2",
+    "@opentelemetry/sdk-node": "^0.204.0",
     "bip322-js": "^3.0.0",
     "bitcoinjs-lib": "^6.1.7",
     "cbor2": "^2.0.1",

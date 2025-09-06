@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { BITCOIN_NETWORK, UNISAT_API_KEY } from "../../config/env.js"
+import { BITCOIN_NETWORK, UNISAT_API_KEY } from "../../config/env-vars.js"
 import { retrySchemaFetch } from "../retryFetch.js"
 
 export async function unisatFetch<Output, Input>(schema: z.ZodType<Output, Input>, path: string) {

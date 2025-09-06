@@ -1,6 +1,6 @@
-import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env.js'
-import { retrySchemaFetch } from '../utils/retryFetch.js'
 import { z } from 'zod'
+import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env-vars.js'
+import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Ordiscan API response schemas
 const OrdiscanAlkaneBalanceSchema = z.object({

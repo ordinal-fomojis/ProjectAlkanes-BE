@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { BITCOIN_NETWORK, SANDSHREW_API_KEY } from "../../config/env.js"
+import { BITCOIN_NETWORK, SANDSHREW_API_KEY } from "../../config/env-vars.js"
 import { retrySchemaFetch } from "../retryFetch.js"
 
 const BitcoinRpcUrls = {

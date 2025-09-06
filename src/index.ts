@@ -1,8 +1,12 @@
+// Must be the first import to ensure instrumentation captures all modules and setup processes
+import './instrumentation.js'
+
 import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
-import { DB_NAME, ENV, INITIALISE_INDEXES, MONGODB_URI } from './config/env.js'
+import { DB_NAME, INITIALISE_INDEXES, MONGODB_URI } from './config/env-vars.js'
+import { ENV } from './config/env.js'
 import { database } from './database/database.js'
 import { securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'

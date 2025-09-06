@@ -1,4 +1,4 @@
-import { BITCOIN_NETWORK } from "../../../config/env.js"
+import { BITCOIN_NETWORK } from "../../../config/env-vars.js"
 import { UserError } from "../../errors.js"
 
 export class UnsupportedAddressType extends UserError {

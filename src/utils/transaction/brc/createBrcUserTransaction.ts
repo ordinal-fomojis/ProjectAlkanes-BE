@@ -1,6 +1,6 @@
 import { Psbt } from "bitcoinjs-lib"
 import { MIN_FEE_RATE } from "../../../config/constants.js"
-import { RECEIVE_ADDRESS } from "../../../config/env.js"
+import { RECEIVE_ADDRESS } from "../../../config/env-vars.js"
 import { BrcToken } from "../../../services/BrcTokenService.js"
 import { Utxo } from "../getUtxos.js"
 import { createRevealPayment } from "../inscribe/createRevealPayment.js"

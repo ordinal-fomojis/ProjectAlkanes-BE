@@ -1,5 +1,5 @@
 import { subtle, webcrypto } from "node:crypto"
-import { ENCRYPTION_KEY } from "../../config/env.js"
+import { ENCRYPTION_KEY } from "../../config/env-vars.js"
 
 let encryptionKey: webcrypto.CryptoKey | null = null
 let decryptionKey: webcrypto.CryptoKey | null = null
