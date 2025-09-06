@@ -68,12 +68,14 @@ jobs:
       with:
         terraform_wrapper: false
 
-    - name: Get Terrform Outputs
+    - name: Get Terraform Outputs
       id: tf-outputs
       run: |
         terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
-        echo "webapp_prod_name=$(terraform output -raw webapp_prod_name)" >> $GITHUB_OUTPUT
-        echo "webapp_nonprod_name=$(terraform output -raw webapp_nonprod_name)" >> $GITHUB_OUTPUT
+        webapp_name=$(terraform output -json webapp_name)
+        echo "webapp_prod_name=$(echo $webapp_name | jq -r '."prod"')" >> $GITHUB_OUTPUT
+        echo "webapp_dev_name=$(echo $webapp_name | jq -r '."dev"')" >> $GITHUB_OUTPUT
+        echo "webapp_mock_name=$(echo $webapp_name | jq -r '."mock"')" >> $GITHUB_OUTPUT
       working-directory: terraform
 
     - name: Clean Up Terraform
@@ -81,30 +83,23 @@ jobs:
         rm -rf terraform
     
     - name: Deploy Dev
-      if: inputs.env != 'prod'
       continue-on-error: true
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
-        package: .
+        app-name: ${{ steps.tf-outputs.outputs.webapp_dev_name }}
 
-    - name: Deploy Testnet
-      if: inputs.env != 'prod'
-      continue-on-error: true
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
-        slot-name: 'testnet'
-        package: .
+    # - name: Deploy Testnet
+    #   if: inputs.env != 'prod'
+    #   continue-on-error: true
+    #   uses: azure/webapps-deploy@v3
+    #   with:
+    #     app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
     
     - name: Deploy Mock
-      if: inputs.env != 'prod'
       continue-on-error: true
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_nonprod_name }}
-        slot-name: 'mock'
-        package: .
+        app-name: ${{ steps.tf-outputs.outputs.webapp_mock_name }}
 
     - name: Deploy Stage
       if: github.ref_name == 'main' && inputs.env == 'prod'
@@ -113,11 +108,3 @@ jobs:
       with:
         app-name: ${{ steps.tf-outputs.outputs.webapp_prod_name }}
         slot-name: 'stage'
-        package: .
-
-    - name: Deploy Production
-      if: github.ref_name == 'main'
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ steps.tf-outputs.outputs.webapp_prod_name }}
-        package: .
