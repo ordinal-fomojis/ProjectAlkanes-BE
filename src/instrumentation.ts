@@ -3,19 +3,25 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base'
 import { resourceFromAttributes } from '@opentelemetry/resources'
-import {
-  ConsoleMetricExporter,
-  PeriodicExportingMetricReader
-} from '@opentelemetry/sdk-metrics'
+import { ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK, NodeSDKConfiguration } from '@opentelemetry/sdk-node'
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
+import { createAddHookMessageChannel } from 'import-in-the-middle'
+import { register } from 'node:module'
 import packageInfo from '../package.json' with { type: "json" }
-import './config/env.js'
 import { ENV } from './config/env.js'
 
+// Note: import-in-the-middle support may be removed in the future, but is the best option for esm at the moment,
+// see below for reference:
+// https://github.com/open-telemetry/opentelemetry-js/blob/main/doc/esm-support.md#instrumentation-hook-required-for-esm
+// https://github.com/open-telemetry/opentelemetry-js/issues/4933
+
+const { registerOptions, waitForAllMessagesAcknowledged } = createAddHookMessageChannel()
+register('import-in-the-middle/hook.mjs', import.meta.url, registerOptions)
+
 const resource = resourceFromAttributes({
-  [ATTR_SERVICE_NAME]: 'shovel-backend',
+  [ATTR_SERVICE_NAME]: `shovel-backend-${process.env.APP_ENV}`,
   [ATTR_SERVICE_VERSION]: packageInfo.version,
 })
 
@@ -37,9 +43,7 @@ if (ENV === 'production') {
   config.metricReaders = [new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter(axiomConfig),
   })]
-}
-
-if (ENV === 'development') {
+} else if (ENV === 'development') {
   config.traceExporter = new ConsoleSpanExporter()
   config.metricReaders = [new PeriodicExportingMetricReader({
     exporter: new ConsoleMetricExporter(),
@@ -48,3 +52,5 @@ if (ENV === 'development') {
 
 const sdk = new NodeSDK(config)
 sdk.start()
+
+await waitForAllMessagesAcknowledged()

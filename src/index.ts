@@ -1,6 +1,3 @@
-// Must be the first import to ensure instrumentation captures all modules and setup processes
-import './instrumentation.js'
-
 import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'

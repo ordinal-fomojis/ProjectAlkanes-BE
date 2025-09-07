@@ -12,6 +12,7 @@ const FeesResponseSchema = z.object({
 })
 
 export type FeesData = z.infer<typeof FeesResponseSchema>
+const FEE_FETCH_INTERVAL = parseInt(process.env.FEE_FETCH_INTERVAL ?? "30")
 
 export class FeeService {
   private static instance: FeeService
@@ -55,10 +56,10 @@ export class FeeService {
       } catch (error) {
         console.error('❌ Periodic fee fetch failed:', error)
       }
-    }, 30 * 1000) // 30 seconds
+    }, FEE_FETCH_INTERVAL * 1000)
 
     this.isInitialized = true
-    console.log('✅ FeeService initialized with 30-second periodic updates')
+    console.log(`✅ FeeService initialized with ${FEE_FETCH_INTERVAL}-second periodic updates`)
   }
 
   /**
