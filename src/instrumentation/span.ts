@@ -14,6 +14,15 @@ export function setAttributes(attributes: NestedAttributes, span?: Span) {
   }
 }
 
+export function recordException(error: unknown, span?: Span) {
+  span ??= trace.getActiveSpan()
+  if (span == null) return
+
+  const e = error instanceof Error ? error : `Caught object not instance of Error: ${error}`
+  span.recordException(e)
+  span.setStatus({ code: SpanStatusCode.ERROR, message: e instanceof Error ? e.message : e })
+}
+
 type SpanOptions = {
   endOnSuccess?: boolean
   endOnError?: boolean
@@ -31,8 +40,7 @@ export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => P
       }
       return response
     } catch (e: unknown) {
-      span.recordException(e instanceof Error ? e : `Caught object not instance of Error: ${e}`)
-      span.setStatus({ code: SpanStatusCode.ERROR })
+      recordException(e, span)
       if (options?.endOnError ?? true) {
         span.end()
       }

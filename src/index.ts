@@ -23,7 +23,7 @@ import referralRoutes from './routes/referralRoutes.js'
 import transactionConfirmationRoutes from './routes/transactionConfirmationRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { FeeService } from './services/FeeService.js'
-import { UserError } from './utils/errors.js'
+import { ServerError, UserError } from './utils/errors.js'
 
 const tracer = trace.getTracer('index')
 executeSpan(tracer, 'initialisation', async () => {
@@ -125,7 +125,6 @@ executeSpan(tracer, 'initialisation', async () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((error: Error, _1: Request, res: Response, _2: NextFunction) => {
     if (error instanceof UserError) {
-      console.warn(`${error.name} (${error.status}):`, error)
       res.status(error.status).json({
         success: false,
         name: error.name,
@@ -133,8 +132,16 @@ executeSpan(tracer, 'initialisation', async () => {
       })
       return
     }
+
+    if (error instanceof ServerError) {
+      res.status(error.status).json({
+        success: false,
+        message: 'Internal server error',
+        error: ENV === 'production' ? 'Something went wrong' : error.message
+      })
+      return
+    }
     
-    console.error('Unexpected error (500):', error)
     res.status(500).json({
       success: false,
       message: 'Internal server error',

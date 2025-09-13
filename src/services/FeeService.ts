@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { MEMPOOL_API_URL } from '../config/env-vars.js'
+import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool fees API response
@@ -14,7 +15,7 @@ const FeesResponseSchema = z.object({
 export type FeesData = z.infer<typeof FeesResponseSchema>
 const FEE_FETCH_INTERVAL = parseInt(process.env.FEE_FETCH_INTERVAL ?? "30")
 
-export class FeeService {
+export class FeeService extends AutoInstrumentedClass {
   private static instance: FeeService
   private cachedFees: FeesData | null = null
   private lastFetchTime = 0
@@ -22,6 +23,7 @@ export class FeeService {
   private fetchInterval: NodeJS.Timeout | null = null
 
   constructor() {
+    super()
     if (FeeService.instance) {
       return FeeService.instance
     }

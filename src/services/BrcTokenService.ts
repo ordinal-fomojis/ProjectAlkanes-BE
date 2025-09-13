@@ -122,7 +122,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
   async getBrcByTicker(ticker: string) {
     setAttributes({ ticker })
     const result = await this.collection.findOne({ ticker, initialised: true })
-    setAttributes({ result: result })
+    setAttributes({ result })
     return result
   }
 }
