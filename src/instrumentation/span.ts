@@ -14,16 +14,28 @@ export function setAttributes(attributes: NestedAttributes, span?: Span) {
   }
 }
 
-export function withSpan<TParams extends unknown[], TReturn>(tracer: Tracer, name: string, func: (...params: TParams) => Promise<TReturn>) {
-  return (...params: TParams) => tracer.startActiveSpan(name, async span => {
+type SpanOptions = {
+  endOnSuccess?: boolean
+  endOnError?: boolean
+}
+export function withSpan<TParams extends unknown[], TReturn>(tracer: Tracer, name: string, func: (...params: TParams) => Promise<TReturn>, options?: SpanOptions) {
+  return (...params: TParams) => executeSpan(tracer, name, () => func(...params), options)
+}
+
+export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => Promise<TReturn>, options?: SpanOptions) {
+  return tracer.startActiveSpan(name, async span => {
     try {
-      const response = await func(...params)
-      span.end()
+      const response = await func()
+      if (options?.endOnSuccess ?? true) {
+        span.end()
+      }
       return response
     } catch (e: unknown) {
       span.recordException(e instanceof Error ? e : `Caught object not instance of Error: ${e}`)
       span.setStatus({ code: SpanStatusCode.ERROR })
-      span.end()
+      if (options?.endOnError ?? true) {
+        span.end()
+      }
       throw e
     }
   })

@@ -58,3 +58,7 @@ const sdk = new NodeSDK(config)
 sdk.start()
 
 await waitForAllMessagesAcknowledged()
+
+export async function shutdownInstrumentation() {
+  await sdk.shutdown()
+}
