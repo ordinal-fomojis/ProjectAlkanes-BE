@@ -19,6 +19,7 @@ export default tseslint.config(
         destructuredArrayIgnorePattern: "^_",
         ignoreRestSiblings: true,
       }],
+      "@typescript-eslint/consistent-type-definitions": "off"
     }
   }
 )

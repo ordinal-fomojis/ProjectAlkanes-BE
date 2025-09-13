@@ -33,7 +33,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
     mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
     tickerLength
-  });
+  })
 
   res.status(200).json({
     success: true,

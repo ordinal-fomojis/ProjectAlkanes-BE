@@ -9,8 +9,8 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { createAddHookMessageChannel } from 'import-in-the-middle'
 import { register } from 'node:module'
-import packageInfo from '../package.json' with { type: "json" }
-import { ENV } from './config/env.js'
+import packageInfo from '../../package.json' with { type: "json" }
+import { ENV } from '../config/env.js'
 
 // Note: import-in-the-middle support may be removed in the future, but is the best option for esm at the moment,
 // see below for reference:
@@ -27,10 +27,14 @@ const resource = resourceFromAttributes({
 
 const config: Partial<NodeSDKConfiguration> = {
   resource,
-  instrumentations: [getNodeAutoInstrumentations()]
+  instrumentations: [getNodeAutoInstrumentations({
+    '@opentelemetry/instrumentation-mongodb': {
+      enhancedDatabaseReporting: true
+    }
+  })]
 }
 
-if (ENV === 'production') {
+if (ENV === 'production' || process.env.LOG_SINK === 'axiom') {
   const axiomConfig: OTLPExporterNodeConfigBase = {
     url: 'https://api.axiom.co/v1/traces',
     headers: {
@@ -43,7 +47,7 @@ if (ENV === 'production') {
   config.metricReaders = [new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter(axiomConfig),
   })]
-} else if (ENV === 'development') {
+} else if (process.env.LOG_SINK === 'console') {
   config.traceExporter = new ConsoleSpanExporter()
   config.metricReaders = [new PeriodicExportingMetricReader({
     exporter: new ConsoleMetricExporter(),
