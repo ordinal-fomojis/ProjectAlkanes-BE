@@ -1,5 +1,6 @@
 import { AttributeValue, Span, SpanStatusCode, trace, Tracer } from "@opentelemetry/api"
 import { ObjectId } from "mongodb"
+import { types } from "node:util"
 import { BaseError } from "../utils/errors.js"
 
 type NestedAttributes = {
@@ -34,24 +35,35 @@ type SpanOptions = {
   endOnSuccess?: boolean
   endOnError?: boolean
 }
-export function withSpan<TParams extends unknown[], TReturn>(tracer: Tracer, name: string, func: (...params: TParams) => Promise<TReturn>, options?: SpanOptions) {
+export function withSpan<TParams extends unknown[], TReturn>(tracer: Tracer, name: string, func: (...params: TParams) => Promise<TReturn> | TReturn, options?: SpanOptions) {
   return (...params: TParams) => executeSpan(tracer, name, () => func(...params), options)
 }
 
-export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => Promise<TReturn>, options?: SpanOptions) {
-  return tracer.startActiveSpan(name, async span => {
-    try {
-      const response = await func()
-      if (options?.endOnSuccess ?? true) {
-        span.end()
-      }
-      return response
-    } catch (e: unknown) {
-      recordException(e, { span, setStatus: !(e instanceof BaseError && e.status < 500) })
+export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => Promise<TReturn> | TReturn, options?: SpanOptions) {
+  return tracer.startActiveSpan(name, span => {
+    function onError(error: unknown) {
+      recordException(error, { span, setStatus: !(error instanceof BaseError && error.status < 500) })
       if (options?.endOnError ?? true) {
         span.end()
       }
-      throw e
+      throw error
+    }
+
+    function onSuccess(result: TReturn) {
+      if (options?.endOnSuccess ?? true) {
+        span.end()
+      }
+      return result
+    }
+    
+    try {
+      const result = func()
+      if (types.isPromise(result)) {
+        return result.then(onSuccess).catch(onError)
+      }
+      return onSuccess(result)
+    } catch (error) {
+      onError(error)
     }
   })
 }

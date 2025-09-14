@@ -27,7 +27,7 @@ class Database extends AutoInstrumentedClass {
     return this.db != null
   }
 
-  getDb(): Db {
+  getDb() {
     if (this.db == null) {
       throw new ServerError('Database not connected. Call connect() first.')
     }
