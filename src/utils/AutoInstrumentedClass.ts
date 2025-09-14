@@ -6,8 +6,7 @@ export abstract class AutoInstrumentedClass {
   
   constructor() {
     const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(this))
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    const untypedThis = this as unknown as Record<string, Function>
+    const untypedThis = this as unknown as Record<string, (...args: unknown[]) => unknown>
     for (const method of methods) {
       const original = untypedThis[method]
       if (typeof original === 'function' && method !== 'constructor') {

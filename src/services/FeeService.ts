@@ -50,7 +50,7 @@ export class FeeService extends AutoInstrumentedClass {
     // Start periodic fetching every 30 seconds
     setAttributes({ feeFetchIntervalSeconds: FEE_FETCH_INTERVAL })
     context.with(ROOT_CONTEXT, async () => {
-      this.fetchInterval = setInterval(this.fetchFees, FEE_FETCH_INTERVAL * 1000)
+      this.fetchInterval = setInterval(() => this.fetchFees(), FEE_FETCH_INTERVAL * 1000)
     })
     this.isInitialized = true
   }
