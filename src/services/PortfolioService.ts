@@ -1,6 +1,7 @@
-import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env.js'
-import { retrySchemaFetch } from '../utils/retryFetch.js'
 import { z } from 'zod'
+import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env-vars.js'
+import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
+import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Ordiscan API response schemas
 const OrdiscanAlkaneBalanceSchema = z.object({
@@ -41,12 +42,13 @@ export interface PortfolioData {
   brc20: Brc20Balance[]
 }
 
-export class PortfolioService {
+export class PortfolioService extends AutoInstrumentedClass {
   private apiKey: string | undefined
   private baseUrl: string
   private isAvailable: boolean
 
   constructor() {
+    super()
     this.apiKey = ORDISCAN_API_KEY()
     this.baseUrl = ORDISCAN_API_URL()
     this.isAvailable = !!this.apiKey

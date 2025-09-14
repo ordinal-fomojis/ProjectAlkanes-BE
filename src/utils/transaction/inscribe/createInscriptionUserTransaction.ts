@@ -1,6 +1,6 @@
 import { Psbt } from "bitcoinjs-lib"
 import { MIN_FEE_RATE } from "../../../config/constants.js"
-import { RECEIVE_ADDRESS } from "../../../config/env.js"
+import { RECEIVE_ADDRESS } from "../../../config/env-vars.js"
 import { Utxo } from "../getUtxos.js"
 import { calculateTransactionInputsAndFee } from "../utils/calculateTransactionInputsAndFee.js"
 import { dustLimit } from "../utils/dustLimit.js"

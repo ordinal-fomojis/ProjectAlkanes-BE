@@ -1,8 +1,9 @@
 import { ObjectId } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { DB_NAME } from '../../src/config/env.js'
+import { DB_NAME } from '../../src/config/env-vars.js'
 import { database } from '../../src/database/database.js'
+import { checkReferral } from '../../src/middleware/referralGate.js'
 import { PointsService } from '../../src/services/PointsService.js'
 import { ReferralService } from '../../src/services/referralService.js'
 import { UserService } from '../../src/services/userService.js'
@@ -200,11 +201,8 @@ describe('Referral Gate Integration Flow', () => {
       // Note: User is NOT referred
 
       // This would normally be blocked by middleware, but we test the gate function directly
-      const { requireReferralForReferralAction } = await import('../../src/middleware/referralGate.js')
-      const gateResult = await requireReferralForReferralAction(userWallet)
-      
-      expect(gateResult.allowed).toBe(false)
-      expect(gateResult.message).toContain('must be referred')
+      await expect(checkReferral(userWallet)).rejects
+        .toThrow('Access denied: You must be referred by another user to perform this action. Please enter a referral code first')
     })
   })
 

@@ -1,7 +1,7 @@
 import { Psbt } from 'bitcoinjs-lib'
 import { Router } from 'express'
 import { z } from 'zod'
-import { MOCK_BTC } from '../config/env.js'
+import { MOCK_BTC } from '../config/env-vars.js'
 import { database } from '../database/database.js'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { requireReferral } from '../middleware/referralGate.js'

@@ -1,4 +1,6 @@
+import { trace } from "@opentelemetry/api"
 import { Collection, Db, IndexDirection } from "mongodb"
+import { recordException, withSpan } from "../instrumentation/span.js"
 import { DatabaseCollection } from "./collections.js"
 
 type FieldIndex = Parameters<Collection['createIndex']> | Record<string, IndexDirection>
@@ -87,19 +89,20 @@ const Indexes: Indexed = {
   ],
 }
 
-export async function initIndexes(db: Db): Promise<void> {
+const tracer = trace.getTracer('indexes')
+export const initIndexes = withSpan(tracer, 'initIndexes', async (db: Db) => {
   for (const [collectionName, indexes] of Object.entries(Indexes)) {
     const collection = db.collection(collectionName)
     for (const index of indexes) {
       try {
-        const indexName = Array.isArray(index)
-          ? await collection.createIndex(...index)
-          : await collection.createIndex(index)
-        
-        console.log(`Created index: ${indexName} in ${collectionName}`)
+        if (Array.isArray(index)) {
+          await collection.createIndex(...index)
+        } else {
+          await collection.createIndex(index)
+        }
       } catch (error) {
-        console.error(`Failed to create index on ${collectionName}:`, error)
+        recordException(error)
       }
     }
   }
-}
+})

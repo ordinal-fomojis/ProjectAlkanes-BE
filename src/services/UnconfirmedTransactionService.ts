@@ -1,6 +1,6 @@
 import { Transaction } from "bitcoinjs-lib"
 import { ClientSession, ObjectId } from "mongodb"
-import { MOCK_BTC } from "../config/env.js"
+import { MOCK_BTC } from "../config/env-vars.js"
 import { DatabaseCollection } from "../database/collections.js"
 import { EncryptedWif } from "../utils/wif/encryptWif.js"
 import { BaseService } from "./BaseService.js"

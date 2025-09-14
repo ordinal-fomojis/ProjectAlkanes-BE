@@ -1,5 +1,8 @@
+import { ROOT_CONTEXT, context } from '@opentelemetry/api'
 import { z } from 'zod'
-import { MEMPOOL_API_URL } from '../config/env.js'
+import { MEMPOOL_API_URL } from '../config/env-vars.js'
+import { recordException, setAttributes } from '../instrumentation/span.js'
+import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool fees API response
@@ -12,8 +15,9 @@ const FeesResponseSchema = z.object({
 })
 
 export type FeesData = z.infer<typeof FeesResponseSchema>
+const FEE_FETCH_INTERVAL = parseInt(process.env.FEE_FETCH_INTERVAL ?? "30")
 
-export class FeeService {
+export class FeeService extends AutoInstrumentedClass {
   private static instance: FeeService
   private cachedFees: FeesData | null = null
   private lastFetchTime = 0
@@ -21,6 +25,7 @@ export class FeeService {
   private fetchInterval: NodeJS.Timeout | null = null
 
   constructor() {
+    super()
     if (FeeService.instance) {
       return FeeService.instance
     }
@@ -34,31 +39,20 @@ export class FeeService {
     if (this.isInitialized) {
       return
     }
-
-    console.log('🚀 Initializing FeeService...')
     
     // Fetch fees immediately on startup
     try {
       await this.fetchFees()
-      console.log('✅ Initial fee fetch successful')
     } catch (error) {
-      console.error('❌ Initial fee fetch failed:', error)
-      // Set default fees if initial fetch fails
-      this.setDefaultFees()
+      recordException(error, { setStatus: false })
     }
 
     // Start periodic fetching every 30 seconds
-    this.fetchInterval = setInterval(async () => {
-      try {
-        await this.fetchFees()
-        console.log('📡 Fees updated successfully')
-      } catch (error) {
-        console.error('❌ Periodic fee fetch failed:', error)
-      }
-    }, 30 * 1000) // 30 seconds
-
+    setAttributes({ feeFetchIntervalSeconds: FEE_FETCH_INTERVAL })
+    context.with(ROOT_CONTEXT, async () => {
+      this.fetchInterval = setInterval(() => this.fetchFees(), FEE_FETCH_INTERVAL * 1000)
+    })
     this.isInitialized = true
-    console.log('✅ FeeService initialized with 30-second periodic updates')
   }
 
   /**
@@ -70,13 +64,12 @@ export class FeeService {
       this.fetchInterval = null
     }
     this.isInitialized = false
-    console.log('🛑 FeeService destroyed')
   }
 
   /**
    * Fetch fees from the mempool API
    */
-  private async fetchFees(): Promise<void> {
+  private async fetchFees() {
     const response = await retrySchemaFetch(
       FeesResponseSchema, 
       `${MEMPOOL_API_URL()}/api/v1/fees/recommended`,
@@ -91,21 +84,7 @@ export class FeeService {
 
     this.cachedFees = response
     this.lastFetchTime = Date.now()
-  }
-
-  /**
-   * Set default fees as fallback
-   */
-  private setDefaultFees(): void {
-    this.cachedFees = {
-      fastestFee: 20,
-      halfHourFee: 15,
-      hourFee: 10,
-      economyFee: 5,
-      minimumFee: 1
-    }
-    this.lastFetchTime = Date.now()
-    console.log('⚠️ Using default fees as fallback')
+    return response
   }
 
   /**
@@ -133,12 +112,8 @@ export class FeeService {
   /**
    * Force fetch fees (bypass cache)
    */
-  async forceFetchFees(): Promise<FeesData> {
-    await this.fetchFees()
-    if (!this.cachedFees) {
-      throw new Error('Failed to fetch fees')
-    }
-    return this.cachedFees
+  async forceFetchFees() {
+    return await this.fetchFees()
   }
 
   /**

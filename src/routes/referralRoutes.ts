@@ -1,8 +1,8 @@
-import { Request, Response, Router } from 'express';
-import { requireReferralForReferralAction } from '../middleware/referralGate.js';
-import { validateParams, validateRequest } from '../middleware/validation.js';
-import { ReferralService } from '../services/referralService.js';
-import { createCustomLinkSchema, enterReferralCodeSchema, walletAddressSchema } from '../validation/referralValidation.js';
+import { Request, Response, Router } from 'express'
+import { checkReferral } from '../middleware/referralGate.js'
+import { validateParams, validateRequest } from '../middleware/validation.js'
+import { ReferralService } from '../services/referralService.js'
+import { createCustomLinkSchema, enterReferralCodeSchema, walletAddressSchema } from '../validation/referralValidation.js'
 
 const router = Router();
 
@@ -50,15 +50,7 @@ router.post('/create-custom-link', validateRequest(createCustomLinkSchema), asyn
     const { walletAddress, customReferralId } = req.body;
 
     // Check if user was referred before allowing them to create custom links
-    const referralCheck = await requireReferralForReferralAction(walletAddress);
-    if (!referralCheck.allowed) {
-      res.status(403).json({
-        success: false,
-        message: referralCheck.message,
-        code: 'REFERRAL_REQUIRED'
-      });
-      return;
-    }
+    await checkReferral(walletAddress);
 
     const referralService = new ReferralService();
     const result = await referralService.createCustomReferralLink(walletAddress, customReferralId);

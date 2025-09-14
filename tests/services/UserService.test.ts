@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/env.js"
+import { DB_NAME } from "../../src/config/env-vars.js"
 import { database } from "../../src/database/database.js"
 import { UserService } from "../../src/services/userService.js"
 import { randomAddress } from "../test-utils/btc-random.js"

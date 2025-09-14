@@ -1,54 +1,44 @@
 import { ClientSession, Db, MongoClient, WithTransactionCallback } from 'mongodb'
+import { setAttributes } from '../instrumentation/span.js'
+import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
+import { ServerError } from '../utils/errors.js'
 import { initIndexes } from './indexes.js'
 
-class Database {
-  private client: MongoClient | null = null;
-  private db: Db | null = null;
+class Database extends AutoInstrumentedClass {
+  private client: MongoClient | null = null
+  private db: Db | null = null
 
   async connect(uri: string, dbName: string, initialiseIndexes = true) {
-    try {
-      this.client ??= new MongoClient(uri)
-      await this.client.connect();
-      const db = this.client.db(dbName);
-      console.log('✅ Connected to MongoDB');
-      if (initialiseIndexes) {
-        await initIndexes(db);
-        console.log('✅ Indexes initialized');
-      }
-      this.db = db;
-      console.log(`📊 Database: ${dbName}`);
-    } catch (error) {
-      console.error('❌ Failed to connect to MongoDB:', error);
-      throw error;
+    this.client ??= new MongoClient(uri)
+    setAttributes({ dbName, initialiseIndexes })
+    await this.client.connect()
+    const db = this.client.db(dbName)
+    if (initialiseIndexes) {
+      await initIndexes(db)
     }
+    this.db = db
   }
 
   async disconnect() {
-    try {
-      await this.client?.close();
-      console.log('🔌 Disconnected from MongoDB');
-    } catch (error) {
-      console.error('❌ Error disconnecting from MongoDB:', error);
-      throw error;
-    }
+    await this.client?.close()
   }
 
   get isConnected(): boolean {
     return this.db != null
   }
 
-  getDb(): Db {
+  getDb() {
     if (this.db == null) {
-      throw new Error('Database not connected. Call connect() first.');
+      throw new ServerError('Database not connected. Call connect() first.')
     }
-    return this.db;
+    return this.db
   }
 
   async withTransaction<T>(
     callback: WithTransactionCallback<T>, options?: Parameters<ClientSession['withTransaction']>[1]
   ) {
     if (this.client == null) {
-      throw new Error('Database client not initialized. Call connect() first.');
+      throw new ServerError('Database client not initialized. Call connect() first.')
     }
     const session = this.client.startSession()
     try {

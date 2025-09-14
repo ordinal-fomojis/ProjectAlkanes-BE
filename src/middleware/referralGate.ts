@@ -1,78 +1,36 @@
 import { NextFunction, Response } from 'express'
 import { UserService } from '../services/userService.js'
+import { UserError } from '../utils/errors.js'
 import { AuthenticatedRequest } from './auth.js'
 
 export async function requireReferral(
-  req: AuthenticatedRequest, 
-  res: Response, 
+  req: AuthenticatedRequest,
+  _: Response,
   next: NextFunction
 ): Promise<void> {
-  try {
-    // Get user wallet address from JWT token
-    const userWalletAddress = req.user?.walletAddress;
-    
-    if (!userWalletAddress) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-      return;
-    }
-
-    const userService = new UserService();
-    const user = await userService.getUserByWalletAddress(userWalletAddress);
-
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-      return;
-    }
-
-    // Check if user was referred (has referredBy field)
-    if (!user.referredBy) {
-      res.status(403).json({
-        success: false,
-        message: 'Access denied: You must be referred by another user to perform this action. Please enter a referral code first.',
-        code: 'REFERRAL_REQUIRED'
-      });
-      return;
-    }
-
-    // User was referred, allow the request to proceed
-    next();
-  } catch (error) {
-    console.error('Error in referral gate middleware:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
+  // Get user wallet address from JWT token
+  const userWalletAddress = req.user?.walletAddress
+  
+  if (userWalletAddress == null) {
+    throw new UserError('Authentication required').withStatus(401)
   }
+
+  await checkReferral(userWalletAddress)
+
+  // User was referred, allow the request to proceed
+  next()
 }
 
-export async function requireReferralForReferralAction(
-  walletAddress: string
-): Promise<{ allowed: boolean; message?: string }> {
-  try {
-    const userService = new UserService();
-    const user = await userService.getUserByWalletAddress(walletAddress);
+export async function checkReferral(walletAddress: string) {
+  const userService = new UserService()
+  const user = await userService.getUserByWalletAddress(walletAddress)
 
-    if (!user) {
-      return { allowed: false, message: 'User not found' };
-    }
+  if (user == null) {
+    throw new UserError('User not found').withStatus(404)
+  }
 
-    // Check if user was referred
-    if (!user.referredBy) {
-      return { 
-        allowed: false, 
-        message: 'Access denied: You must be referred by another user before you can refer others. Please enter a referral code first.' 
-      };
-    }
-
-    return { allowed: true };
-  } catch (error) {
-    console.error('Error checking referral requirement:', error);
-    return { allowed: false, message: 'Internal server error' };
+  // Check if user was referred
+  if (user.referredBy == null) {
+    throw new UserError('Access denied: You must be referred by another user to perform this action. Please enter a referral code first').withStatus(403)
   }
 } 

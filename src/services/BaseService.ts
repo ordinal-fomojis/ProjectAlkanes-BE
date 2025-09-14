@@ -1,8 +1,9 @@
 import { Collection, Document } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
 import { database } from "../database/database.js"
+import { AutoInstrumentedClass } from "../utils/AutoInstrumentedClass.js"
 
-export abstract class BaseService<T extends Document> {
+export abstract class BaseService<T extends Document> extends AutoInstrumentedClass {
   abstract readonly collectionName: DatabaseCollection
   private _collection?: Collection<T>
 

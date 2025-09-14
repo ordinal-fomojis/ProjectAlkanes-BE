@@ -1,5 +1,5 @@
 import z from "zod"
-import { MOCK_BTC } from "../../config/env.js"
+import { MOCK_BTC } from "../../config/env-vars.js"
 import { unisatFetch } from "../unisat/unisatFetch.js"
 import { randomTransactionId } from "./utils/randomTransactionId.js"
 

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { BrcToken, BrcTokenService } from '../services/BrcTokenService.js'
 import { parse } from '../utils/parse.js'
 
-const router = Router();
+const router = Router()
 
 const ParamsSchema = z.object({
   search: z.string().optional(),
@@ -33,7 +33,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
     mintedOut: typeof mintedOut === 'string' ? mintedOut === 'true' : null,
     tickerLength
-  });
+  })
 
   res.status(200).json({
     success: true,
@@ -85,4 +85,4 @@ function tokenToResponse(token: BrcToken) {
   }
 }
 
-export default router; 
+export default router 

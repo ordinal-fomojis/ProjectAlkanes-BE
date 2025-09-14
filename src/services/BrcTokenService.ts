@@ -1,5 +1,6 @@
 import { Document } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
+import { setAttributes } from "../instrumentation/span.js"
 import { BaseService } from "./BaseService.js"
 
 export interface BrcToken {
@@ -34,9 +35,9 @@ export interface BrcToken {
 }
 
 type BrcSortableField = 'deployTimestamp' | 'percentageMinted' | 'currentMintCount' | 'holdersCount'
-interface BrcSortOrder { field: BrcSortableField, order: 'asc' | 'desc' }
+type BrcSortOrder = { field: BrcSortableField, order: 'asc' | 'desc' }
 
-interface BrcSearchQuery {
+type BrcSearchQuery = {
   searchTerm: string | null
   page: number
   pageSize: number,
@@ -52,6 +53,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
   async searchBrcTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut, tickerLength }: BrcSearchQuery
   ): Promise<BrcToken[]> {
+    setAttributes({ searchTerm, page, pageSize, order, mintable, mintedOut, tickerLength })
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm?.trim() ?? null
     
@@ -59,7 +61,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
     if (searchTerm != null && searchTerm.length > 0) {
       query.ticker = { $regex: searchTerm, $options: 'i' }
     }
-
+    
     if (mintable !== null) {
       query.mintable = mintable
     }
@@ -71,7 +73,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
     if (tickerLength != null) {
       query.tickerLength = tickerLength
     }
-
+    
     const direction = order.order === 'asc' ? 1 : -1 as const
     
     // Use MongoDB aggregation to prioritize 6-byte tickers first
@@ -99,18 +101,28 @@ export class BrcTokenService extends BaseService<BrcToken> {
       { $unset: "tickerPriority" }
     ]
 
-    return await this.collection
+    const results = await this.collection
       .aggregate(pipeline, { collation: { locale: "en" } })
       .toArray() as BrcToken[]
+    
+    setAttributes({ resultCount: results.length, resultTickers: results.map(r => r.ticker) })
+
+    return results
   }
 
   async getBrcsByTicker(tickers: string[]) {
-    return await this.collection
+    setAttributes({ tickers })
+    const results = await this.collection
       .find({ ticker: { $in: tickers }, initialised: true })
       .toArray()
+    setAttributes({ resultCount: results.length, resultTickers: results.map(r => r.ticker) })
+    return results
   }
 
   async getBrcByTicker(ticker: string) {
-    return await this.collection.findOne({ ticker, initialised: true })
+    setAttributes({ ticker })
+    const result = await this.collection.findOne({ ticker, initialised: true })
+    setAttributes({ result })
+    return result
   }
 }
