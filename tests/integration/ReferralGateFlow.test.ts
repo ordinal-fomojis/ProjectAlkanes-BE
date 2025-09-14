@@ -7,7 +7,6 @@ import { checkReferral } from '../../src/middleware/referralGate.js'
 import { PointsService } from '../../src/services/PointsService.js'
 import { ReferralService } from '../../src/services/referralService.js'
 import { UserService } from '../../src/services/userService.js'
-import { UserError } from '../../src/utils/errors.js'
 import { randomAddress } from '../test-utils/btc-random.js'
 
 let mongodb: MongoMemoryServer
@@ -202,7 +201,8 @@ describe('Referral Gate Integration Flow', () => {
       // Note: User is NOT referred
 
       // This would normally be blocked by middleware, but we test the gate function directly
-      expect(checkReferral(userWallet)).rejects.toThrow(UserError)
+      await expect(checkReferral(userWallet)).rejects
+        .toThrow('Access denied: You must be referred by another user to perform this action. Please enter a referral code first')
     })
   })
 

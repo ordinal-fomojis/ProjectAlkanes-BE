@@ -26,7 +26,7 @@ export async function checkReferral(walletAddress: string) {
   const user = await userService.getUserByWalletAddress(walletAddress)
 
   if (user == null) {
-    throw new UserError('User not found').withStatus(401)
+    throw new UserError('User not found').withStatus(404)
   }
 
   // Check if user was referred

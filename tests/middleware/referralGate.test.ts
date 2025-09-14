@@ -68,70 +68,50 @@ describe('Referral Gate Middleware', () => {
         referredBy: null // User was NOT referred
       })
 
-      await requireReferral(
+      await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
         mockResponse as Response,
         mockNext
-      )
+      )).rejects.toThrow('Access denied: You must be referred by another user to perform this action. Please enter a referral code first')
 
       expect(mockNext).not.toHaveBeenCalled()
-      expect(mockResponse.status).toHaveBeenCalledWith(403)
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'Access denied: You must be referred by another user to perform this action. Please enter a referral code first.',
-        code: 'REFERRAL_REQUIRED'
-      })
     })
 
     it('should require authentication', async () => {
       mockRequest.user = undefined
 
-      await requireReferral(
+      await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
         mockResponse as Response,
         mockNext
-      )
+      )).rejects.toThrow('Authentication required')
 
       expect(mockNext).not.toHaveBeenCalled()
-      expect(mockResponse.status).toHaveBeenCalledWith(401)
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'Authentication required'
-      })
     })
 
     it('should handle user not found', async () => {
       mockUserService.getUserByWalletAddress.mockResolvedValue(null)
 
-      await requireReferral(
+      await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
         mockResponse as Response,
         mockNext
-      )
+      )).rejects.toThrow('User not found')
 
       expect(mockNext).not.toHaveBeenCalled()
-      expect(mockResponse.status).toHaveBeenCalledWith(404)
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'User not found'
-      })
     })
 
     it('should handle database errors', async () => {
-      mockUserService.getUserByWalletAddress.mockRejectedValue(new Error('Database error'))
+      const error = new Error('Database error')
+      mockUserService.getUserByWalletAddress.mockRejectedValue(error)
 
-      await requireReferral(
+      await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
         mockResponse as Response,
         mockNext
-      )
+      )).rejects.toThrow(error)
 
       expect(mockNext).not.toHaveBeenCalled()
-      expect(mockResponse.status).toHaveBeenCalledWith(500)
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'Internal server error'
-      })
     })
   })
 
@@ -143,9 +123,7 @@ describe('Referral Gate Middleware', () => {
         referredBy: new ObjectId()
       })
 
-      const result = await checkReferral('bc1qtest123')
-
-      expect(result).toEqual({ allowed: true })
+      await expect(checkReferral('bc1qtest123')).resolves.toEqual(undefined)
     })
 
     it('should block unreferred users from referral actions', async () => {
@@ -155,34 +133,20 @@ describe('Referral Gate Middleware', () => {
         referredBy: null
       })
 
-      const result = await checkReferral('bc1qtest123')
-
-      expect(result).toEqual({
-        allowed: false,
-        message: 'Access denied: You must be referred by another user before you can refer others. Please enter a referral code first.'
-      })
+      await expect(checkReferral('bc1qtest123')).rejects.toThrow('Access denied: You must be referred by another user to perform this action. Please enter a referral code first')
     })
 
     it('should handle user not found', async () => {
       mockUserService.getUserByWalletAddress.mockResolvedValue(null)
 
-      const result = await checkReferral('bc1qtest123')
-
-      expect(result).toEqual({
-        allowed: false,
-        message: 'User not found'
-      })
+      await expect(checkReferral('bc1qtest123')).rejects.toThrow('User not found')
     })
 
     it('should handle errors gracefully', async () => {
-      mockUserService.getUserByWalletAddress.mockRejectedValue(new Error('Database error'))
+      const error = new Error('Database error')
+      mockUserService.getUserByWalletAddress.mockRejectedValue(error)
 
-      const result = await checkReferral('bc1qtest123')
-
-      expect(result).toEqual({
-        allowed: false,
-        message: 'Internal server error'
-      })
+      await expect(checkReferral('bc1qtest123')).rejects.toThrow(error)
     })
   })
-}) 
+})
