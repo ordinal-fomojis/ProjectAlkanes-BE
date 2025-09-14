@@ -1,5 +1,6 @@
 import { AttributeValue, Span, SpanStatusCode, trace, Tracer } from "@opentelemetry/api"
 import { ObjectId } from "mongodb"
+import { BaseError } from "../utils/errors.js"
 
 type NestedAttributes = {
   [key: string]: NestedAttributes | AttributeValue | Date | ObjectId | null
@@ -14,13 +15,19 @@ export function setAttributes(attributes: NestedAttributes, span?: Span) {
   }
 }
 
-export function recordException(error: unknown, span?: Span) {
-  span ??= trace.getActiveSpan()
+type RecordExceptionOptions = {
+  span?: Span
+  setStatus?: boolean
+}
+export function recordException(error: unknown, options: RecordExceptionOptions = {}) {
+  const span = options.span ?? trace.getActiveSpan()
   if (span == null) return
 
   const e = error instanceof Error ? error : `Caught object not instance of Error: ${error}`
   span.recordException(e)
-  span.setStatus({ code: SpanStatusCode.ERROR, message: e instanceof Error ? e.message : e })
+  if (options.setStatus ?? true) {
+    span.setStatus({ code: SpanStatusCode.ERROR, message: e instanceof Error ? e.message : e })
+  }
 }
 
 type SpanOptions = {
@@ -40,7 +47,7 @@ export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => P
       }
       return response
     } catch (e: unknown) {
-      recordException(e, span)
+      recordException(e, { span, setStatus: !(e instanceof BaseError && e.status < 500) })
       if (options?.endOnError ?? true) {
         span.end()
       }
