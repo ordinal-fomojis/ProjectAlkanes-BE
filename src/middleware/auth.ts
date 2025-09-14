@@ -41,7 +41,7 @@ export async function optionalAuth(
   next: NextFunction
 ) {
   try {
-    authenticateJWT(req, res, next)
+    await authenticateJWT(req, res, next)
   } catch(error) {
     // For optional auth, we don't fail the request if token is invalid
     // Just proceed without user info
