@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { DB_NAME } from '../../src/config/env.js'
+import { DB_NAME } from '../../src/config/env-vars.js'
 import { calculateBonusPoints, getTierByPoints } from '../../src/config/tiers.js'
 import { database } from "../../src/database/database.js"
 import { PointsService } from '../../src/services/PointsService.js'

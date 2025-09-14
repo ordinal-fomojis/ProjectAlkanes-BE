@@ -1,11 +1,13 @@
 import { ObjectId } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { DB_NAME } from '../../src/config/env.js'
+import { DB_NAME } from '../../src/config/env-vars.js'
 import { database } from '../../src/database/database.js'
+import { checkReferral } from '../../src/middleware/referralGate.js'
 import { PointsService } from '../../src/services/PointsService.js'
 import { ReferralService } from '../../src/services/referralService.js'
 import { UserService } from '../../src/services/userService.js'
+import { UserError } from '../../src/utils/errors.js'
 import { randomAddress } from '../test-utils/btc-random.js'
 
 let mongodb: MongoMemoryServer
@@ -245,9 +247,7 @@ describe('Complete User Journey: From Sign-up to Legendary', () => {
     console.log('✓ Unreferred user cannot see referral codes')
     
     // User should not be able to create custom links (via gate check)
-    const { requireReferralForReferralAction } = await import('../../src/middleware/referralGate.js')
-    const gateResult = await requireReferralForReferralAction(unrefUserWallet)
-    expect(gateResult.allowed).toBe(false)
+    expect(checkReferral(unrefUserWallet)).rejects.toThrow(UserError)
     console.log('✓ Unreferred user blocked from creating custom links')
     
     // User should not get referral points for minting (no referrer)

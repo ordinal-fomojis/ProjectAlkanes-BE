@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { DB_NAME } from "../../src/config/env.js"
+import { DB_NAME } from "../../src/config/env-vars.js"
 import { database } from "../../src/database/database.js"
 import { ReferralService } from "../../src/services/referralService.js"
 import { UserService } from "../../src/services/userService.js"

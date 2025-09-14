@@ -1,11 +1,11 @@
 import { subtle } from "node:crypto"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { ENCRYPTION_KEY } from "../../../src/config/env.js"
+import { ENCRYPTION_KEY } from "../../../src/config/env-vars.js"
 import { randomKey } from "../../../src/utils/transaction/utils/keys.js"
 import { decryptWif } from "../../../src/utils/wif/decryptWif.js"
 import { encryptWif } from "../../../src/utils/wif/encryptWif.js"
 
-vi.mock("../../../src/config/env.js")
+vi.mock("../../../src/config/env-vars.js")
 
 beforeEach(async () => {
   const encryptionKey = await subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ['encrypt'])

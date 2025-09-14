@@ -2,7 +2,7 @@ import { Response } from 'express'
 import { ObjectId } from 'mongodb'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthenticatedRequest } from '../../src/middleware/auth.js'
-import { requireReferral, requireReferralForReferralAction } from '../../src/middleware/referralGate.js'
+import { checkReferral, requireReferral } from '../../src/middleware/referralGate.js'
 import { UserService } from '../../src/services/userService.js'
 
 // Mock UserService
@@ -143,7 +143,7 @@ describe('Referral Gate Middleware', () => {
         referredBy: new ObjectId()
       })
 
-      const result = await requireReferralForReferralAction('bc1qtest123')
+      const result = await checkReferral('bc1qtest123')
 
       expect(result).toEqual({ allowed: true })
     })
@@ -155,7 +155,7 @@ describe('Referral Gate Middleware', () => {
         referredBy: null
       })
 
-      const result = await requireReferralForReferralAction('bc1qtest123')
+      const result = await checkReferral('bc1qtest123')
 
       expect(result).toEqual({
         allowed: false,
@@ -166,7 +166,7 @@ describe('Referral Gate Middleware', () => {
     it('should handle user not found', async () => {
       mockUserService.getUserByWalletAddress.mockResolvedValue(null)
 
-      const result = await requireReferralForReferralAction('bc1qtest123')
+      const result = await checkReferral('bc1qtest123')
 
       expect(result).toEqual({
         allowed: false,
@@ -177,7 +177,7 @@ describe('Referral Gate Middleware', () => {
     it('should handle errors gracefully', async () => {
       mockUserService.getUserByWalletAddress.mockRejectedValue(new Error('Database error'))
 
-      const result = await requireReferralForReferralAction('bc1qtest123')
+      const result = await checkReferral('bc1qtest123')
 
       expect(result).toEqual({
         allowed: false,
