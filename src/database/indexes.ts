@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api"
 import { Collection, Db, IndexDirection } from "mongodb"
-import { recordException, withSpan } from "../instrumentation/span.js"
+import { recordException, withSpan } from "../instrumentation/instrumentation.js"
 import { DatabaseCollection } from "./collections.js"
 
 type FieldIndex = Parameters<Collection['createIndex']> | Record<string, IndexDirection>

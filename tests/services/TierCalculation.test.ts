@@ -3,6 +3,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { DB_NAME } from '../../src/config/env-vars.js'
 import { calculateBonusPoints, getTierByPoints } from '../../src/config/tiers.js'
+import { DatabaseCollection } from '../../src/database/collections.js'
 import { database } from "../../src/database/database.js"
 import { PointsService } from '../../src/services/PointsService.js'
 import { ReferralService } from '../../src/services/referralService.js'
@@ -27,7 +28,7 @@ describe('Tier Calculation with Total Points System', () => {
   })
 
   beforeEach(async () => {
-    await database.getDb().collection('users').deleteMany({})
+    await database.getDb().collection(DatabaseCollection.Users).deleteMany({})
   })
 
   describe('Tier Calculation Logic', () => {

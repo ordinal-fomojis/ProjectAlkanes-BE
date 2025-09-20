@@ -20,8 +20,9 @@ import { ENV } from '../config/env.js'
 const { registerOptions, waitForAllMessagesAcknowledged } = createAddHookMessageChannel()
 register('import-in-the-middle/hook.mjs', import.meta.url, registerOptions)
 
+const appEnv = ENV === 'production' ? process.env.APP_ENV : 'local'
 const resource = resourceFromAttributes({
-  [ATTR_SERVICE_NAME]: `shovel-backend-${process.env.APP_ENV}`,
+  [ATTR_SERVICE_NAME]: `shovel-backend-${appEnv}`,
   [ATTR_SERVICE_VERSION]: packageInfo.version,
 })
 

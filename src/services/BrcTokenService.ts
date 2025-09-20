@@ -1,6 +1,6 @@
 import { Document } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
-import { setAttributes } from "../instrumentation/span.js"
+import { setAttributes } from "../instrumentation/instrumentation.js"
 import { BaseService } from "./BaseService.js"
 
 export interface BrcToken {

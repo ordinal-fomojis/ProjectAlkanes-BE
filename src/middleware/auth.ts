@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { recordException } from '../instrumentation/span.js'
+import { recordException } from '../instrumentation/instrumentation.js'
 import { AuthService } from '../services/authService.js'
 import { UserError } from '../utils/errors.js'
 

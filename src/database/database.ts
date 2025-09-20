@@ -1,5 +1,5 @@
 import { ClientSession, Db, MongoClient, WithTransactionCallback } from 'mongodb'
-import { setAttributes } from '../instrumentation/span.js'
+import { setAttributes } from '../instrumentation/instrumentation.js'
 import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
 import { ServerError } from '../utils/errors.js'
 import { initIndexes } from './indexes.js'
