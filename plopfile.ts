@@ -62,21 +62,19 @@ export default function (plop: NodePlopAPI) {
     ],
     actions: [
       function decryptEnv(answers) {
-        const { parsed } = config({ path: `env/.env.${answers.environment}`, quiet: true })
+        const envFileName = `env/.env.${answers.environment}`
+        const { parsed } = config({ path: envFileName, quiet: true })
 
         if (parsed == null) {
           throw new Error(`Failed to parse .env.${answers.environment}`)
         }
 
-        let file = readFileSync(`env/.env.${answers.environment}`, 'utf-8')
+        let file = readFileSync(envFileName, 'utf-8')
         for (const [key, value] of Object.entries(parsed)) {
           file = file.replace(new RegExp(`^${key}=.*$`, 'm'), `${key}="${value}"`)
         }
-
-        console.log('\n\n\n')
-        console.log(file)
-        console.log('\n')
-        return 'Decrypted environment variables'
+        
+        return `Decrypted ${envFileName}\n\n${file}`
       }
     ]
   })
