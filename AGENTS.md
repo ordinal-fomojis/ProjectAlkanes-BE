@@ -52,7 +52,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - This rule can be broken if exporting multiple small, functions with a similar scope, and similar dependencies (imports). As soon as a function becomes large enough (more than 10-20 LoC), or pulls in imports not needed by other functions in the same file, it should be separated into its own file
 - All fetch requests should use a retry method from `src/utils/retryFetch.ts`. Typically `retrySchemaFetch` to provide strongly typed responses
 - Define types in the file where they are used, or originate from. Do not use central files for types
-- Prefer not explicity specifying return types of methods, unless a different type is needed from what would be inferred
+- Prefer not explicitly specifying return types of methods, unless a different type is needed from what would be inferred
 - BTC addresses passed as input should always be passed through `sanitiseAddress` (in `src/utils/sanitiseAddress.ts`)
 - Route handlers (in the `src/routes` folder) should have minimal logic. Database operations should be in a Service class, and any significant logic should be extracted into a function, in the `src/utils` folder
 - Do not use `console.log`/`console.warn`/`console.error` anywhere (source code or tests). Source code is instrumented with OpenTelemetry, and console logs in tests don't add value (assertions are what identify if a test passes or fails, not console output). Console logs just bloat the terminal output, and make it harder to identify real issues.
@@ -95,7 +95,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 ## Environment Variables
 - Environment variables are stored in the `env` folder, with one `.env.*` file for each environment. These are checked into git
 - Sensitive environment variables are encrypted using `@dotenvx/dotenvx`
-- Non sensitive environment variables should not be encrypted, so we can track changes to them via version control
+- Non-sensitive environment variables should not be encrypted, so we can track changes to them via version control
 - Environment variables are loaded in `env/env.ts`. They are loaded based on the value of `NODE_ENV`
   - `NODE_ENV='test'` (i.e. when running tests via vitest): Loads `.env.sample`, which contains dummy/default values
   - `NODE_ENV='development'` or `NODE_ENV='production'`: Loads the file specified by the `DOTENV_PATH` environment variable. If `DOTENV_PATH` is not set, it loads `.env`. This file is not checked in to git, and is the developers local environment configuration. `DOTENV_PATH` is always set in a deployed environment, and in local environments, it is typically not set
@@ -122,21 +122,21 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - In local development, `APP_ENV` should be set to `local`
 
 ## Validation
-- Both `joi` and `zod` are used for validation. `zod` should always be prefered over `joi` as it provides better types. `joi` is only used in legacy situations
+- Both `joi` and `zod` are used for validation. `zod` should always be preferred over `joi` as it provides better types. `joi` is only used in legacy situations
 - When validating with `zod`, use the `parse` method from `src/utils/parse.ts`
 - Prefer validating body/search params inside of request handlers, instead of in middleware, as it provides better type safety
 - Define `zod` schemas in the file in which they are used. Do not use central schema files
 
 ## Errors
 - All errors thrown should be (or inherit from) `ServerError` or `UserError` defined in `src/utils/errors.ts`. These both inherit from `BaseError`
-  - `UserError` is for any error were it is OK for the user to see the error
+  - `UserError` is for any error where it is OK for the user to see the error
     - These are typically 4xx errors, but don't have to be (default is 400)
     - They are errors we would expect to see during proper usage
-  - `ServerError` are for errors were we don't want the user to see it
+  - `ServerError` are for errors where we don't want the user to see it
     - These should always be 5xx errors (default is 500)
     - When these are thrown, the response will have a generic `Something went wrong` message
     - In general, these errors indicate something unexpected went wrong, and typically should not be caught in try-catch blocks
-- Create subclasses of `ServerError` and `UserError` when a type of error might be thrown in multiple places. These may or may not contain additional logic, but the `name` property should always be equal to the name of the class. For one of errors, it's fine to just use `UserError` or `ServerError`
+- Create subclasses of `ServerError` and `UserError` when a type of error might be thrown in multiple places. These may or may not contain additional logic, but the `name` property should always be equal to the name of the class. For one-off errors, it's fine to just use `UserError` or `ServerError`
 - All `BaseError`s are caught in the global error handler, and generate a http response based on the status code in the error
 - When a `UserError` is caught, the message and name are in the response. The front end can use the name to identify the type of error
 - Never use the `Response` object to send an error (4xx or 5xx) response
@@ -149,7 +149,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 
 - Helper methods are in `instrumentation/instrumentation.ts`
   - Wrap a function with `withSpan` to instrument that function (works with both sync and async functions)
-    - Errors thrown in `withSpan` will be recorded, so no need to record exceptions unless they are caught and no rethrown
+  - Errors thrown in `withSpan` will be recorded, so no need to record exceptions unless they are caught and not rethrown
     - Guidance for what should be wrapped in `withSpan`
       - Anything that could throw an error, unless it is a core utility/helper method, and it would be obvious where the error came from (e.g. parse)
       - Anything sufficiently complex (> 20 LoC)
@@ -222,7 +222,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
       await database.getDb().collection(DatabaseCollection.Users).deleteMany({})
     })
     ```
-- All tests have the following setup, so do not add beforeEach blocks to reset mocks
+- All tests have the following global setup, so do not add additional beforeEach blocks to reset mocks
   ```ts
   beforeEach(() => {
     vi.resetAllMocks()
