@@ -7,8 +7,8 @@ import packageInfo from '../package.json' with { type: "json" }
 import { DB_NAME, INITIALISE_INDEXES, MONGODB_URI } from './config/env-vars.js'
 import { ENV } from './config/env.js'
 import { database } from './database/database.js'
+import { executeSpan, setAttributes, withSpan } from "./instrumentation/instrumentation.js"
 import { shutdownInstrumentation } from "./instrumentation/setup.js"
-import { executeSpan, setAttributes, withSpan } from "./instrumentation/span.js"
 import { securityHeaders, validateContentType } from './middleware/security.js'
 import activityRoutes from './routes/activityRoutes.js'
 import alkaneTokenRoutes from './routes/alkaneTokenRoutes.js'

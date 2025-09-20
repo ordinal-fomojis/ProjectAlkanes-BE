@@ -1,6 +1,6 @@
 import { CreateUserRequest, IUser, User } from '../models/User.js'
 import { ServerError } from '../utils/errors.js'
-import { sanitizeAddress } from '../utils/sanitiseAddress.js'
+import { sanitiseAddress } from '../utils/sanitiseAddress.js'
 import { BaseService } from './BaseService.js'
 
 export class UserService extends BaseService<IUser> {
@@ -22,7 +22,7 @@ export class UserService extends BaseService<IUser> {
   }
 
   async createUser(userData: CreateUserRequest) {
-    const normalizedAddress = sanitizeAddress(userData.walletAddress);
+    const normalizedAddress = sanitiseAddress(userData.walletAddress);
     
     const newUser = User.createUser(normalizedAddress);
     const referralCode = await this.generateUniqueReferralCode();
@@ -43,7 +43,7 @@ export class UserService extends BaseService<IUser> {
   }
 
   async getUserByWalletAddress(walletAddress: string): Promise<IUser | null> {
-    const normalizedAddress = sanitizeAddress(walletAddress);
+    const normalizedAddress = sanitiseAddress(walletAddress);
     return await this.collection.findOne({ walletAddress: normalizedAddress });
   }
 } 

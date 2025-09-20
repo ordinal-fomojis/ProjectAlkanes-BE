@@ -1,5 +1,5 @@
 import { trace } from "@opentelemetry/api"
-import { withSpan } from "../instrumentation/span.js"
+import { withSpan } from "./instrumentation.js"
 
 export abstract class AutoInstrumentedClass {
   private tracer = trace.getTracer(this.constructor.name)
