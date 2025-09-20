@@ -80,7 +80,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 
 2) Implement route handler (src/routes/my-feature.ts)
    - Validate input with zod and `parse` (src/utils/parse.ts)
-   - Sanitize BTC addresses with `sanitiseAddress` (src/utils/sanitiseAddress.ts)
+   - Sanitise BTC addresses with `sanitiseAddress` (src/utils/sanitiseAddress.ts)
    - Call the Service; throw `UserError`/`ServerError` (src/utils/errors.ts)
    - Instrument complex operations with `withSpan` (src/instrumentation/instrumentation.ts)
    - Use `retrySchemaFetch` or other retry method from `src/utils/retryFetch.ts` for outbound fetches
@@ -97,12 +97,12 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 - Sensitive environment variables are encrypted using `@dotenvx/dotenvx`
 - Non-sensitive environment variables should not be encrypted, so we can track changes to them via version control
 - Environment variables are loaded in `env/env.ts`. They are loaded based on the value of `NODE_ENV`
-  - `NODE_ENV='test'` (i.e. when running tests via vitest): Loads `.env.sample`, which contains dummy/default values
-  - `NODE_ENV='development'` or `NODE_ENV='production'`: Loads the file specified by the `DOTENV_PATH` environment variable. If `DOTENV_PATH` is not set, it loads `.env`. This file is not checked in to git, and is the developers local environment configuration. `DOTENV_PATH` is always set in a deployed environment, and in local environments, it is typically not set
-- `NODE_ENV` is NOT used to differentiate prod and nonprod environments (this is what `APP_ENV` is for). Instead it is used to differentiate from local development, and a deployed instance. This is exported via the strongly typed variable `ENV`
-  - `test`: Running tests via vitest
+  - `NODE_ENV='test'` (i.e. when running tests via Vitest): Loads `.env.sample`, which contains dummy/default values
+  - `NODE_ENV='development'` or `NODE_ENV='production'`: Loads the file specified by the `DOTENV_PATH` environment variable. If `DOTENV_PATH` is not set, it loads `.env`. This file is not checked in to git, and is the developer's local environment configuration. `DOTENV_PATH` is always set in a deployed environment, and in local environments, it is typically not set
+- `NODE_ENV` is NOT used to differentiate prod and non-prod environments (this is what `APP_ENV` is for). Instead it is used to differentiate from local development, and a deployed instance. This is exported via the strongly typed variable `ENV`
+  - `test`: Running tests via Vitest
   - `development`: Local development
-  - `production`: Running in a deployed cloud environment. This could still be nonprod
+  - `production`: Running in a deployed cloud environment. This could still be non-prod
 - It is preferred to export environment variables from `env/env-vars.ts`, however, this is not required
   - All required env vars should be in `env/env-vars.ts`, and is parsed with `zod`
   - If an env var would be required in prod, it should be made required in `env/env-vars.ts`, so we are made aware of invalid configuration when deploying
@@ -115,7 +115,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - Production Environments. These are connected to the prod database
     - `prod`: Production deployment that is exposed via `api.shovel.space`
     - `stage`: Identical to production environment, but not exposed via `api.shovel.space`. This allows us to deploy a new version into a production environment as one final test before deploying it to production
-  - NonProd environments. These are connected to the nonprod database
+  - NonProd environments. These are connected to the non-prod database
     - `dev`: Similar to prod, but connected to non prod database
     - `mock`: All BTC interactions are mocked in this environment, allowing for testing without the need to have, or spend any BTC
     - `testnet` (Not implemented yet): Same as `dev`, except all BTC interactions go to testnet
@@ -137,7 +137,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
     - When these are thrown, the response will have a generic `Something went wrong` message
     - In general, these errors indicate something unexpected went wrong, and typically should not be caught in try-catch blocks
 - Create subclasses of `ServerError` and `UserError` when a type of error might be thrown in multiple places. These may or may not contain additional logic, but the `name` property should always be equal to the name of the class. For one-off errors, it's fine to just use `UserError` or `ServerError`
-- All `BaseError`s are caught in the global error handler, and generate a http response based on the status code in the error
+- All `BaseError`s are caught in the global error handler, and generate an HTTP response based on the status code in the error
 - When a `UserError` is caught, the message and name are in the response. The front end can use the name to identify the type of error
 - Never use the `Response` object to send an error (4xx or 5xx) response
 - Always throw an appropriate error instead, and set the status code using `withStatus` on the error. This is to ensure the error is reported to observability, ensures consistent response formats, and prevents the risk of continued execution (if a developer forgets to put a return statement)
@@ -175,37 +175,37 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - `recordException` can be used to record an exception
     - This is rarely needed, because exceptions are recorded automatically by `withSpan`, but can be useful if an error is caught and handled
     - It takes a `setStatus` option (defaults to true), which you can set to false and the span is not marked as an error, which should be done if the error does not result in a 5xx error. 4xx errors should not mark the span as an error
-  - `setAttributes` is used to add attributes to the current span. It allows for a deeply nested object to be passed in, and it will be flattened out by converting nested key values into dot separated paths. It also handles data types not typically allowed in OpenTelemetry, such as Date, null and ObjectId (from mongodb). Support for other data types can be added if and when it is necessary
+  - `setAttributes` is used to add attributes to the current span. It allows for a deeply nested object to be passed in, and it will be flattened out by converting nested key values into dot separated paths. It also handles data types not typically allowed in OpenTelemetry, such as Date, null and ObjectId (from MongoDB). Support for other data types can be added if and when it is necessary
     - `withSpan` does not automatically add argument values, or return values, so `setAttributes` should be used to set argument values, and/or return values where it makes sense to
     - Do not put complex data types, or values that could be excessively large in `setAttributes`. If a complex data type is important to instrument, it could be json stringified to ensure it can be set properly
     - `setAttributes` may trigger a TypeScript error if the passed in type is defined as an interface. If this occurs, it can normally be resolved by redefining it as a type
-  - Classes should extend `AutoInstrumentedClass` (`src/instrumentationAutoInstrumentedClass.ts`). This automatically replaces all methods on the class with an equivalent wrapped in `withSpan` eliminating the need to create a tracer, and wrap methods in `withSpan`. `setAttributes` should still be used in each method though. `BaseService` extends from `AutoInstrumentedClass`, so all services are automatically instrumented
+  - Classes should extend `AutoInstrumentedClass` (`src/instrumentation/AutoInstrumentedClass.ts`). This automatically replaces all methods on the class with an equivalent wrapped in `withSpan` eliminating the need to create a tracer, and wrap methods in `withSpan`. `setAttributes` should still be used in each method though. `BaseService` extends from `AutoInstrumentedClass`, so all services are automatically instrumented
 
 ## Database (MongoDB)
 - All database interactions occur through the singleton `database` exported from `src/database/database.ts`
 - Indexes are defined in `src/database/indexes.ts`, and on startup indexes are created if they don't already exist
   - Any field that is used in a query, or used for sorting should be indexed
 - Database operations should be abstracted via a Service, defined in the `src/services` folder
-  - Typically, we have one service per mongo collection, but this doesn't have to be the case (e.g. PointsService)
+  - Typically, we have one service per MongoDB collection, but this doesn't have to be the case (e.g. PointsService)
   - The database model should be defined in the relevant Service file
-  - The database model should not have the mongo `_id` defined, as the mongo sdk adds this automatically to responses
+  - The database model should not have the MongoDB `_id` defined, as the MongoDB sdk adds this automatically to responses
   - When defining database models, prefer nullable types over optional types (i.e. prefer `x: string | null` over `x?: string`). This eliminates the possibility the developer forgets to define a value when they should be. If they want null, it has to be explicit
 - Services should typically contain minimal logic beyond what is required for the database operation
 - All services should inherit from `BaseService<T>` where `T` is the collection model
   - The collection name should be defined on the class, and should reference the `DatabaseCollection` constants in `src/database/collections.ts`
     - e.g: `collectionName = DatabaseCollection.ArchivedTransactions`
-  - The mongo collection can then be accessed via `this.collection`
+  - The MongoDB collection can then be accessed via `this.collection`
 
 ## Tests
-- Tests use vitest and are in the `tests` folder
+- Tests use Vitest and are in the `tests` folder
 - The folder structure for tests should match the folder structure in `src`
 - Utility functions for testing go in `test-utils`. This includes mock data, random helpers, etc.
 - Each separate function tested should have a separate `describe` block
 - Before each/after each blocks should go at the root of the file, not inside `describe` blocks, unless there are multiple `describe`s inside a file, and specific logic is needed for one of them
 - Use the Arrange, Act, Assert pattern for tests
-- Use setup functions where possible to remove code duplication. This is often preferable to `beforeEach` as a setup function can allow option arguments and/or return stuff to the test
-- Tests use `mongodb-memory-server` to mock the mongo database. Each file will have a separate instance of this, so the tests can't conflict with each other
-  - The following before/after handlers should be used to ensure mongo is setup properly
+- Use setup functions where possible to remove code duplication. This is often preferable to `beforeEach` as a setup function can allow optional arguments and/or return values to the test
+- Tests use `mongodb-memory-server` to mock the MongoDB database. Each file will have a separate instance of this, so the tests can't conflict with each other
+  - The following before/after handlers should be used to ensure MongoDB is setup properly
     ```ts
     beforeAll(async () => {
       mongodb = await MongoMemoryServer.create()
