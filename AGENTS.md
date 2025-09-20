@@ -1,3 +1,12 @@
+## TL;DR (Agent Quickstart)
+- Node 22.x; npm only
+- ESM NodeNext; use relative imports with .js extensions
+- PR checks (run in order): `tsc -p tests` → `npm run lint -- --max-warnings 0` → `npm run build` → `npm test`
+- Fetch: use `retrySchemaFetch` or other retry method from `src/utils/retryFetch.ts`
+- Validation: zod via `parse` (src/utils/parse.ts)
+- Errors: throw `UserError`/`ServerError` (never send error via Response)
+- No console.*; use `withSpan`/`setAttributes` for tracing (OpenTelemetry)
+
 # Coding Agent Onboarding Guide
 
 This guide equips an automated coding agent to work efficiently in this repository and avoid CI/build pitfalls. Trust these instructions first; only search if something here seems incomplete or contradicts reality.
@@ -8,7 +17,9 @@ Coding Agents should not edit this file. Only humans should edit this to ensure 
 - Backend API for the Project Alkanes ecosystem (aka Shovel Backend).
 - Node.js + Express with TypeScript; MongoDB for persistence; strong validation and security middleware.
 - Key tech: Node 22.x (CI), npm, Express 5, TypeScript 5, Vitest, ESLint, MongoDB driver, OpenTelemetry.
-- ESM/TypeScript: Project uses ESM (`"type": "module"`) and `NodeNext` resolution. Import compiled JS in `dist/` at runtime; use `.js` extensions in TypeScript source imports (already enforced).
+- ESM/TypeScript: Project uses ESM (`"type": "module"`) and `NodeNext` resolution. 
+- Imports must be relative with a `js` extension. Required for NodeNext ESM resolution so compiled imports resolve correctly at runtime
+- Formatting is enforced via ESLint. Prettier is not used.
 
 ## High-level layout
 ```
@@ -42,7 +53,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 - All fetch requests should use a retry method from `src/utils/retryFetch.ts`. Typically `retrySchemaFetch` to provide strongly typed responses
 - Define types in the file where they are used, or originate from. Do not use central files for types
 - Prefer not explicity specifying return types of methods, unless a different type is needed from what would be inferred
-- BTC addresses passed as input should always be passed through `sanitizeAddress`
+- BTC addresses passed as input should always be passed through `sanitiseAddress` (in `src/utils/sanitiseAddress.ts`)
 - Route handlers (in the `src/routes` folder) should have minimal logic. Database operations should be in a Service class, and any significant logic should be extracted into a function, in the `src/utils` folder
 - Do not use `console.log`/`console.warn`/`console.error` anywhere (source code or tests). Source code is instrumented with OpenTelemetry, and console logs in tests don't add value (assertions are what identify if a test passes or fails, not console output). Console logs just bloat the terminal output, and make it harder to identify real issues.
 - If a method has more than 3 or 4 parameters, consider refactoring it to take a single object parameter instead. The type should be called `{FunctionName}Args` and should be defined just above where the function is defined. i.e. 
@@ -60,6 +71,26 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - If a file exports only one class or function, it should be named exactly the same as the class/function, including casing
   - If it exports multiple functions, use kebab-casing with a name descriptive of all the functions
   - Do not use generic names like `utils` or `lib` for files. This is a sign that the contents of the file are not related, and should be split into multiple files
+
+## Adding a new route (checklist)
+
+1) Create a Service (src/services/MyFeatureService.ts)
+   - Define the Mongo model (no `_id` in the type)
+   - Keep logic minimal; add indexes if querying/sorting on new fields
+
+2) Implement route handler (src/routes/my-feature.ts)
+   - Validate input with zod and `parse` (src/utils/parse.ts)
+   - Sanitize BTC addresses with `sanitiseAddress` (src/utils/sanitiseAddress.ts)
+   - Call the Service; throw `UserError`/`ServerError` (src/utils/errors.ts)
+   - Instrument complex operations with `withSpan` (src/instrumentation/instrumentation.ts)
+   - Use `retrySchemaFetch` or other retry method from `src/utils/retryFetch.ts` for outbound fetches
+
+3) Wire route in app entry (src/index.ts), keep handler logic thin
+
+4) Tests (duplicate folder structure in `src`)
+   - Use mongodb-memory-server per file
+   - Arrange/Act/Assert, separate describe blocks per function
+   - Reset collections in beforeEach
 
 ## Environment Variables
 - Environment variables are stored in the `env` folder, with one `.env.*` file for each environment. These are checked into git
@@ -115,6 +146,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 - OpenTelemetry is used for tracing. We do not use logging or metrics from OpenTelemetry at this stage
 - OpenTelemetry is preloaded before the app starts in the `src/instrumentation/setup.ts` file
 - Spans should not be marked as an error for 4xx errors (or anything where a user or third party could trigger the error). However errors in this case should still be recorded
+
 - Helper methods are in `instrumentation/instrumentation.ts`
   - Wrap a function with `withSpan` to instrument that function (works with both sync and async functions)
     - Errors thrown in `withSpan` will be recorded, so no need to record exceptions unless they are caught and no rethrown
@@ -125,14 +157,29 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
     - Anything too simple should not be instrumented
     - Anything that is called a lot should not be instrumented (as it adds overhead)
     - If in doubt, instrument it (wrap it in `withSpan`)
+    - A tracer should be defined in the root of the file, with the name of the file
+    - The span name should be the name of the function
+    - Example usage:
+      ```ts
+      import { AttributeValue, Span, SpanStatusCode, trace, Tracer } from "@opentelemetry/api"
+
+      const tracer = trace.getTracer('fileName')
+
+      export const myFunction = withSpan(tracer, 'myFunction', async (x: number, y: string) => {
+        setAttributes({ x, y })
+        return result
+      })
+      
+      ```
   - `executeSpan` is similar to `withSpan` but the code is executed immediately, instead of creating a function. This is rarely needed. Prefer using `withSpan`
   - `recordException` can be used to record an exception
     - This is rarely needed, because exceptions are recorded automatically by `withSpan`, but can be useful if an error is caught and handled
-    - It takes a `setStatus` option (defaults to true), which you can set to false and the span is not marked as an error, which should be done if the error does not result in a 5xx error
+    - It takes a `setStatus` option (defaults to true), which you can set to false and the span is not marked as an error, which should be done if the error does not result in a 5xx error. 4xx errors should not mark the span as an error
   - `setAttributes` is used to add attributes to the current span. It allows for a deeply nested object to be passed in, and it will be flattened out by converting nested key values into dot separated paths. It also handles data types not typically allowed in OpenTelemetry, such as Date, null and ObjectId (from mongodb). Support for other data types can be added if and when it is necessary
     - `withSpan` does not automatically add argument values, or return values, so `setAttributes` should be used to set argument values, and/or return values where it makes sense to
     - Do not put complex data types, or values that could be excessively large in `setAttributes`. If a complex data type is important to instrument, it could be json stringified to ensure it can be set properly
     - `setAttributes` may trigger a TypeScript error if the passed in type is defined as an interface. If this occurs, it can normally be resolved by redefining it as a type
+  - Classes should extend `AutoInstrumentedClass` (`src/instrumentationAutoInstrumentedClass.ts`). This automatically replaces all methods on the class with an equivalent wrapped in `withSpan` eliminating the need to create a tracer, and wrap methods in `withSpan`. `setAttributes` should still be used in each method though. `BaseService` extends from `AutoInstrumentedClass`, so all services are automatically instrumented
 
 ## Database (MongoDB)
 - All database interactions occur through the singleton `database` exported from `src/database/database.ts`
@@ -144,6 +191,10 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - The database model should not have the mongo `_id` defined, as the mongo sdk adds this automatically to responses
   - When defining database models, prefer nullable types over optional types (i.e. prefer `x: string | null` over `x?: string`). This eliminates the possibility the developer forgets to define a value when they should be. If they want null, it has to be explicit
 - Services should typically contain minimal logic beyond what is required for the database operation
+- All services should inherit from `BaseService<T>` where `T` is the collection model
+  - The collection name should be defined on the class, and should reference the `DatabaseCollection` constants in `src/database/collections.ts`
+    - e.g: `collectionName = DatabaseCollection.ArchivedTransactions`
+  - The mongo collection can then be accessed via `this.collection`
 
 ## Tests
 - Tests use vitest and are in the `tests` folder
@@ -167,7 +218,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
     })
 
     beforeEach(async () => {
-      // Delete any collections used to prevent interferring with later tests. e.g.
+      // Delete any collections to start each test with a clean database. e.g.
       await database.getDb().collection(DatabaseCollection.Users).deleteMany({})
     })
     ```

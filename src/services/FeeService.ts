@@ -1,8 +1,8 @@
 import { ROOT_CONTEXT, context } from '@opentelemetry/api'
 import { z } from 'zod'
 import { MEMPOOL_API_URL } from '../config/env-vars.js'
+import { AutoInstrumentedClass } from '../instrumentation/AutoInstrumentedClass.js'
 import { recordException, setAttributes } from '../instrumentation/instrumentation.js'
-import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Schema for the mempool fees API response

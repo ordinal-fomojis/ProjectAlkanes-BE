@@ -10,7 +10,7 @@ class InvalidAddressError extends UserError {
   }
 }
 
-export function sanitizeAddress(address: string) {
+export function sanitiseAddress(address: string) {
   address = address.trim()
   const addressType = getAddressType(address)
   if (addressType === 'p2tr' || addressType === 'p2wpkh') {

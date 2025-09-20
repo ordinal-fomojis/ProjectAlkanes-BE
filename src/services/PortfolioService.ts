@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env-vars.js'
-import { AutoInstrumentedClass } from '../utils/AutoInstrumentedClass.js'
+import { AutoInstrumentedClass } from '../instrumentation/AutoInstrumentedClass.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
 
 // Ordiscan API response schemas

@@ -1,7 +1,7 @@
 import { ClientSession, ObjectId } from 'mongodb'
 import { calculateBonusPoints, getTierByPoints } from '../config/tiers.js'
 import { IUser, User } from '../models/User.js'
-import { sanitizeAddress } from '../utils/sanitiseAddress.js'
+import { sanitiseAddress } from '../utils/sanitiseAddress.js'
 import { BaseService } from './BaseService.js'
 
 export interface PointsTransaction {
@@ -33,7 +33,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Simple increment - works for any points (not just referral points)
       const result = await this.collection.updateOne(
-        { walletAddress: sanitizeAddress(walletAddress) },
+        { walletAddress: sanitiseAddress(walletAddress) },
         { 
           $inc: { points: points }
         },
@@ -59,7 +59,7 @@ export class PointsService extends BaseService<IUser> {
     fromWallet?: string,
     mintTxId?: ObjectId
   ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
-    walletAddress = sanitizeAddress(walletAddress);
+    walletAddress = sanitiseAddress(walletAddress);
     try {
       // First, get the user's current tier to determine bonus
       const user = await this.collection.findOne({ 
@@ -116,7 +116,7 @@ export class PointsService extends BaseService<IUser> {
     basePointsPerMint = 10,
     session?: ClientSession
   ): Promise<{ pointsAwarded: number; tier: string; bonus: number }> {
-    minterWalletAddress = sanitizeAddress(minterWalletAddress);
+    minterWalletAddress = sanitiseAddress(minterWalletAddress);
     try {
       // Get the minter's current tier
       const user = await this.collection.findOne({ 
@@ -194,7 +194,7 @@ export class PointsService extends BaseService<IUser> {
       
       // Update both total points and referral points (fixed amount, no bonus)
       const result = await this.collection.updateOne(
-        { walletAddress: sanitizeAddress(referrerWalletAddress) },
+        { walletAddress: sanitiseAddress(referrerWalletAddress) },
         { 
           $inc: { 
             points: pointsToAward,
@@ -217,7 +217,7 @@ export class PointsService extends BaseService<IUser> {
   async getPointsBalance(walletAddress: string): Promise<number> {
     try {
       const user = await this.collection.findOne({ 
-        walletAddress: sanitizeAddress(walletAddress) 
+        walletAddress: sanitiseAddress(walletAddress) 
       });
 
       return user?.points || 0;
@@ -232,7 +232,7 @@ export class PointsService extends BaseService<IUser> {
    */
   async getUserByWallet(walletAddress: string): Promise<IUser | null> {
     return await this.collection.findOne({ 
-      walletAddress: sanitizeAddress(walletAddress) 
+      walletAddress: sanitiseAddress(walletAddress) 
     });
   }
 
@@ -253,7 +253,7 @@ export class PointsService extends BaseService<IUser> {
     try {
       // Find the user who did the minting
       const minter = await this.collection.findOne({ 
-        walletAddress: sanitizeAddress(minterWalletAddress) 
+        walletAddress: sanitiseAddress(minterWalletAddress) 
       }, { session });
 
       // Check if minter was referred by someone

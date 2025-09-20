@@ -1,6 +1,6 @@
 import { ClientSession } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
-import { sanitizeAddress } from "../utils/sanitiseAddress.js"
+import { sanitiseAddress } from "../utils/sanitiseAddress.js"
 import { EncryptedWif } from "../utils/wif/encryptWif.js"
 import { BaseService } from "./BaseService.js"
 
@@ -55,7 +55,7 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * This ensures users see ALL their transactions regardless of when they were created
    */
   async getMintTransactionsByWalletAddress(walletAddress: string, type: MintTransaction['type']) {
-    walletAddress = sanitizeAddress(walletAddress)
+    walletAddress = sanitiseAddress(walletAddress)
     
     return await this.collection
       .find({
@@ -82,7 +82,7 @@ export class MintTransactionService extends BaseService<MintTransaction> {
    * Used for debugging and administrative purposes
    */
   async getMintTransactionsByMultipleAddresses(addresses: string[]) {
-    addresses = addresses.map(sanitizeAddress)
+    addresses = addresses.map(sanitiseAddress)
     
     return await this.collection
       .find({
