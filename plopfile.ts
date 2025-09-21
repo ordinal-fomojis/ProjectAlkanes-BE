@@ -1,12 +1,56 @@
+import { InteractiveBrowserCredential } from "@azure/identity"
+import { SecretClient } from "@azure/keyvault-secrets"
 import { config, set } from '@dotenvx/dotenvx'
-import { readdirSync, readFileSync } from 'fs'
+import { existsSync, readdirSync, readFileSync } from 'fs'
+import { readFile, writeFile } from "fs/promises"
 import { Answers } from 'inquirer'
 import { NodePlopAPI } from 'plop'
 import z from 'zod'
 
-const environments = readdirSync('env').map(file => file.replace('.env.', '')).filter(x => x !== 'keys')
+const PRIVATE_KEY_FILE_HEADER = `
+#/------------------!DOTENV_PRIVATE_KEYS!-------------------/
+#/ private decryption keys. DO NOT commit to source control /
+#/     [how it works](https://dotenvx.com/encryption)       /
+#/----------------------------------------------------------/
+
+# .env.production
+DOTENV_PRIVATE_KEY_PROD="..."
+`.trim()
+
+const environments = readdirSync('env').map(file => file.replace('.env.', '')).filter(x => !x.endsWith('keys'))
 
 export default function (plop: NodePlopAPI) {
+  plop.setGenerator('init', {
+    description: 'Initialize dotenvx in your project',
+    prompts: [],
+    actions: [
+      async function init() {
+        const vaultName = "shovel-kv"
+        const secretName = "DotenvPrivateKeyNonProd"
+        const fileName = 'env/.env.keys'
+        
+        const credential = new InteractiveBrowserCredential({ additionallyAllowedTenants: ['*'] })
+        const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential)
+        const privateKey = (await client.getSecret(secretName)).value
+
+        const nonprodEnvs = environments.filter(env => env !== 'prod')
+        if (existsSync(fileName)) {
+          let content = await readFile(fileName, 'utf-8')
+          for (const env of nonprodEnvs) {
+            const name = `DOTENV_PRIVATE_KEY_${env.toUpperCase()}`
+            content = content.replace(new RegExp(`^${name}=.*$`, 'm'), `${name}="${privateKey}"`)
+          }
+          await writeFile(fileName, content)
+          return `Updated private keys in ${fileName}`
+        } else {
+          const keyValues = nonprodEnvs.map(env => `# .env.${env}\nDOTENV_PRIVATE_KEY_${env.toUpperCase()}="${privateKey}"`).join('\n\n')
+          const fileContent = `${PRIVATE_KEY_FILE_HEADER}\n\n${keyValues}`
+          await writeFile(fileName, fileContent)
+          return `Created ${fileName} with private keys`
+        }
+      }
+    ]
+  })
   plop.setGenerator('set-env-variable', {
     description: 'Set a new, or update an existing environment variable',
     prompts: [
@@ -73,7 +117,7 @@ export default function (plop: NodePlopAPI) {
         for (const [key, value] of Object.entries(parsed)) {
           file = file.replace(new RegExp(`^${key}=.*$`, 'm'), `${key}="${value}"`)
         }
-        
+
         return `Decrypted ${envFileName}\n\n${file}`
       }
     ]
