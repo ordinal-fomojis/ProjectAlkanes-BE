@@ -1,4 +1,4 @@
-# Project Alkanes Backend
+# Shovel Backend
 
 A Node.js/Express.js backend API for shovel.space.
 
@@ -15,19 +15,25 @@ A Node.js/Express.js backend API for shovel.space.
 
 ## Quick Start
 
-### 1. Install Dependencies and Initialise .env file
+1. Install Dependencies and Initialise .env file
 
 ```bash
-npm i && npm run init
+npm i
+npm run init
 ```
 
-### 2. Start Development Server
+If you get an authorization error, you likely don't have read access to the Azure Key Vault. Contact Vannix to get access.
+
+2. Start Development Server
 
 ```bash
 npm run dev
 ```
 
 The server will start on `http://localhost:8080`
+
+## Detailed Documentation
+- [Environments](/docs/ENVIRONMENTS.md)
 
 ## Development
 
