@@ -20,6 +20,7 @@ Coding Agents should not edit this file. Only humans should edit this to ensure 
 - ESM/TypeScript: Project uses ESM (`"type": "module"`) and `NodeNext` resolution. 
 - Imports must be relative with a `js` extension. Required for NodeNext ESM resolution so compiled imports resolve correctly at runtime
 - Formatting is enforced via ESLint. Prettier is not used.
+- npm is the package manager. Do not use yarn or pnpm.
 
 ## High-level layout
 ```
