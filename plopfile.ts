@@ -3,7 +3,6 @@ import { SecretClient } from "@azure/keyvault-secrets"
 import { config, set } from '@dotenvx/dotenvx'
 import { existsSync, readdirSync } from 'fs'
 import { readFile, writeFile } from "fs/promises"
-import { Answers } from 'inquirer'
 import { NodePlopAPI } from 'plop'
 import z from 'zod'
 
@@ -14,7 +13,7 @@ const PRIVATE_KEY_FILE_HEADER = `
 #/----------------------------------------------------------/
 
 # .env.production
-DOTENV_PRIVATE_KEY_PROD="..."
+# DOTENV_PRIVATE_KEY_PROD="..."
 `.trim()
 
 const environments = readdirSync('env').map(file => file.replace('.env.', '')).filter(x => !x.endsWith('keys'))
@@ -75,40 +74,25 @@ export default function (plop: NodePlopAPI) {
     description: 'Set a new, or update an existing environment variable',
     prompts: [
       {
-        type: 'confirm',
-        name: 'secret',
-        message: 'is it a secret?'
-      },
-      {
         type: 'input',
         name: 'name',
-        message: answers => answers.secret === true ? 'secret name' : 'environment variable name'
+        message: 'secret name'
       },
       ...environments.map(env => [
         {
           type: 'password',
           name: `${env}_value`,
-          message: `secret value for ${env}`,
-          when: (answers: Answers) => answers.secret === true
-        },
-        {
-          type: 'input',
-          name: `${env}_value`,
-          message: `environment variable value for ${env}`,
-          when: (answers: Answers) => answers.secret === false
+          message: `secret value for ${env}`
         }
       ]).flat()
     ],
     actions: [
       function setVariable(answers) {
-        const schema = z.object({
-          name: z.string(),
-          secret: z.boolean()
-        })
-        const { name, secret } = schema.parse(answers)
+        const schema = z.object({ name: z.string() })
+        const { name } = schema.parse(answers)
         const formattedName = name.toUpperCase().replace(/[^A-Z0-9_]/g, '_')
         for (const env of environments) {
-          set(formattedName, answers[`${env}_value`] as string, { path: `env/.env.${env}`, encrypt: secret })
+          set(formattedName, answers[`${env}_value`] as string, { path: `env/.env.${env}`, encrypt: true, envKeysFile: '.x' })
         }
         return 'Set environment variable'
       }

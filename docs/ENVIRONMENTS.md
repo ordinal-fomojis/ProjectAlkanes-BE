@@ -1,5 +1,7 @@
 # Environments
 
+The variables for each environment are in the `env` directory and each environment has its own `.env` file. These are checked into git, using `dotenvx` to encrypt sensitive values. See [Environment Variables](ENVIRONMENT_VARS.md) for more details.
+
 ## Non-production Environments
 
 - **dev**: [shovel-webapp-dev.azurewebsites.net](https://shovel-webapp-dev.azurewebsites.net)
@@ -18,7 +20,7 @@ Non-production environments can be deployed to manually from feature branches by
 ## Production Environments
 
 - **staging**: [shovel-webapp-prod-stage.azurewebsites.net](https://shovel-webapp-prod-stage.azurewebsites.net)
-  - Identical to production, but not exposed via the main domain. Used for final testing on production data before deploying to production.
+  - Identical to production (uses the `.env.prod` file), but not exposed via the main domain. Used for final testing on production data before deploying to production.
 - **prod**: [api.shovel.space](https://api.shovel.space)
   - The live production environment serving data to users.
 

@@ -6,8 +6,19 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+
     "start": "node --import=./dist/instrumentation/setup.js dist/index.js",
+    "start:dev": "DOTENV_PATH=env/.env.dev npm run start",
+    "start:mock": "DOTENV_PATH=env/.env.mock npm run start",
+    "start:testnet": "DOTENV_PATH=env/.env.testnet npm run start",
+    "start:prod": "DOTENV_PATH=env/.env.prod npm run start",
+
     "dev": "nodemon --exec tsx --import=./src/instrumentation/setup.ts src/index.ts",
+    "dev:dev": "DOTENV_PATH=env/.env.dev npm run dev",
+    "dev:mock": "DOTENV_PATH=env/.env.mock npm run dev",
+    "dev:testnet": "DOTENV_PATH=env/.env.testnet npm run dev",
+    "dev:prod": "DOTENV_PATH=env/.env.prod npm run dev",
+    
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage && open coverage/index.html",
