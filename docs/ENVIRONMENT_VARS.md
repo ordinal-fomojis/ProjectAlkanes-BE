@@ -10,7 +10,7 @@ If you get an authorization error, you likely don't have read access to the Azur
 
 Note: This will not pull the production private key. The production private key should not be kept on local machines to minimise the risk of it leaking. This should not impact development, because environment variables can be set without the private key.
 
-In rare cases, where you do need the production private key, it can be manually retreived from the Azure Key Vault (shovel-kv), but should not be stored on your machine longer than necessary.
+In rare cases, where you do need the production private key, it can be manually retrieved from the Azure Key Vault (shovel-kv), but should not be stored on your machine longer than necessary.
 
 ## Adding or updating environment variables
 
