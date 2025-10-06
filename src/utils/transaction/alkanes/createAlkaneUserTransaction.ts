@@ -1,5 +1,4 @@
-import { payments, Psbt } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { payments, Psbt, toXOnly } from "bitcoinjs-lib"
 import { MAX_UNCONFIRMED_DESCENDANT_TXNS, MIN_FEE_RATE } from "../../../config/constants.js"
 import { RECEIVE_ADDRESS } from "../../../config/env-vars.js"
 import { Utxo } from "../getUtxos.js"
@@ -35,8 +34,8 @@ export async function createAlkaneUserTransaction({
   const runescript = createAlkaneMintScript(alkaneId)
   const mintTxSize = getAlkaneMintTransactionSize({ runescript, outputAddressType: 'p2tr' })
   const finalMintTxSize = getAlkaneMintTransactionSize({ runescript, outputAddressType: addressType })
-  const feePerMint = Math.ceil(feeRate * mintTxSize)
-  const feeOfFinalMint = Math.ceil(feeRate * finalMintTxSize)
+  const feePerMint = BigInt(Math.ceil(feeRate * mintTxSize))
+  const feeOfFinalMint = BigInt(Math.ceil(feeRate * finalMintTxSize))
   const txnsPerGroup = MAX_UNCONFIRMED_DESCENDANT_TXNS
   const txnsInLastGroup = (mintCount - 1) % txnsPerGroup
 
@@ -58,7 +57,7 @@ export async function createAlkaneUserTransaction({
   } else {
     psbt.addOutputs(mintsInEachOutput.map(mints => ({
       script: internalPayment.output!,
-      value: outputValue + (mints - 1) * feePerMint + feeOfFinalMint
+      value: outputValue + BigInt(mints - 1) * feePerMint + feeOfFinalMint
     })))
   }
 
@@ -71,7 +70,7 @@ export async function createAlkaneUserTransaction({
 
   psbt.addOutput({
     script: runescript.output!,
-    value: 0
+    value: BigInt(0)
   })
 
   const { networkFee } = await calculateTransactionInputsAndFee({
@@ -80,9 +79,9 @@ export async function createAlkaneUserTransaction({
 
   return {
     psbt, internalKey, serviceFee,
-    networkFee: networkFee + (mintCount - 1 - mintsInEachOutput.length) * feePerMint + mintsInEachOutput.length * feeOfFinalMint,
+    networkFee: networkFee + BigInt(mintCount - 1 - mintsInEachOutput.length) * feePerMint + BigInt(mintsInEachOutput.length) * feeOfFinalMint,
     feePerMint, feeOfFinalMint,
-    paddingCost: mintCount === 1 ? outputValue : mintsInEachOutput.length * outputValue,
+    paddingCost: mintCount === 1 ? outputValue : BigInt(mintsInEachOutput.length) * outputValue,
     mintsInEachOutput
   }
 }

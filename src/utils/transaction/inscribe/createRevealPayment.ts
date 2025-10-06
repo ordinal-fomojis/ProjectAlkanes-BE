@@ -1,5 +1,4 @@
-import { Signer, opcodes, payments, script } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { Signer, opcodes, payments, script, toXOnly } from "bitcoinjs-lib"
 import { encode } from 'cbor2'
 import { brotliCompressSync } from "zlib"
 import { UserError } from "../../errors.js"
@@ -13,7 +12,7 @@ export interface InscriptionFile {
     data: Buffer
     type: MimeType
   }
-  padding: number
+  padding: bigint
   onchainMetadata?: unknown
   metaprotocol?: string
   compress?: boolean
@@ -51,9 +50,9 @@ export function createRevealPayment(key: Signer, files: InscriptionFile[]) {
   })
 }
 
-function createRevealScript(publicKey: Buffer, files: InscriptionFile[]) {
+function createRevealScript(publicKey: Uint8Array, files: InscriptionFile[]) {
   const commands = [publicKey, opcodes.OP_CHECKSIG!]
-  let pointer = 0
+  let pointer = BigInt(0)
   for (const file of files) {
     const envelope: (number | Buffer)[] = []
 
@@ -122,10 +121,12 @@ function fromBuffer(buffer: Buffer) {
 }
 
 // Converts integer to little endian buffer with trailing zeros omitted
-function littleEndianBuffer(n: number) {
+function littleEndianBuffer(n: number | bigint) {
+  n = typeof n === "number" ? n : Number(n)
   const bytes: number[] = []
   while (n > 0) {
     bytes.push(n & 0xff)
+    
     n >>= 8
   }
   return Buffer.from(bytes)

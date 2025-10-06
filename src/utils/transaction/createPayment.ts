@@ -1,5 +1,4 @@
-import { payments } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { payments, toXOnly } from "bitcoinjs-lib"
 import { AddressType, UnsupportedAddressType } from "./utils/getAddressType.js"
 import { BTC_JS_NETWORK } from "./utils/network.js"
 

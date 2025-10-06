@@ -1,6 +1,6 @@
 import { AddressType } from "./getAddressType.js"
 
-export function dustLimit(addressType: AddressType): number {
+function dustLimitNum(addressType: AddressType) {
   switch (addressType) {
     case 'p2wpkh':
       return 294
@@ -12,3 +12,5 @@ export function dustLimit(addressType: AddressType): number {
       return 546
   }
 }
+
+export const dustLimit = (addressType: AddressType) => BigInt(dustLimitNum(addressType))

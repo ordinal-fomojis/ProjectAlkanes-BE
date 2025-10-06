@@ -16,7 +16,7 @@ const UnisatUtxoSchema = z.object({
 export async function getUtxos(address: string) {  
   if (MOCK_BTC()) {
     return [{
-      value: 10 * 100000000,
+      value: BigInt(10 * 100000000),
       txid: randomTransactionId(),
       vout: 0
     }]
@@ -25,7 +25,7 @@ export async function getUtxos(address: string) {
   const { utxo } = await unisatFetch(UnisatUtxoSchema, `/address/${address}/available-utxo-data`)
   utxo.sort((a, b) => a.satoshi - b.satoshi)
   return utxo.map(utxo => ({
-    value: utxo.satoshi,
+    value: BigInt(utxo.satoshi),
     txid: utxo.txid,
     vout: utxo.vout,
   }))

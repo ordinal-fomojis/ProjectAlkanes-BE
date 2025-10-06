@@ -15,7 +15,7 @@ interface CreateInscriptionUserTransactionArgs {
   paymentPubkey: string
   files: InscriptionOutput[]
   utxos: Utxo[]
-  serviceFee: number
+  serviceFee: bigint
 }
 
 export async function createInscriptionUserTransaction({
@@ -28,7 +28,7 @@ export async function createInscriptionUserTransaction({
 
   const psbt = new Psbt({ network: BTC_JS_NETWORK() })
   for (const batch of batches) {
-    const inputValue = Math.ceil(feeRate * batch.virtualSize) + batch.outputValue
+    const inputValue = BigInt(Math.ceil(feeRate * batch.virtualSize)) + batch.outputValue
     psbt.addOutput({
       address: batch.payment.address!,
       value: inputValue
@@ -48,7 +48,7 @@ export async function createInscriptionUserTransaction({
 
   return {
     psbt, internalKey, serviceFee,
-    networkFee: networkFee + batches.reduce((sum, batch) => sum + Math.ceil(feeRate * batch.virtualSize), 0),
-    paddingCost: batches.reduce((sum, batch) => sum + batch.outputValue, 0)
+    networkFee: networkFee + batches.reduce((sum, batch) => sum + BigInt(Math.ceil(feeRate * batch.virtualSize)), BigInt(0)),
+    paddingCost: batches.reduce((sum, batch) => sum + batch.outputValue, BigInt(0))
   }
 }

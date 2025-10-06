@@ -55,11 +55,11 @@ router.get('/', authenticateJWT, requireReferral, async (req: AuthenticatedReque
   const id = await service.createMintTransaction({
     psbt: psbt.toHex(),
     encryptedWif: await encryptWif(internalKey),
-    serviceFee,
-    networkFee,
-    paddingCost,
-    networkFeePerMint: feePerMint,
-    networkFeeOfFinalMint: feeOfFinalMint,
+    serviceFee: Number(serviceFee),
+    networkFee: Number(networkFee),
+    paddingCost: Number(paddingCost),
+    networkFeePerMint: Number(feePerMint),
+    networkFeeOfFinalMint: Number(feeOfFinalMint),
     mintsInEachOutput,
     alkaneId,
     mintCount,
@@ -118,11 +118,11 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
   const key = await decryptWif(mintTx.encryptedWif)
   const runescript = createAlkaneMintScript(mintTx.alkaneId)
   const transactions = (await throttledPromiseAll(mintTx.mintsInEachOutput.map((mintCount, index) => () => createAlkaneMintTransactionChain({
-    feePerMint: mintTx.networkFeePerMint,
-    feeOfFinalMint: mintTx.networkFeeOfFinalMint,
+    feePerMint: BigInt(mintTx.networkFeePerMint),
+    feeOfFinalMint: BigInt(mintTx.networkFeeOfFinalMint),
     runescript, key,
     mintCount, outputAddress: mintTx.receiveAddress,
-    utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? 0 }
+    utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? BigInt(0) }
   })))).map(chain => chain.map(tx => ({ tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: false })))
 
   const allTransactions = [paymentTx].concat(transactions.flat())

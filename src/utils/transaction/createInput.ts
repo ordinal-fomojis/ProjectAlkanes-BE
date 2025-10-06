@@ -1,5 +1,4 @@
-import { Payment, Psbt, Transaction } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { Payment, Psbt, toXOnly, Transaction } from "bitcoinjs-lib"
 import { getRawTransactions } from "../rpc/getRawTransactions.js"
 import { AddressType } from "./utils/getAddressType.js"
 
@@ -8,7 +7,7 @@ interface CreateInputArgs {
   txid: string
   vout: number
   publicKey: Buffer
-  value: number
+  value: bigint
   payment: Payment
   dummyInputTx?: Transaction
 }

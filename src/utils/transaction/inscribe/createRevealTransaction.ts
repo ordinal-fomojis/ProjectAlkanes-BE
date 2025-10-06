@@ -1,5 +1,4 @@
-import { Payment, Psbt, Signer } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { Payment, Psbt, Signer, toXOnly } from "bitcoinjs-lib"
 import varuint from "varuint-bitcoin"
 import { dustLimit } from "../utils/dustLimit.js"
 import getAddressType from "../utils/getAddressType.js"
@@ -9,7 +8,7 @@ import { InscriptionFile } from "./createRevealPayment.js"
 export interface BaseInput {
   hash: string
   index: number
-  value: number
+  value: bigint
 }
 
 export type InscriptionOutput = InscriptionFile & { destination: string }
