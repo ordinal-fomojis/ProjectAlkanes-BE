@@ -11,15 +11,15 @@ describe("createAlkaneMintTransactionChain", () => {
     const utxo = {
       txid: Random.randomTransactionId(),
       vout: 0,
-      value: 1000000,
+      value: 1000000n,
     }
     
     const address = randomAddress()
     const runescript = createAlkaneMintScript('2:0')
     const txns = await createAlkaneMintTransactionChain({
       utxo,
-      feePerMint: 1000,
-      feeOfFinalMint: 2000,
+      feePerMint: 1000n,
+      feeOfFinalMint: 2000n,
       runescript,
       mintCount: 5,
       key: randomKey(),
@@ -36,8 +36,8 @@ describe("createAlkaneMintTransactionChain", () => {
       expectToBeDefined(prevTxn)
       expectToBeDefined(currentTxn)
       expect(Buffer.from(currentTxn.ins[0]?.hash.toReversed() ?? []).toString('hex')).toBe(prevTxn.getId())
-      expect(currentTxn.outs[0]?.value).toBe(utxo.value - (i + 1) * 1000 - (i === txns.length - 1 ? 1000 : 0))
-      expect(currentTxn.outs[1]?.script.toString('hex')).toBe(runescript.output?.toString('hex'))
+      expect(currentTxn.outs[0]?.value).toBe(utxo.value - BigInt((i + 1) * 1000 + (i === txns.length - 1 ? 1000 : 0)))
+      expect(Buffer.from(currentTxn.outs[1]!.script).toString('hex')).toBe(Buffer.from(runescript.output!).toString('hex'))
     }
   })
 })

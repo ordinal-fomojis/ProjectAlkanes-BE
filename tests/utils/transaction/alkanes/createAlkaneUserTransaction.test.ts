@@ -1,5 +1,4 @@
-import { crypto, payments } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { crypto, payments, toXOnly } from "bitcoinjs-lib"
 import { describe, expect, it, vi } from "vitest"
 import { getRawTransactions } from "../../../../src/utils/rpc/getRawTransactions.js"
 import { createAlkaneUserTransaction } from "../../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js"
@@ -50,7 +49,7 @@ describe("createAlkaneUserTransaction", () => {
       addressType: receiveAddressType, publicKey: randomKey().publicKey
     }).address!
 
-    const txValue = 1000000
+    const txValue = 1000000n
     const dummyTx = await createDummyTx(paymentAddress, txValue)
     vi.mocked(getRawTransactions).mockResolvedValue([{
       success: true,
@@ -79,7 +78,7 @@ describe("createAlkaneUserTransaction", () => {
     const key = randomKey()
     const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
 
-    const txValue = 1000
+    const txValue = 1000n
     const utxos = [{
       txid: Random.randomTransactionId(),
       vout: 0,
@@ -96,7 +95,7 @@ describe("createAlkaneUserTransaction", () => {
     const key = randomKey()
     const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
 
-    const txValue = 100000
+    const txValue = 100000n
     const utxos = [{
       txid: Random.randomTransactionId(),
       vout: 0,
@@ -125,7 +124,7 @@ describe("createAlkaneUserTransaction", () => {
     const key = randomKey()
     const address = createPayment({ addressType: 'p2wpkh', publicKey: key.publicKey }).address!
 
-    const txValue = 10000000
+    const txValue = 10000000n
     const utxos = [{
       txid: Random.randomTransactionId(),
       vout: 0,

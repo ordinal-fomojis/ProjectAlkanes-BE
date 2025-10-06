@@ -7,7 +7,7 @@ describe("createAlkaneMintScript", () => {
     ['2:194', "6a5d0fff7f818cec82d08bc0a882899ec44e"],
   ])("should create correct runstone: case %#", (value, expected) => {
     const result = createAlkaneMintScript(value)
-    expect(result.output?.toString('hex')).toEqual(expected)
+    expect(Buffer.from(result.output!).toString('hex')).toEqual(expected)
   })
 
   it("should throw error for invalid alkaneId format", () => {
