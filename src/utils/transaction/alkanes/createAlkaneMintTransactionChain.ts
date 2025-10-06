@@ -1,13 +1,12 @@
-import { Payment, payments, Signer, Transaction } from "bitcoinjs-lib"
-import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371.js"
+import { Payment, payments, Signer, toXOnly, Transaction } from "bitcoinjs-lib"
 import { Utxo } from "../getUtxos.js"
 import { BTC_JS_NETWORK } from "../utils/network.js"
 import { createAlkaneMintTransaction } from "./createAlkaneMintTransaction.js"
 
 interface CreateAlkaneMintTransactionChainArgs {
   utxo: Utxo
-  feePerMint: number
-  feeOfFinalMint: number
+  feePerMint: bigint
+  feeOfFinalMint: bigint
   runescript: Payment
   mintCount: number
   key: Signer
