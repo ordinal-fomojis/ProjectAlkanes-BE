@@ -20,6 +20,7 @@ Coding Agents should not edit this file. Only humans should edit this to ensure 
 - ESM/TypeScript: Project uses ESM (`"type": "module"`) and `NodeNext` resolution. 
 - Imports must be relative with a `js` extension. Required for NodeNext ESM resolution so compiled imports resolve correctly at runtime
 - Formatting is enforced via ESLint. Prettier is not used.
+- npm is the package manager. Do not use yarn or pnpm.
 
 ## High-level layout
 ```
@@ -60,6 +61,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - Don't do this: `function foo(w: string, x: string, y: string, z: string) { ... }`
   - Do this instead: `function foo({ w, x, y, z }: FooArgs) { ... }`
 - For root level functions, prefer the `function` keyword instead of arrow functions. Arrow functions are fine if defining them inside another function, or passing them as argument to something
+- Don't overuse comments. Aim to write self documenting code (i.e. write code so it is clear what it does without the need for comments). Only use comments where it is not clear what the code does or why it is needed
 
 ### Naming Guidelines
 - Classes: PascalCase
