@@ -8,9 +8,9 @@ Run `npm run init` to pull the non-production private keys for `dotenvx`, and cr
 
 If you get an authorization error, you likely don't have read access to the Azure Key Vault. Contact Vannix to get access.
 
-Note: This will not pull the production private key. The production private key should not be kept on local machines to minimise the risk of it leaking. This should not impact developement, because environment variables can be set without the private key.
+Note: This will not pull the production private key. The production private key should not be kept on local machines to minimise the risk of it leaking. This should not impact development, because environment variables can be set without the private key.
 
-In rare cases, where you do need the production private key, it can be manually retreived from the Azure Key Vault (shovel-kv), but should not be stored on your machine longer than necessary.
+In rare cases, where you do need the production private key, it can be manually retrieved from the Azure Key Vault (shovel-kv), but should not be stored on your machine longer than necessary.
 
 ## Adding or updating environment variables
 

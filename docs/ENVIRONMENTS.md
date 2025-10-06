@@ -11,7 +11,7 @@ The variables for each environment are in the `env` directory and each environme
 - **testnet**: [shovel-webapp-testnet.azurewebsites.net](https://shovel-webapp-testnet.azurewebsites.net) (Not implemented yet)
   - Connects to Bitcoin testnet, allowing testing with testnet BTC
 
-All non-production environments use a shared non-production database. This is seperate from the production database, to allow for safe testing.
+All non-production environments use a shared non-production database. This is separate from the production database, to allow for safe testing.
 
 Non-production environments are automatically deployed when a pull request is merged into the `main` branch.
 
