@@ -39,12 +39,12 @@ function generateBatch(startIndex: number, initialGuess: number, files: Inscript
     const dummyInput = {
       hash: randomTransactionId(),
       index: 0,
-      value: batchFiles.reduce((sum, file) => sum + file.padding, BigInt(0))
+      value: batchFiles.reduce((sum, file) => sum + file.padding, 0n)
     }
     const payment = createRevealPayment(key, batchFiles)
     const reveal = createRevealTransaction(payment, batchFiles, key, dummyInput)
     const virtualSize = reveal.virtualSize()
-    const outputValue = reveal.outs.reduce((sum, out) => sum + out.value, BigInt(0))
+    const outputValue = reveal.outs.reduce((sum, out) => sum + out.value, 0n)
     if (virtualSize > MAX_TX_SIZE) {
       hi = { virtualSize, payment, files: batchFiles, outputValue }
     } else {

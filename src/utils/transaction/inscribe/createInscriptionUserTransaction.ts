@@ -48,7 +48,7 @@ export async function createInscriptionUserTransaction({
 
   return {
     psbt, internalKey, serviceFee,
-    networkFee: networkFee + batches.reduce((sum, batch) => sum + BigInt(Math.ceil(feeRate * batch.virtualSize)), BigInt(0)),
-    paddingCost: batches.reduce((sum, batch) => sum + batch.outputValue, BigInt(0))
+    networkFee: networkFee + batches.reduce((sum, batch) => sum + BigInt(Math.ceil(feeRate * batch.virtualSize)), 0n),
+    paddingCost: batches.reduce((sum, batch) => sum + batch.outputValue, 0n)
   }
 }

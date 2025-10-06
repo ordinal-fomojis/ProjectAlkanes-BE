@@ -14,7 +14,7 @@ interface GetMintTransactionSizeArgs {
 }
 
 export function createAlkaneMintTransaction({
-  runescript, outputAddress, fee = BigInt(0), key, pubkey, payment, utxo
+  runescript, outputAddress, fee = 0n, key, pubkey, payment, utxo
 } : GetMintTransactionSizeArgs) {
   pubkey ??= toXOnly(key.publicKey)
   payment ??= payments.p2tr({ pubkey: pubkey, network: BTC_JS_NETWORK() })
@@ -36,7 +36,7 @@ export function createAlkaneMintTransaction({
     },
     {
       script: runescript.output!,
-      value: BigInt(0)
+      value: 0n
     }
   ])
   

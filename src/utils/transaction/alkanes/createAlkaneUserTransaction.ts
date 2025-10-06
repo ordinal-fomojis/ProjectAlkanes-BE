@@ -70,7 +70,7 @@ export async function createAlkaneUserTransaction({
 
   psbt.addOutput({
     script: runescript.output!,
-    value: BigInt(0)
+    value: 0n
   })
 
   const { networkFee } = await calculateTransactionInputsAndFee({

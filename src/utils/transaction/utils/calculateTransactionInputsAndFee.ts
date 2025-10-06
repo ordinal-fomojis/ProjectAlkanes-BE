@@ -37,9 +37,9 @@ export async function calculateTransactionInputsAndFee({
     )
   }
 
-  const totalOutputValue = psbt.txOutputs.reduce((sum, output) => sum + output.value, BigInt(0))
+  const totalOutputValue = psbt.txOutputs.reduce((sum, output) => sum + output.value, 0n)
   const requiredInputValue = () => totalOutputValue + BigInt(Math.ceil(virtualSize * feeRate))
-  let inputValue = BigInt(0)
+  let inputValue = 0n
   let virtualSize = 0
   const dummyPsbt = psbt.clone()
   while (inputValue < requiredInputValue()) {

@@ -45,7 +45,7 @@ export async function createBrcUserTransaction({
 
   const reveal = createRevealTransaction(payment, [file], internalKey, dummyInput)
   const virtualSize = reveal.virtualSize()
-  const outputValue = reveal.outs.reduce((sum, out) => sum + out.value, BigInt(0))
+  const outputValue = reveal.outs.reduce((sum, out) => sum + out.value, 0n)
   
   const inputValue = BigInt(Math.ceil(feeRate * virtualSize)) + outputValue
   const psbt = new Psbt({ network: BTC_JS_NETWORK() })

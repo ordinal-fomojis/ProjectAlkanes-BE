@@ -10,9 +10,9 @@ export function leb128encode(value: number | bigint | Buffer) {
 function bigintToBuffer(value: bigint) {
   const buffer: number[] = []
   do {
-    buffer.push(Number(value & BigInt(0xff)))
-    value >>= BigInt(8)
-  } while (value > BigInt(0))
+    buffer.push(Number(value & 0xffn))
+    value >>= 8n
+  } while (value > 0n)
   return Buffer.from(buffer)
 }
 

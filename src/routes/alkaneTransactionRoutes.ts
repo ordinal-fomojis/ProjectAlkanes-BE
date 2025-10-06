@@ -122,7 +122,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
     feeOfFinalMint: BigInt(mintTx.networkFeeOfFinalMint),
     runescript, key,
     mintCount, outputAddress: mintTx.receiveAddress,
-    utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? BigInt(0) }
+    utxo: { txid: paymentTx.txid, vout: index, value: tx.outs[index]?.value ?? 0n }
   })))).map(chain => chain.map(tx => ({ tx, txHex: tx.toHex(), txid: tx.getId(), broadcasted: false })))
 
   const allTransactions = [paymentTx].concat(transactions.flat())

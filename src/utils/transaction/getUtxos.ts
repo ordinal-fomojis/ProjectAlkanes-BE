@@ -16,7 +16,7 @@ const UnisatUtxoSchema = z.object({
 export async function getUtxos(address: string) {  
   if (MOCK_BTC()) {
     return [{
-      value: BigInt(10 * 100000000),
+      value: 1_000_000_000n, // 10 BTC
       txid: randomTransactionId(),
       vout: 0
     }]
