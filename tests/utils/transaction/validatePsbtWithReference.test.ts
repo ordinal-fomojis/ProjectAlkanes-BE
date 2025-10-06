@@ -1,5 +1,4 @@
-import { Psbt, crypto, payments } from 'bitcoinjs-lib'
-import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371.js'
+import { Psbt, crypto, payments, toXOnly } from 'bitcoinjs-lib'
 import { describe, expect, it, vi } from 'vitest'
 import { getRawTransactions } from '../../../src/utils/rpc/getRawTransactions.js'
 import { createAlkaneUserTransaction } from '../../../src/utils/transaction/alkanes/createAlkaneUserTransaction.js'
@@ -34,7 +33,7 @@ async function createTestPsbt(addressType: AddressType, key?: ReturnType<typeof 
     addressType, publicKey: randomKey().publicKey
   }).address!
 
-  const txValue = 1000000
+  const txValue = 1000000n
   const dummyTx = await createDummyTx(paymentAddress, txValue)
   vi.mocked(getRawTransactions).mockResolvedValue([{
     success: true,
@@ -81,16 +80,16 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(true)
   })
@@ -105,17 +104,17 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
@@ -130,20 +129,20 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 1, value: 5000
+      txid, vout: 1, value: 5000n
     }))
 
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
@@ -158,18 +157,18 @@ describe('validatePsbtWithReference', () => {
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
       txid: Random.randomTransactionId(),
-      vout: 0, value: 5000
+      vout: 0, value: 5000n
     }))
 
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
       txid: Random.randomTransactionId(),
-      vout: 0, value: 5000
+      vout: 0, value: 5000n
     }))
     
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
@@ -184,16 +183,16 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 1, value: 5000
+      txid, vout: 1, value: 5000n
     }))
     
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 50000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
@@ -208,16 +207,16 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     
     const address = randomAddress()
-    psbt1.addOutput({ address, value: 50000 })
-    psbt2.addOutput({ address, value: 60000 })
+    psbt1.addOutput({ address, value: 50000n })
+    psbt2.addOutput({ address, value: 60000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
@@ -232,15 +231,15 @@ describe('validatePsbtWithReference', () => {
     const txid = Random.randomTransactionId()
     psbt1.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     psbt2.addInput(await createInput({
       addressType, payment, publicKey: key.publicKey,
-      txid, vout: 0, value: 5000
+      txid, vout: 0, value: 5000n
     }))
     
-    psbt1.addOutput({ address: randomAddress(), value: 50000 })
-    psbt2.addOutput({ address: randomAddress(), value: 50000 })
+    psbt1.addOutput({ address: randomAddress(), value: 50000n })
+    psbt2.addOutput({ address: randomAddress(), value: 50000n })
     
     expect(validatePsbtWithReference(psbt1, psbt2)).toBe(false)
   })
