@@ -1,6 +1,7 @@
 import { Document } from "mongodb"
 import { DatabaseCollection } from "../database/collections.js"
 import { setAttributes } from "../instrumentation/instrumentation.js"
+import { normaliseTicker } from "../utils/brc-ticker.js"
 import { BaseService } from "./BaseService.js"
 
 export interface BrcToken {
@@ -113,7 +114,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
   async getBrcsByTicker(tickers: string[]) {
     setAttributes({ tickers })
     const results = await this.collection
-      .find({ ticker: { $in: tickers }, initialised: true })
+      .find({ ticker: { $in: tickers.map(normaliseTicker) }, initialised: true })
       .toArray()
     setAttributes({ resultCount: results.length, resultTickers: results.map(r => r.ticker) })
     return results
@@ -121,7 +122,7 @@ export class BrcTokenService extends BaseService<BrcToken> {
 
   async getBrcByTicker(ticker: string) {
     setAttributes({ ticker })
-    const result = await this.collection.findOne({ ticker, initialised: true })
+    const result = await this.collection.findOne({ ticker: normaliseTicker(ticker), initialised: true })
     setAttributes({ result })
     return result
   }

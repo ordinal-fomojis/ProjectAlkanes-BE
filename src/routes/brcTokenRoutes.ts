@@ -81,7 +81,8 @@ function tokenToResponse(token: BrcToken) {
     mintable: token.mintable,
     mintedOut: token.mintedOut,
     percentageMinted: token.percentageMinted,
-    selfMint: token.selfMint
+    selfMint: token.selfMint,
+    tickerLength: token.tickerLength
   }
 }
 
