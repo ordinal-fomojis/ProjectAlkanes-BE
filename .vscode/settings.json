@@ -7,5 +7,19 @@
   "files.insertFinalNewline": true,
   
   "typescript.preferences.importModuleSpecifierEnding": "js",
-  "javascript.preferences.importModuleSpecifierEnding": "js"
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "cSpell.language": "en-GB",
+  "cSpell.words": [
+    "blocktime",
+    "brc",
+    "brcs",
+    "mintable",
+    "psbt",
+    "utxo",
+    "utxos",
+    "txn",
+    "txns",
+    "txid",
+    "txids"
+  ]
 }
