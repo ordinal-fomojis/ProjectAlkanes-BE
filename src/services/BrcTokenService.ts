@@ -22,17 +22,13 @@ export interface BrcToken {
   confirmedMinted24h: string
   decimal: number
   deployHeight: number
-  completeHeight: number
-  completeBlocktime: number
-  inscriptionNumberStart: number
-  inscriptionNumberEnd: number
+  tickerLength: number
 
   mintedOut: boolean
   mintable: boolean
   deployTimestamp: Date
   percentageMinted: number
   currentMintCount: number
-  tickerLength: number
 }
 
 type BrcSortableField = 'deployTimestamp' | 'percentageMinted' | 'currentMintCount' | 'holdersCount'
