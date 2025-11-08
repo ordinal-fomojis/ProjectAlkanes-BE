@@ -15,7 +15,6 @@ vi.mock('../../src/services/userService.js', () => {
 describe('Referral Gate Middleware', () => {
   let mockRequest: Partial<AuthenticatedRequest>
   let mockResponse: Partial<Response>
-  let mockNext: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     mockRequest = {
@@ -29,15 +28,14 @@ describe('Referral Gate Middleware', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis()
     }
-    
-    mockNext = vi.fn()
-    
+        
     vi.clearAllMocks()
   })
 
   describe('requireReferral middleware', () => {
     it('should allow referred users to proceed', async () => {
       // Setup: User has been referred
+      const mockNext = vi.fn()
       getUserByWalletAddress.mockResolvedValue({
         _id: new ObjectId(),
         walletAddress: 'bc1qtest123',
@@ -56,6 +54,7 @@ describe('Referral Gate Middleware', () => {
 
     it('should block unreferred users', async () => {
       // Setup: User has NOT been referred
+      const mockNext = vi.fn()
       getUserByWalletAddress.mockResolvedValue({
         _id: new ObjectId(),
         walletAddress: 'bc1qtest123',
@@ -73,6 +72,7 @@ describe('Referral Gate Middleware', () => {
 
     it('should require authentication', async () => {
       mockRequest.user = undefined
+      const mockNext = vi.fn()
 
       await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
@@ -85,6 +85,7 @@ describe('Referral Gate Middleware', () => {
 
     it('should handle user not found', async () => {
       getUserByWalletAddress.mockResolvedValue(null)
+      const mockNext = vi.fn()
 
       await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
@@ -98,6 +99,7 @@ describe('Referral Gate Middleware', () => {
     it('should handle database errors', async () => {
       const error = new Error('Database error')
       getUserByWalletAddress.mockRejectedValue(error)
+      const mockNext = vi.fn()
 
       await expect(requireReferral(
         mockRequest as AuthenticatedRequest,
