@@ -38,7 +38,7 @@ interface AlkaneTokenV2 {
   logoUrl: string
   preminedSupply: string
   amountPerMint: string
-  mintCountCap: string // Calculated based on preminedSupply / amountPerMint
+  mintCountCap: string
   // Numeric approximation for indexing/sorting.
   // Will typically be exact, but for large values we will get numeric rounding,
   // so calculations should use mintCountCap.
@@ -129,7 +129,7 @@ export class AlkaneTokenService extends BaseService<AlkaneToken> {
 }
 
 export class AlkaneTokenV2Service extends BaseService<AlkaneTokenV2> {
-  collectionName = DatabaseCollection.AlkaneTokens
+  collectionName = DatabaseCollection.AlkaneTokensV2
 
   async searchAlkaneTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery
@@ -138,7 +138,7 @@ export class AlkaneTokenV2Service extends BaseService<AlkaneTokenV2> {
     const skip = (page - 1) * pageSize
     searchTerm = searchTerm?.trim() ?? null
 
-    const query: Document = {}
+    const query: Document = { initialised: true }
     if (searchTerm != null && searchTerm.length > 0) {
       query.$or = [
         { name: { $regex: searchTerm, $options: 'i' } },
