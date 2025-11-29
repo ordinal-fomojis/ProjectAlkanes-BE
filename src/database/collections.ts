@@ -1,5 +1,6 @@
 export const DatabaseCollection = {
   AlkaneTokens: 'alkane_tokens',
+  AlkaneTokensV2: 'alkane_tokens_v2',
   ArchivedTransactions: 'archived_transactions',
   AuthNonces: 'auth_nonces',
   BlockHeights: 'block_heights',

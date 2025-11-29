@@ -33,6 +33,27 @@ const Indexes: Indexed = {
       { [field]: -1, deployTimestamp: -1 }
     ])
   ],
+  alkane_tokens_v2: [
+    [{ alkaneId: 1 }, { unique: true }],
+    { initialised: 1, mintable: 1, mintedOut: 1, hasPremine: 1, deployTimestamp: 1 },
+    { initialised: 1, mintedOut: 1, hasPremine: 1, deployTimestamp: 1 },
+    { initialised: 1, hasPremine: 1, deployTimestamp: 1 },
+    
+    { name: 1 },
+    { symbol: 1 },
+    { synced: 1 },
+    
+    // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
+    // so that newest are always first, regardless of what sort order is chosen
+    ...AlkaneSortableFields.flatMap(field => [
+      { initialised: 1, mintable: 1, mintedOut: 1, hasPremine: 1, [field]: 1, deployTimestamp: -1 },
+      { initialised: 1, mintable: 1, mintedOut: 1, hasPremine: 1, [field]: -1, deployTimestamp: -1 },
+      { initialised: 1, mintedOut: 1, hasPremine: 1, [field]: 1, deployTimestamp: -1 },
+      { initialised: 1, mintedOut: 1, hasPremine: 1, [field]: -1, deployTimestamp: -1 },
+      { initialised: 1, hasPremine: 1, [field]: 1, deployTimestamp: -1 },
+      { initialised: 1, hasPremine: 1, [field]: -1, deployTimestamp: -1 },
+    ])
+  ],
   archived_transactions: [{ created: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 /* 30 days */ }],
   auth_nonces: [
     { walletAddress: 1 },
