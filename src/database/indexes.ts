@@ -43,7 +43,6 @@ const Indexes: Indexed = {
     { symbol: 1 },
     { synced: 1 },
     
-    { clonedFrom: 1 },
     // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
     // so that newest are always first, regardless of what sort order is chosen
     ...AlkaneSortableFields.flatMap(field => [
