@@ -56,7 +56,7 @@ interface AlkaneTokenV2 {
   hasPremine: boolean
   mintable: boolean
   holdersCount: number
-  pendingMints?: number
+  pendingMints: number
 }
 
 type SortableField = 'pendingMints' | 'deployTimestamp' | 'percentageMinted' | 'mintCountCap' | 'currentMintCount' | 'preminedPercentage'
