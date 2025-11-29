@@ -14,12 +14,13 @@
     "brc",
     "brcs",
     "mintable",
+    "premined",
     "psbt",
-    "utxo",
-    "utxos",
+    "txid",
+    "txids",
     "txn",
     "txns",
-    "txid",
-    "txids"
+    "utxo",
+    "utxos"
   ]
 }
