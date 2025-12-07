@@ -45,6 +45,7 @@ executeSpan(tracer, 'initialisation', async () => {
     app.use(cors(corsOptions))
   } else {
     setAttributes({ corsEnabled: false })
+    app.use(cors())
   }
 
   const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED !== 'false'
