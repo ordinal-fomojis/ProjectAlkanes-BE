@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { z } from 'zod'
-import { AlkaneToken, AlkaneTokenService } from '../services/AlkaneTokenService.js'
+import { AlkaneTokenV2, AlkaneTokenV2Service } from '../services/AlkaneTokenService.js'
 import { parse } from '../utils/parse.js'
 
 const router = Router();
@@ -16,8 +16,6 @@ const ParamsSchema = z.object({
   noPremine: z.enum(['true', 'false']).optional()
 })
 
-const UNSYNCED_FACTORY_CLONE_ID = "UNKNOWN"
-
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   const {
     search,
@@ -29,7 +27,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintedOut = null,
     noPremine = null
   } = parse(ParamsSchema, req.query)
-  const service = new AlkaneTokenService()
+  const service = new AlkaneTokenV2Service()
   const tokens = await service.searchAlkaneTokens({
     searchTerm: search ?? null, page, pageSize, order: { field: orderBy, order },
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
@@ -54,7 +52,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     return
   }
 
-  const service = new AlkaneTokenService()
+  const service = new AlkaneTokenV2Service()
   const token = await service.getAlkaneById(id)
   if (token == null) {
     res.status(404).json({
@@ -70,7 +68,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   })
 })
 
-function tokenToResponse(token: AlkaneToken) {
+function tokenToResponse(token: AlkaneTokenV2) {
   return {
     alkaneId: token.alkaneId,
     name: token.name,
@@ -88,7 +86,6 @@ function tokenToResponse(token: AlkaneToken) {
     currentMintCount: token.currentMintCount,
     mintedOut: token.mintedOut,
     deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
-    clonedFrom: token.clonedFrom === UNSYNCED_FACTORY_CLONE_ID ? null : token.clonedFrom,
     preminedPercentage: token.preminedPercentage ?? 0
   }
 }
