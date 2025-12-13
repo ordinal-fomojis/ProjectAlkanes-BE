@@ -31,7 +31,7 @@ export interface AlkaneToken {
   mintable?: boolean
 }
 
-interface AlkaneTokenV2 {
+export interface AlkaneTokenV2 {
   alkaneId: string
   name: string
   symbol: string

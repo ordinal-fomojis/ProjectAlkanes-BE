@@ -5,7 +5,7 @@ import { MOCK_BTC } from '../config/env-vars.js'
 import { database } from '../database/database.js'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { requireReferral } from '../middleware/referralGate.js'
-import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
+import { AlkaneTokenV2Service } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
 import { ArchivedTransactionService } from '../services/TransactionArchiveService.js'
@@ -205,7 +205,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
 })
 
 async function validateAlkaneToken(alkaneId: string, mintCount: number) {
-  const alkanesService = new AlkaneTokenService()
+  const alkanesService = new AlkaneTokenV2Service()
   const alkane = await alkanesService.getAlkaneById(alkaneId)
   if (alkane === null) {
     throw new UserError('Alkane token not found').withStatus(404)
@@ -216,7 +216,7 @@ async function validateAlkaneToken(alkaneId: string, mintCount: number) {
   if (alkane.mintedOut) {
     throw new UserError('Alkane token has already minted out').withStatus(400)
   }
-  const mintCap = BigInt(alkane.mintCountCap ?? 0)
+  const mintCap = BigInt(alkane.mintCountCap)
   const mintsLeft = mintCap - BigInt(alkane.currentMintCount)
   if (mintsLeft < BigInt(mintCount)) {
     throw new UserError(`Not enough mints left. Only ${mintsLeft} mints available`).withStatus(400)
