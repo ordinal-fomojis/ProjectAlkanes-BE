@@ -78,15 +78,15 @@ function tokenToResponse(token: AlkaneTokenV2) {
     preminedSupply: token.preminedSupply,
     amountPerMint: token.amountPerMint,
     mintCountCap: token.mintCountCap,
-    mintable: token.mintable ?? false,
+    mintable: token.mintable,
     maxSupply: token.maxSupply,
     percentageMinted: token.percentageMinted,
-    pendingMints: token.pendingMints ?? 0,
+    pendingMints: token.pendingMints,
     currentSupply: token.currentSupply,
     currentMintCount: token.currentMintCount,
     mintedOut: token.mintedOut,
-    deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
-    preminedPercentage: token.preminedPercentage ?? 0
+    deployTimestamp: token.deployTimestamp.toISOString(),
+    preminedPercentage: token.preminedPercentage
   }
 }
 

@@ -1,8 +1,9 @@
 import { Request, Response, Router } from 'express'
-import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth.js'
-import { validateParams } from '../middleware/validation.js'
+import z from 'zod'
+import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { PortfolioService } from '../services/PortfolioService.js'
-import { walletAddressSchema } from '../validation/userValidation.js'
+import { parse } from '../utils/parse.js'
+import { AddressSchema } from '../validation/userValidation.js'
 
 const router = Router()
 
@@ -61,17 +62,9 @@ router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Respon
 })
 
 // Get portfolio for a specific address (public endpoint)
-router.get('/:address', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+router.get('/:address', async (req: Request, res: Response): Promise<void> => {
   try {
-    const address = req.params.address
-    
-    if (!address) {
-      res.status(400).json({
-        success: false,
-        message: 'Wallet address is required'
-      })
-      return
-    }
+    const { address } = parse(z.object({ address: AddressSchema }), req.params);
 
     const portfolioService = new PortfolioService()
     const portfolio = await portfolioService.getPortfolio(address)
@@ -112,17 +105,9 @@ router.get('/:address', validateParams(walletAddressSchema), async (req: Request
 })
 
 // Check if an address has any alkanes (quick check endpoint)
-router.get('/:address/has-alkanes', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+router.get('/:address/has-alkanes', async (req: Request, res: Response): Promise<void> => {
   try {
-    const address = req.params.address
-    
-    if (!address) {
-      res.status(400).json({
-        success: false,
-        message: 'Wallet address is required'
-      })
-      return
-    }
+    const { address } = parse(z.object({ address: AddressSchema }), req.params);
 
     const portfolioService = new PortfolioService()
     const hasAlkanes = await portfolioService.hasAlkanes(address)
@@ -146,17 +131,9 @@ router.get('/:address/has-alkanes', validateParams(walletAddressSchema), async (
 })
 
 // Check if an address has any BRC-20 tokens (quick check endpoint)
-router.get('/:address/has-brc20', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+router.get('/:address/has-brc20', async (req: Request, res: Response): Promise<void> => {
   try {
-    const address = req.params.address
-    
-    if (!address) {
-      res.status(400).json({
-        success: false,
-        message: 'Wallet address is required'
-      })
-      return
-    }
+    const { address } = parse(z.object({ address: AddressSchema }), req.params);
 
     const portfolioService = new PortfolioService()
     const hasBrc20 = await portfolioService.hasBrc20(address)
@@ -180,17 +157,9 @@ router.get('/:address/has-brc20', validateParams(walletAddressSchema), async (re
 })
 
 // Check if an address has any tokens (alkanes or BRC-20)
-router.get('/:address/has-tokens', validateParams(walletAddressSchema), async (req: Request, res: Response): Promise<void> => {
+router.get('/:address/has-tokens', async (req: Request, res: Response): Promise<void> => {
   try {
-    const address = req.params.address
-    
-    if (!address) {
-      res.status(400).json({
-        success: false,
-        message: 'Wallet address is required'
-      })
-      return
-    }
+    const { address } = parse(z.object({ address: AddressSchema }), req.params);
 
     const portfolioService = new PortfolioService()
     const hasTokens = await portfolioService.hasAnyTokens(address)
