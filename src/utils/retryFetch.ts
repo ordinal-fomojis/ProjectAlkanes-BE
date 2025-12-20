@@ -1,5 +1,9 @@
+import { trace } from "@opentelemetry/api"
 import { z } from "zod"
+import { withSpan } from "../instrumentation/instrumentation.js"
 import { parse } from "./parse.js"
+
+const tracer = trace.getTracer("retryFetch")
 
 export const DEFAULT_RETRY_FETCH_TIMES = 4
 
@@ -15,7 +19,7 @@ export interface RetryFetchOptions {
   delay?: (attempt: number, error: unknown, base: () => number) => Promise<number> | number
 }
 
-export async function retryResponseFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
+async function retryResponseFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
   const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString())
   for (let attempt = 1;; attempt++) {
     try {
@@ -39,25 +43,25 @@ export async function retryResponseFetch(input: Parameters<typeof fetch>[0], ini
   }
 }
 
-export async function retryBlobFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
+export const retryBlobFetch = withSpan(tracer, "retryBlobFetch", async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) => {
   return await retryResponseFetch(input, init, options).then(x => x.blob())
-}
+})
 
-export async function retryFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {  
+export const retryFetch = withSpan(tracer, "retryFetch", async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) => {  
   return await retryResponseFetch(input, init, options).then(x => x.text())
-}
+})
 
-export async function retryJsonFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
+export const retryJsonFetch = withSpan(tracer, "retryJsonFetch", async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) => {
   return await retryResponseFetch(input, init, options).then(x => x.json())
-}
+})
 
-export async function retryBufferFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
+export const retryBufferFetch = withSpan(tracer, "retryBufferFetch", async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) => {
   return await retryResponseFetch(input, init, options).then(x => x.arrayBuffer())
-}
+})
 
-export async function retrySchemaFetch<Output, Input>(schema: z.ZodType<Output, Input>, ...args: Parameters<typeof retryJsonFetch>) {
-  return await retryJsonFetch(...args).then(response => parse(schema, response))
-}
+export const retrySchemaFetch = withSpan(tracer, "retrySchemaFetch", async <Output, Input>(schema: z.ZodType<Output, Input>, ...args: Parameters<typeof retryJsonFetch>) => {
+  return await retryResponseFetch(...args).then(response => parse(schema, response.json()))
+})
 
 async function calculateDelay(options: RetryFetchOptions, attempt: number, error: unknown) {
   if (attempt >= (options.retries ?? DEFAULT_RETRY_FETCH_TIMES)) return null

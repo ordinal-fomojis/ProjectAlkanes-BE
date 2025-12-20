@@ -1,5 +1,7 @@
+import { trace } from "@opentelemetry/api"
 import { z } from "zod"
 import { BITCOIN_NETWORK, UNISAT_API_KEY } from "../../config/env-vars.js"
+import { withSpan } from "../../instrumentation/instrumentation.js"
 import { RequestError, RetryFetchOptions, retrySchemaFetch } from "../retryFetch.js"
 
 function isRateLimitError(error: unknown) {
@@ -19,7 +21,9 @@ const RetryOptions: RetryFetchOptions = {
   retryCondition: (error, base) => isRateLimitError(error) ? true : base()
 }
 
-export async function unisatFetch<Output, Input>(schema: z.ZodType<Output, Input>, path: string) {
+const tracer = trace.getTracer("unisatFetch")
+
+export const unisatFetch = withSpan(tracer, "unisatFetch", async <Output, Input>(schema: z.ZodType<Output, Input>, path: string) => {
   const baseUrl = `https://open-api${BITCOIN_NETWORK() === 'mainnet' ? '' : '-testnet'}.unisat.io/v1/indexer`
   
   const unisatSchema = z.object({
@@ -35,4 +39,4 @@ export async function unisatFetch<Output, Input>(schema: z.ZodType<Output, Input
     throw new Error(`Unisat request to ${path} failed with message: ${msg}`)
   }
   return data
-}
+})
