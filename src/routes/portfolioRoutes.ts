@@ -7,31 +7,6 @@ import { AddressSchema } from '../validation/userValidation.js'
 
 const router = Router()
 
-// Health check endpoint to check if portfolio service is available
-router.get('/health', async (_req: Request, res: Response): Promise<void> => {
-  try {
-    const portfolioService = new PortfolioService()
-    const isAvailable = portfolioService.isServiceAvailable()
-    
-    res.json({
-      success: true,
-      message: 'Portfolio service health check completed',
-      data: {
-        service: 'portfolio',
-        available: isAvailable,
-        status: isAvailable ? 'operational' : 'unavailable - API key not configured'
-      }
-    })
-  } catch (error) {
-    console.error('Error checking portfolio service health:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Error checking service health',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    })
-  }
-})
-
 // Get portfolio for authenticated user
 router.get('/me', authenticateJWT, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
