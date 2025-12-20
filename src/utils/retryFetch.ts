@@ -9,10 +9,10 @@ export class RequestError extends Error {
   }
 }
 
-interface RetryFetchOptions {
+export interface RetryFetchOptions {
   retries?: number
-  retryCondition?: (error: unknown, base: () => boolean) => Promise<boolean>
-  delay?: (attempt: number, error: unknown, base: () => number) => Promise<number>
+  retryCondition?: (error: unknown, base: () => boolean) => Promise<boolean> | boolean
+  delay?: (attempt: number, error: unknown, base: () => number) => Promise<number> | number
 }
 
 export async function retryResponseFetch(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1], options: RetryFetchOptions = {}) {
