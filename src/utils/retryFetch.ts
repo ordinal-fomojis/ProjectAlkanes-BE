@@ -60,7 +60,7 @@ export const retryBufferFetch = withSpan(tracer, "retryBufferFetch", async (inpu
 })
 
 export const retrySchemaFetch = withSpan(tracer, "retrySchemaFetch", async <Output, Input>(schema: z.ZodType<Output, Input>, ...args: Parameters<typeof retryJsonFetch>) => {
-  return await retryResponseFetch(...args).then(response => parse(schema, response.json()))
+  return await retryResponseFetch(...args).then(async response => parse(schema, await response.json()))
 })
 
 async function calculateDelay(options: RetryFetchOptions, attempt: number, error: unknown) {

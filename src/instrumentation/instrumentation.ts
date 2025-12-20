@@ -41,7 +41,7 @@ export function withSpan<TParams extends unknown[], TReturn>(tracer: Tracer, nam
 
 export function executeSpan<TReturn>(tracer: Tracer, name: string, func: () => Promise<TReturn> | TReturn, options?: SpanOptions) {
   return tracer.startActiveSpan(name, span => {
-    function onError(error: unknown) {
+    function onError(error: unknown): never {
       recordException(error, { span, setStatus: !(error instanceof BaseError && error.status < 500) })
       if (options?.endOnError ?? true) {
         span.end()

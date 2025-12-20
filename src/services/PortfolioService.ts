@@ -1,21 +1,30 @@
 import { z } from 'zod'
 import { ORDISCAN_API_KEY, ORDISCAN_API_URL } from '../config/env-vars.js'
 import { AutoInstrumentedClass } from '../instrumentation/AutoInstrumentedClass.js'
+import { setAttributes } from '../instrumentation/instrumentation.js'
+import { bigDecimal } from '../utils/big-decimal.js'
 import { retrySchemaFetch } from '../utils/retryFetch.js'
+import { unisatFetch } from '../utils/unisat/unisatFetch.js'
 
-// Ordiscan API response schemas
-const OrdiscanAlkaneBalanceSchema = z.object({
-  name: z.string(),
-  balance: z.string()
+const PAGE_SIZE = 500
+
+const UnisatAlkaneBalanceSchema = z.object({
+  total: z.number(),
+  detail: z.array(z.object({
+    alkaneid: z.string(),
+    name: z.string(),
+    symbol: z.string(),
+    logo: z.string(),
+    divisibility: z.number(),
+    amount: z.string()
+  }))
 })
+
+type UnisatAlkaneBalance = z.infer<typeof UnisatAlkaneBalanceSchema>['detail'][number]
 
 const OrdiscanBrc20BalanceSchema = z.object({
   ticker: z.string(),
   balance: z.string()
-})
-
-const OrdiscanAlkaneAddressResponseSchema = z.object({
-  data: z.array(OrdiscanAlkaneBalanceSchema)
 })
 
 const OrdiscanBrc20AddressResponseSchema = z.object({
@@ -65,41 +74,30 @@ export class PortfolioService extends AutoInstrumentedClass {
    * Get alkane balances for a specific Bitcoin address
    */
   async getAlkaneBalances(address: string): Promise<AlkaneBalance[]> {
-    if (!this.isAvailable) {
-      throw new Error('Portfolio service is not available - ORDISCAN_API_KEY is missing')
+    setAttributes({ address })
+    
+    async function getPage(page: number) {
+      return await unisatFetch(UnisatAlkaneBalanceSchema, `/address/${address}/alkanes/token-list?start=${page * PAGE_SIZE}&limit=${PAGE_SIZE}`)
     }
 
-    try {
-      const url = `${this.baseUrl}/v1/address/${address}/alkanes`
-      
-      const response = await retrySchemaFetch(
-        OrdiscanAlkaneAddressResponseSchema,
-        url,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-
-      // Transform Ordiscan response to our internal format
-      return response.data.map((alkane) => ({
-        id: alkane.name,
-        name: alkane.name,
-        symbol: alkane.name, // For alkanes, the name is typically the symbol
-        balance: alkane.balance
-      }))
-    } catch (error) {
-      console.error(`Error fetching alkane balances for address ${address}:`, error)
-      
-      // If it's a 404 (no alkanes found), return empty array
-      if (error instanceof Error && error.message.includes('404')) {
-        return []
-      }
-      
-      throw new Error(`Failed to fetch alkane balances: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    const alkanes: UnisatAlkaneBalance[] = []
+    const { total, detail } = await getPage(0)
+    alkanes.push(...detail)
+    let page = 1
+    while (alkanes.length < total) {
+      const { detail: nextDetail } = await getPage(page)
+      alkanes.push(...nextDetail)
+      page++
     }
+
+    setAttributes({ alkaneCount: alkanes.length })
+
+    return alkanes.map((alkane) => ({
+      id: alkane.alkaneid,
+      name: alkane.name,
+      symbol: alkane.symbol,
+      balance: toAlkaneValue(alkane.amount, alkane.divisibility)
+    }))
   }
 
   /**
@@ -201,4 +199,9 @@ export class PortfolioService extends AutoInstrumentedClass {
       return false
     }
   }
+}
+
+function toAlkaneValue(val: string | number, divisibility: number) {
+  const divisor = new bigDecimal(10n ** BigInt(divisibility))
+  return new bigDecimal(val).divide(divisor, divisibility).stripTrailingZero().getValue()
 }
