@@ -8,7 +8,6 @@ const UnisatAlkaneBalanceSchema = z.object({
   alkaneid: z.string(),
   name: z.string(),
   symbol: z.string(),
-  logo: z.string(),
   divisibility: z.number(),
   amount: z.string()
 })
