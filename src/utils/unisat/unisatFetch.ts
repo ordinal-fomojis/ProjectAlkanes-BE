@@ -40,3 +40,34 @@ export const unisatFetch = withSpan(tracer, "unisatFetch", async <Output, Input>
   }
   return data
 })
+
+export const unisatPagedFetch = withSpan(tracer, "unisatPagedFetch", async <Output, Input>(schema: z.ZodType<Output, Input>, path: string) => {
+  if (!path.endsWith('?')) {
+    if (path.includes('?') && !path.endsWith('&')) {
+      path += '&'
+    } else if (!path.includes('?')) {
+      path += '?'
+    }
+  }
+
+  const result: Output[] = []
+  const { total, detail } = await getPage(schema, path, 0)
+  result.push(...detail)
+  let page = 1
+  while (result.length < total) {
+    const { detail: nextDetail } = await getPage(schema, path, page)
+    result.push(...nextDetail)
+    page++
+  }
+  return result
+})
+
+const PAGE_SIZE = 500
+async function getPage<Output, Input>(schema: z.ZodType<Output, Input>, path: string, page: number) {
+  const UnisatPagedSchema = z.object({
+    total: z.number(),
+    detail: z.array(schema)
+  })
+  const fullPath = `${path}start=${page * PAGE_SIZE}&limit=${PAGE_SIZE}`
+  return await unisatFetch(UnisatPagedSchema, fullPath)
+}

@@ -50,7 +50,6 @@ router.get('/:address', async (req: Request, res: Response): Promise<void> => {
   })
 })
 
-// Check if an address has any alkanes (quick check endpoint)
 router.get('/:address/has-alkanes', async (req: Request, res: Response): Promise<void> => {
   const { address } = parse(z.object({ address: AddressSchema }), req.params);
 
@@ -65,7 +64,6 @@ router.get('/:address/has-alkanes', async (req: Request, res: Response): Promise
     success: true,
     message: 'Alkane check completed',
     data: {
-      address,
       hasAlkanes
     }
   })
@@ -86,7 +84,6 @@ router.get('/:address/has-brc20', async (req: Request, res: Response): Promise<v
     success: true,
     message: 'BRC-20 check completed',
     data: {
-      address,
       hasBrc20
     }
   })
@@ -107,7 +104,6 @@ router.get('/:address/has-tokens', async (req: Request, res: Response): Promise<
     success: true,
     message: 'Token check completed',
     data: {
-      address,
       hasTokens
     }
   })
