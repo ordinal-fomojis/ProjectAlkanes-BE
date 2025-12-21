@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { ValidationError } from '../../src/utils/parse.js'
-import { DEFAULT_RETRY_FETCH_TIMES, RequestError, retryBlobFetch, retryBufferFetch, retryFetch, retryJsonFetch, retryResponseFetch, retrySchemaFetch } from "../../src/utils/retryFetch.js"
+import { DEFAULT_RETRY_FETCH_TIMES, RequestError, retryBlobFetch, retryBufferFetch, retryFetch, retryJsonFetch, retrySchemaFetch } from "../../src/utils/retryFetch.js"
 
 const Url = 'http://example.com/api/resource'
 
@@ -209,16 +209,6 @@ describe('retryFetch', () => {
     
     await expect(retrySchemaFetch(schema, Url))
       .rejects.toThrow(ValidationError)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-  })
-
-  it('should return response from retryResponseFetch', async () => {
-    fetchMock.mockResponse('response text')
-    
-    const result = await retryResponseFetch(Url)
-
-    expect(result).toBeInstanceOf(Response)
-    expect(await result.text()).toBe('response text')
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
