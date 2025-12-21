@@ -45,12 +45,12 @@ export class PortfolioService extends AutoInstrumentedClass {
     const alkanes = await unisatPagedFetch(UnisatAlkaneBalanceSchema, `/address/${address}/alkanes/token-list`)
     setAttributes({ alkaneCount: alkanes.length })
 
-    return alkanes.map((alkane) => ({
+    return sortByBalanceDesc(alkanes, alkane => ({ balance: alkane.amount, divisibility: alkane.divisibility })).map((alkane) => ({
       id: alkane.alkaneid,
       name: alkane.name,
       symbol: alkane.symbol,
       logoUrl: alkane.logo,
-      balance: toDecimalValue(alkane.amount, alkane.divisibility)
+      balance: alkane.balance.stripTrailingZero().getValue()
     }))
   }
 
@@ -61,11 +61,11 @@ export class PortfolioService extends AutoInstrumentedClass {
     const allBrcs = [...brcs, ...sixByteBrcs]
     setAttributes({ brcCount: allBrcs.length })
 
-    return allBrcs.map(brc => ({
+    return sortByBalanceDesc(allBrcs, brc => ({ balance: brc.overallBalance, divisibility: brc.decimal })).map(brc => ({
       id: brc.ticker,
       name: brc.ticker,
       symbol: brc.ticker,
-      balance: toDecimalValue(brc.overallBalance, brc.decimal)
+      balance: brc.balance.stripTrailingZero().getValue()
     }))
   }
 
@@ -99,7 +99,13 @@ export class PortfolioService extends AutoInstrumentedClass {
   }
 }
 
-function toDecimalValue(val: string | number, divisibility: number) {
+function sortByBalanceDesc<T>(arr: T[], getter: (item: T) => { balance: string, divisibility: number }) {
+  const bigDecimalArr = arr.map(item => ({ ...item, balance: toBigDecimal(getter(item)) }))
+  bigDecimalArr.sort((a, b) => b.balance.compareTo(a.balance))
+  return bigDecimalArr
+}
+
+function toBigDecimal({ balance, divisibility }: { balance: string, divisibility: number }) {
   const divisor = new bigDecimal(10n ** BigInt(divisibility))
-  return new bigDecimal(val).divide(divisor, divisibility).stripTrailingZero().getValue()
+  return new bigDecimal(balance).divide(divisor, divisibility);
 }
