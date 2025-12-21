@@ -9,6 +9,7 @@ const UnisatAlkaneBalanceSchema = z.object({
   name: z.string(),
   symbol: z.string(),
   divisibility: z.number(),
+  logo: z.string(),
   amount: z.string()
 })
 
@@ -22,6 +23,7 @@ export interface AlkaneBalance {
   id: string
   name: string
   symbol: string
+  logoUrl: string
   balance: string
 }
 
@@ -47,6 +49,7 @@ export class PortfolioService extends AutoInstrumentedClass {
       id: alkane.alkaneid,
       name: alkane.name,
       symbol: alkane.symbol,
+      logoUrl: alkane.logo,
       balance: toDecimalValue(alkane.amount, alkane.divisibility)
     }))
   }
