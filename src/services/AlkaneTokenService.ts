@@ -3,7 +3,7 @@ import { DatabaseCollection } from "../database/collections.js"
 import { setAttributes } from "../instrumentation/instrumentation.js"
 import { BaseService } from "./BaseService.js"
 
-export interface AlkaneTokenV2 {
+export interface AlkaneToken {
   alkaneId: string
   name: string
   symbol: string
@@ -44,8 +44,8 @@ interface AlkanesSearchQuery {
   noPremine: boolean | null
 }
 
-export class AlkaneTokenV2Service extends BaseService<AlkaneTokenV2> {
-  collectionName = DatabaseCollection.AlkaneTokensV2
+export class AlkaneTokenService extends BaseService<AlkaneToken> {
+  collectionName = DatabaseCollection.AlkaneTokens
 
   async searchAlkaneTokens(
     { searchTerm, page, pageSize, order, mintable, mintedOut, noPremine }: AlkanesSearchQuery

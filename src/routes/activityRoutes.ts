@@ -1,7 +1,7 @@
-import { Response, Router } from 'express'
-import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
-import { AlkaneTokenV2Service } from '../services/AlkaneTokenService.js'
-import { MintTransactionService } from '../services/MintTransactionService.js'
+import { Response, Router } from 'express';
+import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js';
+import { AlkaneTokenService } from '../services/AlkaneTokenService.js';
+import { MintTransactionService } from '../services/MintTransactionService.js';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get('/alkane/recent-mints', authenticateJWT, async (req: AuthenticatedReq
     }
 
     const mintTransactionService = new MintTransactionService();
-    const alkaneTokenService = new AlkaneTokenV2Service();
+    const alkaneTokenService = new AlkaneTokenService();
 
     // Get all mint transactions for the authenticated user
     // Enhanced search handles:
