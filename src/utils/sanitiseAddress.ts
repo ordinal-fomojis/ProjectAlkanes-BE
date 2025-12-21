@@ -27,7 +27,7 @@ export function sanitiseAddress(address: string) {
 
 
 
-function isValidAddress(a: string) {  
+export function isValidAddress(a: string) {  
   try {
     address.toOutputScript(a, BTC_JS_NETWORK())
     return true

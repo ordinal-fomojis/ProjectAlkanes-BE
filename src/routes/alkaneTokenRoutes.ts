@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { z } from 'zod'
-import { AlkaneTokenV2, AlkaneTokenV2Service } from '../services/AlkaneTokenService.js'
+import { AlkaneToken, AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { parse } from '../utils/parse.js'
 
 const router = Router();
@@ -27,7 +27,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     mintedOut = null,
     noPremine = null
   } = parse(ParamsSchema, req.query)
-  const service = new AlkaneTokenV2Service()
+  const service = new AlkaneTokenService()
   const tokens = await service.searchAlkaneTokens({
     searchTerm: search ?? null, page, pageSize, order: { field: orderBy, order },
     mintable: typeof mintable === 'string' ? mintable === 'true' : null,
@@ -52,7 +52,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     return
   }
 
-  const service = new AlkaneTokenV2Service()
+  const service = new AlkaneTokenService()
   const token = await service.getAlkaneById(id)
   if (token == null) {
     res.status(404).json({
@@ -68,7 +68,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   })
 })
 
-function tokenToResponse(token: AlkaneTokenV2) {
+function tokenToResponse(token: AlkaneToken) {
   return {
     alkaneId: token.alkaneId,
     name: token.name,
@@ -78,15 +78,15 @@ function tokenToResponse(token: AlkaneTokenV2) {
     preminedSupply: token.preminedSupply,
     amountPerMint: token.amountPerMint,
     mintCountCap: token.mintCountCap,
-    mintable: token.mintable ?? false,
+    mintable: token.mintable,
     maxSupply: token.maxSupply,
     percentageMinted: token.percentageMinted,
-    pendingMints: token.pendingMints ?? 0,
+    pendingMints: token.pendingMints,
     currentSupply: token.currentSupply,
     currentMintCount: token.currentMintCount,
     mintedOut: token.mintedOut,
-    deployTimestamp: token.deployTimestamp?.toISOString() ?? null,
-    preminedPercentage: token.preminedPercentage ?? 0
+    deployTimestamp: token.deployTimestamp.toISOString(),
+    preminedPercentage: token.preminedPercentage
   }
 }
 

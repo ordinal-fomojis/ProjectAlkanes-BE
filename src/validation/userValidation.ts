@@ -1,4 +1,6 @@
-import Joi from 'joi';
+import Joi from 'joi'
+import z from 'zod'
+import { isValidAddress, sanitiseAddress } from '../utils/sanitiseAddress.js'
 
 export const createUserSchema = Joi.object({
   walletAddress: Joi.string()
@@ -28,4 +30,8 @@ export const walletAddressSchema = Joi.object({
       'string.pattern.base': 'Invalid wallet address format',
       'any.required': 'Wallet address is required'
     })
-}); 
+});
+
+export const AddressSchema = z.string()
+  .refine(address => isValidAddress(address), { error: "Invalid Bitcoin Address" })
+  .transform(address => sanitiseAddress(address))

@@ -10,17 +10,23 @@
   "javascript.preferences.importModuleSpecifierEnding": "js",
   "cSpell.language": "en-GB",
   "cSpell.words": [
+    "alkaneid",
+    "bitcoinjs",
     "blocktime",
     "brc",
     "brcs",
     "mintable",
     "premined",
     "psbt",
+    "runescript",
     "txid",
     "txids",
     "txn",
     "txns",
+    "unisat",
     "utxo",
-    "utxos"
+    "utxos",
+    "vars",
+    "vout"
   ]
 }

@@ -16,23 +16,6 @@ const BrcSortableFields = [
 ]
 
 const Indexes: Indexed = {
-  alkane_tokens: [
-    [{ alkaneId: 1 }, { unique: true }],
-    { name: 1 },
-    { symbol: 1 },
-    { synced: 1 },
-    { deployTimestamp: 1 },
-    { mintable: 1 },
-    { mintedOut: 1 },
-    { hasPremine: 1 },
-    { clonedFrom: 1 },
-    // Each of the sortable fields have a secondary sort of deployTimestamp, in both directions,
-    // so that newest are always first, regardless of what sort order is chosen
-    ...AlkaneSortableFields.flatMap(field => [
-      { [field]: 1, deployTimestamp: -1 },
-      { [field]: -1, deployTimestamp: -1 }
-    ])
-  ],
   alkane_tokens_v2: [
     [{ alkaneId: 1 }, { unique: true }],
     { initialised: 1, mintable: 1, mintedOut: 1, hasPremine: 1, deployTimestamp: 1 },

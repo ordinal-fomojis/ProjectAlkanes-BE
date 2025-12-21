@@ -5,7 +5,7 @@ import { MOCK_BTC } from '../config/env-vars.js'
 import { database } from '../database/database.js'
 import { AuthenticatedRequest, authenticateJWT } from '../middleware/auth.js'
 import { requireReferral } from '../middleware/referralGate.js'
-import { AlkaneTokenV2Service } from '../services/AlkaneTokenService.js'
+import { AlkaneTokenService } from '../services/AlkaneTokenService.js'
 import { MintTransactionService } from '../services/MintTransactionService.js'
 import { PointsService } from '../services/PointsService.js'
 import { ArchivedTransactionService } from '../services/TransactionArchiveService.js'
@@ -205,7 +205,7 @@ router.post('/', authenticateJWT, requireReferral, async (req: AuthenticatedRequ
 })
 
 async function validateAlkaneToken(alkaneId: string, mintCount: number) {
-  const alkanesService = new AlkaneTokenV2Service()
+  const alkanesService = new AlkaneTokenService()
   const alkane = await alkanesService.getAlkaneById(alkaneId)
   if (alkane === null) {
     throw new UserError('Alkane token not found').withStatus(404)

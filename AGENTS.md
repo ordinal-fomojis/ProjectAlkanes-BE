@@ -62,6 +62,8 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
   - Do this instead: `function foo({ w, x, y, z }: FooArgs) { ... }`
 - For root level functions, prefer the `function` keyword instead of arrow functions. Arrow functions are fine if defining them inside another function, or passing them as argument to something
 - Don't overuse comments. Aim to write self documenting code (i.e. write code so it is clear what it does without the need for comments). Only use comments where it is not clear what the code does or why it is needed
+- Keep top level code to a minimum. This ensures that importing a file does not have side effects, and makes it easier to mock dependencies in tests. Examples of acceptable top level code include import statements, any definition (constant, schema, class, function), and simple initialisation code (e.g. creating a tracer for OpenTelemetry). Defining constants/schemas at the top level is typically preferred, to avoid redefining them each time a function is called
+- Avoid deep nesting of code. If you find yourself nesting more than 2 or 3 levels deep, consider refactoring the code into smaller functions, or using early returns to reduce nesting
 
 ### Naming Guidelines
 - Classes: PascalCase
@@ -224,7 +226,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
       await database.getDb().collection(DatabaseCollection.Users).deleteMany({})
     })
     ```
-- All tests have the following global setup, so do not add additional beforeEach blocks to reset mocks
+- All tests have the following global setup defined in `setup.ts`. Do not repeat these in individual test files (including `mockReset()`/`mockClear()`/`vi.resetAllMocks()` in per-file `beforeEach`), unless there’s a specific reason.
   ```ts
   beforeEach(() => {
     vi.resetAllMocks()
@@ -236,6 +238,11 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
     vi.useRealTimers()
   })
   ```
+
+### Vitest mocking preference
+- Prefer `vi.mock("path/to/module.js")` (auto-mock) over a mock factory.
+- Use a mock factory `(vi.mock("…", () => …))` only when you need to override specific exports/behaviour, or when the real module can’t be imported safely in tests.
+- Auto-mocking is preferred because it keeps mock exports in sync with the module shape, so tests fail noisily when the module API changes.
 
 ## Final guidance for agents
 - Prefer the documented commands and order above. Only search the repo if something here fails or appears out-of-date
