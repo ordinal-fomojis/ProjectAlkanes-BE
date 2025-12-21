@@ -16,6 +16,7 @@ describe("getAlkaneBalances", () => {
         name: "A",
         symbol: "A",
         divisibility: 2,
+        logo: "http://example.com/logoA.png",
         amount: "1000",
       },
       {
@@ -23,6 +24,7 @@ describe("getAlkaneBalances", () => {
         name: "B",
         symbol: "B",
         divisibility: 0,
+        logo: "http://example.com/logoB.png",
         amount: "5",
       },
     ])
@@ -36,8 +38,8 @@ describe("getAlkaneBalances", () => {
     )
 
     expect(result).toEqual([
-      { id: "2:1", name: "A", symbol: "A", balance: "10" },
-      { id: "2:2", name: "B", symbol: "B", balance: "5" },
+      { id: "2:1", name: "A", symbol: "A", balance: "10", logoUrl: "http://example.com/logoA.png" },
+      { id: "2:2", name: "B", symbol: "B", balance: "5", logoUrl: "http://example.com/logoB.png" },
     ])
   })
 })
@@ -92,17 +94,17 @@ describe("getPortfolio", () => {
     const address = randomAddress()
 
     vi.spyOn(service, "getAlkaneBalances").mockResolvedValueOnce([
-      { id: "2:1", name: "A", symbol: "A", balance: "1" },
+      { id: "2:1", name: "A", symbol: "A", balance: "1", logoUrl: "http://example.com/logoA.png" },
     ])
     vi.spyOn(service, "getBrc20Balances").mockResolvedValueOnce([
-      { id: "2:2", name: "B", symbol: "B", balance: "2" },
+      { id: "B", name: "B", symbol: "B", balance: "2" },
     ])
 
     const result = await service.getPortfolio(address)
 
     expect(result).toEqual({
-      alkanes: [{ id: "2:1", name: "A", symbol: "A", balance: "1" }],
-      brc20: [{ id: "2:2", name: "B", symbol: "B", balance: "2" }],
+      alkanes: [{ id: "2:1", name: "A", symbol: "A", balance: "1", logoUrl: "http://example.com/logoA.png" }],
+      brc20: [{ id: "B", name: "B", symbol: "B", balance: "2" }],
     })
   })
 })
