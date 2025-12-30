@@ -31,7 +31,7 @@
   "license": "ISC",
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
-    "@dotenvx/dotenvx": "^1.51.2",
+    "@dotenvx/dotenvx": "^1.51.4",
     "@opentelemetry/auto-instrumentations-node": "^0.67.3",
     "@opentelemetry/sdk-node": "^0.208.0",
     "bip322-js": "^3.0.0",
@@ -67,7 +67,7 @@
     "seedrandom": "^3.0.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.1",
+    "typescript-eslint": "^8.51.0",
     "vitest": "^4.0.3",
     "vitest-fetch-mock": "^0.4.5"
   }
