@@ -51,7 +51,7 @@ jobs:
         run: |
           terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
           echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-        working-directory: terraform
+        working-directory: terraform/terraform
 
       - name: ACR Login
         run: az acr login --name ${{ steps.acr-details.outputs.acr_name }}

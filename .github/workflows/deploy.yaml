@@ -76,7 +76,7 @@ jobs:
         echo "webapp_prod_name=$(echo $webapp_name | jq -r '."prod"')" >> $GITHUB_OUTPUT
         echo "webapp_dev_name=$(echo $webapp_name | jq -r '."dev"')" >> $GITHUB_OUTPUT
         echo "webapp_mock_name=$(echo $webapp_name | jq -r '."mock"')" >> $GITHUB_OUTPUT
-      working-directory: terraform
+      working-directory: terraform/terraform
 
     - name: Clean Up Terraform
       run: |
