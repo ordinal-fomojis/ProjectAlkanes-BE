@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       id:
-        description: 'Id of the IaC deployment. Leave blank for the default prod deployment'
-        default: ''
+        description: "Id of the IaC deployment. Leave blank for the default prod deployment"
+        default: ""
         type: string
       env:
-        description: 'Deployment environment'
-        default: 'nonprod'
+        description: "Deployment environment"
+        default: "nonprod"
         type: choice
         options:
           - nonprod
@@ -17,7 +17,7 @@ on:
 permissions:
   id-token: write
   contents: read
-  
+
 env:
   ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -26,7 +26,7 @@ env:
 
 jobs:
   build-docker-image:
-    name: 'Build Docker Image'
+    name: "Build Docker Image"
     runs-on: ubuntu-latest
     environment: ${{ inputs.id == '' && 'prod' || 'nonprod' }}
     steps:
@@ -39,7 +39,14 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      
+
+      - name: Checkout Terraform
+        uses: actions/checkout@v3
+        with:
+          repository: "ordinal-fomojis/ProjectAlkanes-IAC"
+          path: "terraform"
+          token: ${{ secrets.ALKANES_IAC_PAT }}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
