@@ -100,7 +100,7 @@ Runner uses Node 22.x with npm cache. Any PR must pass these in this order. Mirr
 - Environment variables are stored in the `env` folder, with one `.env.*` file for each environment. These are checked into git
 - Sensitive environment variables are encrypted using `@dotenvx/dotenvx`
 - Non-sensitive environment variables should not be encrypted, so we can track changes to them via version control
-- Environment variables are loaded in `env/env.ts`. They are loaded based on the value of `NODE_ENV`
+- Environment variables are loaded in `config/env.ts`. They are loaded based on the value of `NODE_ENV`
   - `NODE_ENV='test'` (i.e. when running tests via Vitest): Loads `.env.sample`, which contains dummy/default values
   - `NODE_ENV='development'` or `NODE_ENV='production'`: Loads the file specified by the `DOTENV_PATH` environment variable. If `DOTENV_PATH` is not set, it loads `.env`. This file is not checked in to git, and is the developer's local environment configuration. `DOTENV_PATH` is always set in a deployed environment, and in local environments, it is typically not set
 - `NODE_ENV` is NOT used to differentiate prod and non-prod environments (this is what `APP_ENV` is for). Instead it is used to differentiate from local development, and a deployed instance. This is exported via the strongly typed variable `ENV`

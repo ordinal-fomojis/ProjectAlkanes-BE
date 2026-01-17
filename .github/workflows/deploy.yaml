@@ -27,7 +27,7 @@ env:
   ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-  TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || 'shovel-${{ inputs.id }}.tfstate' }}
+  TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
 
 jobs:
   build-and-deploy:

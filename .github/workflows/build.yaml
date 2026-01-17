@@ -1,0 +1,69 @@
+name: Build
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Id of the IaC deployment. Leave blank for the default prod deployment'
+        default: ''
+        type: string
+      env:
+        description: 'Deployment environment'
+        default: 'nonprod'
+        type: choice
+        options:
+          - nonprod
+          - prod
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+  
+env:
+  ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
+
+jobs:
+  deploy-application:
+    name: 'Build Docker Image'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.id == '' && 'prod' || 'nonprod' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Get ACR Details
+        id: acr-details
+        run: |
+          terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
+          echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
+        working-directory: terraform
+
+      - name: ACR Login
+        run: az acr login --name ${{ steps.acr-details.outputs.acr_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.acr-details.outputs.acr_name }}.azurecr.io/shovel-be:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
