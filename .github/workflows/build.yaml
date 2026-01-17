@@ -25,7 +25,7 @@ env:
   TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
 
 jobs:
-  deploy-application:
+  build-docker-image:
     name: 'Build Docker Image'
     runs-on: ubuntu-latest
     environment: ${{ inputs.id == '' && 'prod' || 'nonprod' }}
