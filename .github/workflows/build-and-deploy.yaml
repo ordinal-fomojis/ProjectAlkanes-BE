@@ -1,4 +1,4 @@
-name: Build
+name: Build and Deploy
 on:
   workflow_dispatch:
     inputs:
@@ -26,8 +26,8 @@ env:
   TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
 
 jobs:
-  build-docker-image:
-    name: "Build Docker Image"
+  build-and-deploy:
+    name: "Build and Deploy Docker Image"
     runs-on: ubuntu-latest
     environment: ${{ inputs.id == '' && 'prod' || 'nonprod' }}
     steps:
