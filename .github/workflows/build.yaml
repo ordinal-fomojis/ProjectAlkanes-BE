@@ -74,9 +74,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Print initial values.yaml
-        run: cat iac/kubernetes/shovel-be/values.yaml
-
       - name: Update Image tags
         run: |
           pip install -r .github/scripts/update-image.tag/requirements.txt
@@ -85,5 +82,17 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           ENVIRONMENTS: ${{ inputs.env == 'prod' && 'staging' || 'mock,testnet,dev' }}
 
-      - name: Print updated values.yaml
-        run: cat iac/kubernetes/shovel-be/values.yaml
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        id : create_pr
+        with:
+          token: ${{ secrets.ALKANES_IAC_PAT }}
+          commit-message: Update tag to ${{ github.sha }} in ${{ inputs.env }}
+          branch: update-shovel-be-image-tag-${{ github.sha }}
+          title: Update tag to ${{ github.sha }} in ${{ inputs.env }}
+          base: main
+
+      - name: Enable Pull Request Automerge
+        run: gh pr merge --merge --auto "${{ steps.create_pr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.ALKANES_IAC_PAT }}
