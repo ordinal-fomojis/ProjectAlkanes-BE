@@ -40,11 +40,11 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Checkout Terraform
+      - name: Checkout IaC Repository
         uses: actions/checkout@v3
         with:
           repository: "ordinal-fomojis/ProjectAlkanes-IAC"
-          path: "terraform"
+          path: "iac"
           token: ${{ secrets.ALKANES_IAC_PAT }}
 
       - name: Setup Terraform
@@ -57,7 +57,7 @@ jobs:
         run: |
           terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
           echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-        working-directory: terraform/terraform
+        working-directory: iac/terraform
 
       - name: ACR Login
         run: az acr login --name ${{ steps.acr-details.outputs.acr_name }}
@@ -73,3 +73,17 @@ jobs:
           tags: ${{ steps.acr-details.outputs.acr_name }}.azurecr.io/shovel-be:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Print initial values.yaml
+        run: cat iac/kubernetes/shovel-be/values.yaml
+
+      - name: Update Image tags
+        run: |
+          pip install -r .github/scripts/update-image.tag/requirements.txt
+          python .github/scripts/update-image.tag/main.py
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ENVIRONMENTS: ${{ inputs.env == 'prod' && 'staging' || 'mock,testnet,dev' }}
+
+      - name: Print updated values.yaml
+        run: cat iac/kubernetes/shovel-be/values.yaml
