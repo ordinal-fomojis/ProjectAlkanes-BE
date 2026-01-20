@@ -1,4 +1,4 @@
-name: Build
+name: Build and Deploy
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +12,7 @@ on:
         type: choice
         options:
           - nonprod
+          - stage
           - prod
 
 permissions:
@@ -25,8 +26,8 @@ env:
   TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
 
 jobs:
-  build-docker-image:
-    name: "Build Docker Image"
+  build-and-deploy:
+    name: "Build and Deploy Docker Image"
     runs-on: ubuntu-latest
     environment: ${{ inputs.id == '' && 'prod' || 'nonprod' }}
     steps:
@@ -40,11 +41,11 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Checkout Terraform
+      - name: Checkout IaC Repository
         uses: actions/checkout@v3
         with:
           repository: "ordinal-fomojis/ProjectAlkanes-IAC"
-          path: "terraform"
+          path: "iac"
           token: ${{ secrets.ALKANES_IAC_PAT }}
 
       - name: Setup Terraform
@@ -57,7 +58,7 @@ jobs:
         run: |
           terraform init -backend-config="key=${{ env.TFSTATE_FILE }}"
           echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-        working-directory: terraform/terraform
+        working-directory: iac/terraform
 
       - name: ACR Login
         run: az acr login --name ${{ steps.acr-details.outputs.acr_name }}
@@ -73,3 +74,28 @@ jobs:
           tags: ${{ steps.acr-details.outputs.acr_name }}.azurecr.io/shovel-be:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update Image tags
+        run: |
+          pip install -r .github/scripts/update-image.tag/requirements.txt
+          python .github/scripts/update-image.tag/main.py
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ENVIRONMENT: ${{ inputs.env }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        id : create_pr
+        with:
+          token: ${{ secrets.ALKANES_IAC_PAT }}
+          commit-message: "Update ${{ inputs.env }} deployment: ${{ github.sha }}"
+          branch: deployment-${{ github.sha }}
+          title: "Update ${{ inputs.env }} deployment: ${{ github.sha }}"
+          base: main
+          path: iac
+
+      - name: Enable Pull Request Automerge
+        run: gh pr merge --auto --squash "${{ steps.create_pr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.ALKANES_IAC_PAT }}
+        working-directory: iac

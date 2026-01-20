@@ -1,0 +1,32 @@
+import os
+
+from ruamel.yaml import YAML
+
+FILE_PATH = 'iac/kubernetes/shovel-be/values.yaml'
+IMAGE_TAG = os.getenv('IMAGE_TAG')
+INPUT_ENVIRONMENT = os.getenv('ENVIRONMENT')
+
+NONPROD_ENVIRONMENTS = ['mock', 'testnet', 'dev']
+STAGE_ENVIRONMENTS = NONPROD_ENVIRONMENTS + ['stage']
+PROD_ENVIRONMENTS = STAGE_ENVIRONMENTS + ['prod']
+
+ENVIRONMENTS = {
+  'prod': PROD_ENVIRONMENTS,
+  'stage': STAGE_ENVIRONMENTS,
+  'nonprod': NONPROD_ENVIRONMENTS,
+}[INPUT_ENVIRONMENT]
+
+def main():
+  yaml=YAML(typ='rt')
+  with open(FILE_PATH, 'r') as f:
+    values = yaml.load(f)
+
+  for env_name in ENVIRONMENTS:
+    environment = next(env for env in values['environments'] if env['name'] == env_name)
+    environment['tag'] = IMAGE_TAG
+
+  with open(FILE_PATH, 'w') as f:
+    yaml.dump(values, f)
+
+if __name__ == '__main__':
+  main()
