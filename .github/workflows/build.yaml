@@ -12,6 +12,7 @@ on:
         type: choice
         options:
           - nonprod
+          - stage
           - prod
 
 permissions:
@@ -80,7 +81,7 @@ jobs:
           python .github/scripts/update-image.tag/main.py
         env:
           IMAGE_TAG: ${{ github.sha }}
-          ENVIRONMENTS: ${{ inputs.env == 'prod' && 'staging' || 'mock,testnet,dev' }}
+          ENVIRONMENT: ${{ inputs.env }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8

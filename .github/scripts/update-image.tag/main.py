@@ -4,7 +4,17 @@ import yaml
 
 FILE_PATH = 'iac/kubernetes/shovel-be/values.yaml'
 IMAGE_TAG = os.getenv('IMAGE_TAG')
-ENVIRONMENTS = os.getenv('ENVIRONMENTS').split(',')
+INPUT_ENVIRONMENT = os.getenv('ENVIRONMENT')
+
+NONPROD_ENVIRONMENTS = ['mock', 'testnet', 'dev']
+STAGE_ENVIRONMENTS = NONPROD_ENVIRONMENTS + ['stage']
+PROD_ENVIRONMENTS = STAGE_ENVIRONMENTS + ['prod']
+
+ENVIRONMENTS = {
+  'prod': PROD_ENVIRONMENTS,
+  'stage': STAGE_ENVIRONMENTS,
+  'nonprod': NONPROD_ENVIRONMENTS,
+}[INPUT_ENVIRONMENT]
 
 def main():
   with open(FILE_PATH, 'r') as f:
