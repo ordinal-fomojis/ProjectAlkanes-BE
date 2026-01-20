@@ -94,7 +94,7 @@ jobs:
           path: iac
 
       - name: Enable Pull Request Automerge
-        run: gh pr merge --merge --auto --squash "${{ steps.create_pr.outputs.pull-request-number }}"
+        run: gh pr merge --auto --squash "${{ steps.create_pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.ALKANES_IAC_PAT }}
         working-directory: iac
