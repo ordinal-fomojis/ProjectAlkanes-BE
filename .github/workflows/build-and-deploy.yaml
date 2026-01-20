@@ -77,15 +77,15 @@ jobs:
 
       - name: Update Image tags
         run: |
-          pip install -r .github/scripts/update-image.tag/requirements.txt
-          python .github/scripts/update-image.tag/main.py
+          pip install -r .github/scripts/update-image-tag/requirements.txt
+          python .github/scripts/update-image-tag/main.py
         env:
           IMAGE_TAG: ${{ github.sha }}
           ENVIRONMENT: ${{ inputs.env }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
-        id : create_pr
+        id: create_pr
         with:
           token: ${{ secrets.ALKANES_IAC_PAT }}
           commit-message: "Update ${{ inputs.env }} deployment: ${{ github.sha }}"
