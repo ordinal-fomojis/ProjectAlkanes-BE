@@ -36,7 +36,7 @@
     "@opentelemetry/sdk-node": "^0.211.0",
     "bip322-js": "^3.0.0",
     "bitcoinjs-lib": "^7.0.1",
-    "cbor2": "^2.1.2",
+    "cbor2": "^2.2.1",
     "cors": "^2.8.6",
     "ecpair": "^3.0.0",
     "express": "^5.2.1",
@@ -67,7 +67,7 @@
     "seedrandom": "^3.0.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1",
+    "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.3",
     "vitest-fetch-mock": "^0.4.5"
   }
