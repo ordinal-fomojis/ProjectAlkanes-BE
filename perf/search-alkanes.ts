@@ -15,9 +15,9 @@ const totalResponses = new Counter('total_responses')
 const responsesTrend = new Trend('responses')
 
 export default function () {
-  const searchParams = createRandomSearchParams()
+  const params = createRandomSearchParams()
 
-  const url = `${baseUrl}/alkane/token?${searchParams.toString()}`
+  const url = `${baseUrl}/alkane/token?${params.toString()}`
   const res = http.get(url)
 
   if (res.status === 200 && res.json('success') === true) {
