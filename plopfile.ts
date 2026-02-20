@@ -41,7 +41,7 @@ export default function (plop: NodePlopAPI) {
         const privateKey = (await client.getSecret(secretName)).value
 
         const nonprodEnvs = environments.filter(env => env !== 'prod')
-        let message = ''
+        let message
         if (existsSync(keyFilePath)) {
           let content = await readFile(keyFilePath, 'utf-8')
           for (const env of nonprodEnvs) {

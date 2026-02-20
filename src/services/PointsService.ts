@@ -43,7 +43,7 @@ export class PointsService extends BaseService<IUser> {
       return result.modifiedCount > 0;
     } catch (error) {
       console.error('Error adding points:', error);
-      throw new Error('Failed to add points');
+      throw new Error('Failed to add points', { cause: error });
     }
   }
 
@@ -103,7 +103,7 @@ export class PointsService extends BaseService<IUser> {
       };
     } catch (error) {
       console.error('Error adding referral points:', error);
-      throw new Error('Failed to add referral points');
+      throw new Error('Failed to add referral points', { cause: error });
     }
   }
 
@@ -173,7 +173,7 @@ export class PointsService extends BaseService<IUser> {
       };
     } catch (error) {
       console.error('Error awarding mint points:', error);
-      throw new Error('Failed to award mint points');
+      throw new Error('Failed to award mint points', { cause: error });
     }
   }
 
@@ -207,7 +207,7 @@ export class PointsService extends BaseService<IUser> {
       return result.modifiedCount > 0;
     } catch (error) {
       console.error('Error adding fixed referral points:', error);
-      throw new Error('Failed to add fixed referral points');
+      throw new Error('Failed to add fixed referral points', { cause: error });
     }
   }
 
@@ -223,7 +223,7 @@ export class PointsService extends BaseService<IUser> {
       return user?.points || 0;
     } catch (error) {
       console.error('Error getting points balance:', error);
-      throw new Error('Failed to get points balance');
+      throw new Error('Failed to get points balance', { cause: error });
     }
   }
 
@@ -298,7 +298,7 @@ export class PointsService extends BaseService<IUser> {
       }
     } catch (error) {
       console.error('Error awarding referral points:', error);
-      throw new Error('Failed to award referral points');
+      throw new Error('Failed to award referral points', { cause: error });
     }
   }
 } 

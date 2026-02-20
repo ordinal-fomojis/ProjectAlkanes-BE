@@ -52,7 +52,7 @@ export class TransactionConfirmationService {
     } catch (error) {
       // If the transaction is not found or there's an error, we consider it unconfirmed
       console.error(`Error checking transaction confirmation for ${txid}:`, error);
-      throw new Error(`Failed to check transaction confirmation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to check transaction confirmation: ${error instanceof Error ? error.message : 'Unknown error'}`, { cause: error });
     }
   }
 } 

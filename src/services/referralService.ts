@@ -74,7 +74,7 @@ export class ReferralService extends BaseService<IUser> {
       };
     } catch (error) {
       console.error('Error getting referral info:', error);
-      throw new Error('Failed to get referral information');
+      throw new Error('Failed to get referral information', { cause: error });
     }
   }
 
@@ -121,7 +121,7 @@ export class ReferralService extends BaseService<IUser> {
       return { success: true, message };
     } catch (error) {
       console.error('Error creating custom referral link:', error);
-      throw new Error('Failed to create custom referral link');
+      throw new Error('Failed to create custom referral link', { cause: error });
     }
   }
 
@@ -188,7 +188,7 @@ export class ReferralService extends BaseService<IUser> {
       return { success: true, message: 'Referral code applied successfully' };
     } catch (error) {
       console.error('Error entering referral code:', error);
-      throw new Error('Failed to process referral code');
+      throw new Error('Failed to process referral code'), { cause: error };
     }
   }
 } 
