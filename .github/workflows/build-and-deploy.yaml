@@ -1,5 +1,8 @@
 name: Build and Deploy
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       id:
@@ -24,6 +27,7 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   TFSTATE_FILE: ${{ inputs.id == '' && 'shovel.tfstate' || format('shovel-{0}.tfstate', inputs.id) }}
+  DEPLOY_ENV: ${{ inputs.env || 'nonprod' }}
 
 jobs:
   build-and-deploy:
@@ -81,16 +85,16 @@ jobs:
           python .github/scripts/update-image-tag/main.py
         env:
           IMAGE_TAG: ${{ github.sha }}
-          ENVIRONMENT: ${{ inputs.env }}
+          ENVIRONMENT: ${{ env.DEPLOY_ENV }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         id: create_pr
         with:
           token: ${{ secrets.ALKANES_IAC_PAT }}
-          commit-message: "Update ${{ inputs.env }} deployment: ${{ github.sha }}"
+          commit-message: "Update ${{ env.DEPLOY_ENV }} deployment: ${{ github.sha }}"
           branch: deployment-${{ github.sha }}
-          title: "Update ${{ inputs.env }} deployment: ${{ github.sha }}"
+          title: "Update ${{ env.DEPLOY_ENV }} deployment: ${{ github.sha }}"
           base: main
           path: iac
 
