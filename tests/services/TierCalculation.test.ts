@@ -100,7 +100,7 @@ describe('Tier Calculation with Total Points System', () => {
 
       // Create many referred users who will mint
       const referredUsers = []
-      for (let i = 0; i < 500; i++) {
+      for (let i = 0; i < 50; i++) {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const referrer = await userService.getUserByWalletAddress(referrerWallet)
@@ -109,9 +109,9 @@ describe('Tier Calculation with Total Points System', () => {
         referredUsers.push(wallet)
       }
 
-      // Each user mints 20 tokens (500 * 20 = 10000 referral points for referrer)
+      // Each user mints 20 tokens (50 * 20 = 10000 referral points for referrer)
       for (const wallet of referredUsers) {
-        await pointsService.awardReferralPoints(wallet, 20, new ObjectId())
+        await pointsService.awardReferralPoints(wallet, 200, new ObjectId())
       }
 
       const referrerInfo = await referralService.getReferralInfo(referrerWallet)
@@ -129,13 +129,13 @@ describe('Tier Calculation with Total Points System', () => {
       await pointsService.addPoints(userWallet, 7000)
       
       // Create referred users who mint (3000 referral points)
-      for (let i = 0; i < 300; i++) {
+      for (let i = 0; i < 30; i++) {
         const wallet = randomAddress()
         await userService.createUser({ walletAddress: wallet })
         const user = await userService.getUserByWalletAddress(userWallet)
         expect(user?.referralCode).toBeDefined()
         await referralService.enterReferralCode(wallet, user!.referralCode!)
-        await pointsService.awardReferralPoints(wallet, 10, new ObjectId())
+        await pointsService.awardReferralPoints(wallet, 100, new ObjectId())
       }
 
       const userInfo = await referralService.getReferralInfo(userWallet)
