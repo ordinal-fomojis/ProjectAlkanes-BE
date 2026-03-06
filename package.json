@@ -37,7 +37,7 @@
     "cors": "^2.8.6",
     "ecpair": "^3.0.1",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "helmet": "^8.1.0",
     "jiti": "^2.6.1",
     "joi": "^18.0.2",
